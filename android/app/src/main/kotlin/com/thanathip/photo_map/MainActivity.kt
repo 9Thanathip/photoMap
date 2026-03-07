@@ -1,4 +1,4 @@
-package com.example.photo_map
+package com.thanathip.photo_map
 
 import io.flutter.embedding.android.FlutterActivity
 
