@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/features/province/data/province_data.dart';
+import 'package:photo_map/core/services/geo_service.dart';
 
 class PhotoItem {
   const PhotoItem({
@@ -141,6 +142,8 @@ final galleryStateProvider =
 });
 
 class GalleryNotifier extends StateNotifier<GalleryState> {
+  final GeoService _geoService = GeoService();
+
   GalleryNotifier()
       : super(const GalleryState(
           allPhotos: [],
@@ -150,7 +153,12 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
           isGeocoding: false,
           error: null,
         )) {
-    Future.delayed(const Duration(milliseconds: 300), _loadAll);
+    _initAndLoad();
+  }
+
+  Future<void> _initAndLoad() async {
+    await _geoService.initialize();
+    await _loadAll();
   }
 
   Future<void> _loadAll() async {
@@ -250,6 +258,26 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
     final resolved = <String, ({String country, String province})>{};
     for (final entry in pending.entries) {
+      // 1. Try Offline GeoJSON Lookup FIRST (Physical Boundary matching is 100% accurate)
+      final geoProvince = _geoService.getProvince(entry.value.lat, entry.value.lng);
+      
+      if (geoProvince != null) {
+        String provinceName = geoProvince; 
+        for (final p in thaiProvinces) {
+          if (p.name.replaceAll(RegExp(r'[\s-]'), '').toLowerCase() == geoProvince) {
+            provinceName = p.name;
+            break;
+          }
+        }
+
+        resolved[entry.key] = (
+          country: 'Thailand',
+          province: provinceName,
+        );
+        continue; // Found province boundary, skip internet geocoding
+      }
+
+      // 2. Fallback to Internet Geocoding for countries outside Thailand or missed boundaries
       try {
         final placemarks = await placemarkFromCoordinates(
           entry.value.lat,
