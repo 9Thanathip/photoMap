@@ -14,6 +14,9 @@ class ProvinceShape {
 class ThailandMapPainter extends CustomPainter {
   final List<ProvinceShape> provinces;
   final Map<String, ui.Image?> provincePhotos;
+  final Map<String, DateTime> imageLoadTimes;
+  final DateTime currentTime;
+  final DateTime openTime;
   final String? selectedProvince;
   final Color baseColor;
   final Color strokeColor;
@@ -21,6 +24,9 @@ class ThailandMapPainter extends CustomPainter {
   ThailandMapPainter({
     required this.provinces,
     required this.provincePhotos,
+    required this.imageLoadTimes,
+    required this.currentTime,
+    required this.openTime,
     this.selectedProvince,
     this.baseColor = const Color(0xFFE0E0E0),
     this.strokeColor = Colors.white,
@@ -38,7 +44,7 @@ class ThailandMapPainter extends CustomPainter {
 
     final scaleX = size.width / totalBounds.width;
     final scaleY = size.height / totalBounds.height;
-    final scale = scaleX < scaleY ? scaleX : scaleY;
+    final scale = (scaleX < scaleY ? scaleX : scaleY) * 0.95;
 
     final offsetX = (size.width - totalBounds.width * scale) / 2 - totalBounds.left * scale;
     final offsetY = (size.height - totalBounds.height * scale) / 2 - totalBounds.top * scale;
@@ -46,6 +52,21 @@ class ThailandMapPainter extends CustomPainter {
     canvas.save();
     canvas.translate(offsetX, offsetY);
     canvas.scale(scale);
+
+    // 1. Draw One Unified Drop Shadow for all provinces
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.25)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5.0);
+    
+    final combinedPath = Path();
+    for (var province in provinces) {
+      combinedPath.addPath(province.path, Offset.zero);
+    }
+    // Draw shadow slightly offset (3 logical pixels down-right) for visible effect
+    canvas.save();
+    canvas.translate(3.0 / scale, 3.0 / scale);
+    canvas.drawPath(combinedPath, shadowPaint);
+    canvas.restore();
 
     final fillPaint = Paint()..style = ui.PaintingStyle.fill;
     final strokePaint = Paint()
@@ -61,7 +82,17 @@ class ThailandMapPainter extends CustomPainter {
         canvas.save();
         canvas.clipPath(province.path);
         
-        // Draw image clipped to province path
+        // Use the later of (when image loaded) or (when screen opened)
+        final imageLoadTime = imageLoadTimes[province.name] ?? openTime;
+        final animStartTime = imageLoadTime.isAfter(openTime) ? imageLoadTime : openTime;
+        
+        final diff = currentTime.difference(animStartTime).inMilliseconds;
+        final opacity = (diff / 750).clamp(0.0, 1.0); // Faster 750ms fade
+
+        final imagePaint = Paint()
+          ..filterQuality = ui.FilterQuality.medium
+          ..color = Colors.white.withOpacity(opacity);
+        
         final imgSize = Size(image.width.toDouble(), image.height.toDouble());
         final provinceRect = province.bounds;
         
@@ -69,7 +100,7 @@ class ThailandMapPainter extends CustomPainter {
         final inputRect = Alignment.center.inscribe(fittedSize.source, Offset.zero & imgSize);
         final outputRect = Alignment.center.inscribe(fittedSize.destination, provinceRect);
         
-        canvas.drawImageRect(image, inputRect, outputRect, Paint());
+        canvas.drawImageRect(image, inputRect, outputRect, imagePaint);
         canvas.restore();
       } else {
         fillPaint.color = isSelected ? Colors.blue.withOpacity(0.3) : baseColor;
@@ -86,7 +117,9 @@ class ThailandMapPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant ThailandMapPainter oldDelegate) {
     return oldDelegate.provincePhotos != provincePhotos || 
-           oldDelegate.selectedProvince != selectedProvince;
+           oldDelegate.selectedProvince != selectedProvince ||
+           oldDelegate.currentTime != currentTime ||
+           oldDelegate.openTime != openTime;
   }
 }
 

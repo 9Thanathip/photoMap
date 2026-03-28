@@ -1,13 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/map_provider.dart';
 import '../widgets/thailand_map_painter.dart';
 
-class MapScreen extends ConsumerWidget {
+class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends ConsumerState<MapScreen>
+    with SingleTickerProviderStateMixin {
+  late final Ticker _ticker;
+  DateTime _currentTime = DateTime.now();
+  late final DateTime _openTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _openTime = DateTime.now();
+    _ticker = createTicker((elapsed) {
+      setState(() {
+        _currentTime = DateTime.now();
+      });
+    });
+    _ticker.start();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(mapProvider);
 
     return Scaffold(
@@ -29,6 +58,9 @@ class MapScreen extends ConsumerWidget {
                   painter: ThailandMapPainter(
                     provinces: state.provinces,
                     provincePhotos: state.provincePhotos,
+                    imageLoadTimes: state.imageLoadTimes,
+                    currentTime: _currentTime,
+                    openTime: _openTime,
                     baseColor: const Color(0xFFF0F0F0),
                     strokeColor: Colors.white,
                   ),

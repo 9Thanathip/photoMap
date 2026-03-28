@@ -8,29 +8,32 @@ import '../widgets/thailand_map_painter.dart';
 class MapState {
   final List<ProvinceShape> provinces;
   final Map<String, ui.Image?> provincePhotos;
+  final Map<String, DateTime> imageLoadTimes; // Track when images were loaded
   final bool isLoading;
 
   MapState({
     required this.provinces,
     required this.provincePhotos,
+    required this.imageLoadTimes,
     required this.isLoading,
   });
 
   MapState copyWith({
     List<ProvinceShape>? provinces,
     Map<String, ui.Image?>? provincePhotos,
+    Map<String, DateTime>? imageLoadTimes,
     bool? isLoading,
   }) =>
       MapState(
         provinces: provinces ?? this.provinces,
         provincePhotos: provincePhotos ?? this.provincePhotos,
+        imageLoadTimes: imageLoadTimes ?? this.imageLoadTimes,
         isLoading: isLoading ?? this.isLoading,
       );
 }
 
 final mapProvider = StateNotifierProvider<MapNotifier, MapState>((ref) {
   final notifier = MapNotifier(ref);
-  // Trigger initial load
   notifier.loadMap();
   return notifier;
 });
@@ -39,7 +42,11 @@ class MapNotifier extends StateNotifier<MapState> {
   final Ref _ref;
 
   MapNotifier(this._ref)
-      : super(MapState(provinces: [], provincePhotos: {}, isLoading: true)) {
+      : super(MapState(
+            provinces: [], 
+            provincePhotos: {}, 
+            imageLoadTimes: {},
+            isLoading: true)) {
     _ref.listen(galleryStateProvider, (previous, next) {
       if (previous?.allPhotos != next.allPhotos) {
         _updateProvincePhotos();
@@ -59,6 +66,7 @@ class MapNotifier extends StateNotifier<MapState> {
   Future<void> _updateProvincePhotos() async {
     final photosByProvince = _ref.read(galleryStateProvider).allPhotos;
     final Map<String, ui.Image?> newPhotos = {};
+    final newLoadTimes = Map<String, DateTime>.from(state.imageLoadTimes);
     
     // Group photos by province
     final Map<String, AssetEntity> provinceSelectedPhotos = {};
@@ -73,28 +81,42 @@ class MapNotifier extends StateNotifier<MapState> {
     final List<Future<void>> futures = [];
     for (var entry in provinceSelectedPhotos.entries) {
       futures.add(() async {
+        final provinceName = entry.key;
         final entity = entry.value;
-        // Simple cache check by ID
+
+        // Cache hit
         if (_imageCache.containsKey(entity.id)) {
-          newPhotos[entry.key] = _imageCache[entity.id];
+          newPhotos[provinceName] = _imageCache[entity.id];
           return;
         }
 
         final img = await _loadUiImage(entity);
         if (img != null) {
           _imageCache[entity.id] = img;
-          newPhotos[entry.key] = img;
+          newPhotos[provinceName] = img;
         }
       }());
     }
 
     await Future.wait(futures);
-    state = state.copyWith(provincePhotos: newPhotos);
+    
+    // Captured AFTER loading so the fade starts exactly when they are rendered
+    final now = DateTime.now();
+    for (var provinceName in newPhotos.keys) {
+      if (!state.provincePhotos.containsKey(provinceName)) {
+        newLoadTimes[provinceName] = now;
+      }
+    }
+
+    state = state.copyWith(
+      provincePhotos: newPhotos,
+      imageLoadTimes: newLoadTimes,
+    );
   }
 
   Future<ui.Image?> _loadUiImage(AssetEntity entity) async {
-    // requesting small 200x200 thumbnails for map performance
-    final byteData = await entity.thumbnailDataWithSize(const ThumbnailSize(200, 200));
+    // Increased to 768 for "Normal Resolution" as requested
+    final byteData = await entity.thumbnailDataWithSize(const ThumbnailSize(768, 768));
     if (byteData == null) return null;
     
     final Completer<ui.Image> completer = Completer();
