@@ -1,66 +1,130 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class PhotoItem {
   const PhotoItem({
     required this.path,
+    required this.country,
     required this.province,
     required this.timestamp,
+    required this.lat,
+    required this.lng,
     this.assetEntity,
   });
 
   final String path;
+  final String country;
   final String province;
   final DateTime timestamp;
+  final double lat;
+  final double lng;
   final AssetEntity? assetEntity;
+
+  bool get hasLocation => lat != 0.0 || lng != 0.0;
+
+  PhotoItem copyWith({String? country, String? province}) => PhotoItem(
+        path: path,
+        country: country ?? this.country,
+        province: province ?? this.province,
+        timestamp: timestamp,
+        lat: lat,
+        lng: lng,
+        assetEntity: assetEntity,
+      );
 }
 
 class GalleryState {
   const GalleryState({
-    required this.photos,
+    required this.allPhotos,
+    required this.selectedCountry,
     required this.selectedProvince,
     required this.isLoading,
-    required this.isLoadingMore,
-    required this.hasMore,
+    required this.isGeocoding,
     required this.error,
   });
 
-  final Map<String, List<PhotoItem>> photos;
+  final List<PhotoItem> allPhotos;
+  final String selectedCountry;
   final String selectedProvince;
   final bool isLoading;
-  final bool isLoadingMore;
-  final bool hasMore;
+  final bool isGeocoding;
   final String? error;
 
   GalleryState copyWith({
-    Map<String, List<PhotoItem>>? photos,
+    List<PhotoItem>? allPhotos,
+    String? selectedCountry,
     String? selectedProvince,
     bool? isLoading,
-    bool? isLoadingMore,
-    bool? hasMore,
+    bool? isGeocoding,
     String? error,
   }) =>
       GalleryState(
-        photos: photos ?? this.photos,
+        allPhotos: allPhotos ?? this.allPhotos,
+        selectedCountry: selectedCountry ?? this.selectedCountry,
         selectedProvince: selectedProvince ?? this.selectedProvince,
         isLoading: isLoading ?? this.isLoading,
-        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-        hasMore: hasMore ?? this.hasMore,
+        isGeocoding: isGeocoding ?? this.isGeocoding,
         error: error,
       );
 
-  List<PhotoItem> getPhotosForProvince(String province) {
-    if (province == 'All') {
-      final allPhotos = <PhotoItem>[];
-      for (final provincePhotos in photos.values) {
-        allPhotos.addAll(provincePhotos);
-      }
-      return allPhotos;
-    }
-    return photos[province] ?? [];
+  /// Photos for current album drill-down selection.
+  List<PhotoItem> get filteredPhotos {
+    if (selectedCountry == 'All') return allPhotos;
+    final byCountry =
+        allPhotos.where((p) => p.country == selectedCountry);
+    if (selectedProvince == 'All') return byCountry.toList();
+    return byCountry.where((p) {
+      final prov = p.province.isEmpty ? 'Unknown' : p.province;
+      return prov == selectedProvince;
+    }).toList();
   }
 
-  List<String> getProvinces() => photos.keys.toList()..sort();
+  /// Unique countries present in loaded photos.
+  List<String> get availableCountries {
+    final set = <String>{};
+    for (final p in allPhotos) {
+      set.add(p.country.isEmpty ? 'Unknown' : p.country);
+    }
+    return set.toList()..sort();
+  }
+
+  /// Unique provinces for a given country.
+  List<String> availableProvinces(String country) {
+    final source = country == 'All'
+        ? allPhotos
+        : allPhotos.where((p) {
+            final c = p.country.isEmpty ? 'Unknown' : p.country;
+            return c == country;
+          }).toList();
+    final set = <String>{};
+    for (final p in source) {
+      set.add(p.province.isEmpty ? 'Unknown' : p.province);
+    }
+    return set.toList()..sort();
+  }
+
+  /// Photos grouped by country for album view.
+  Map<String, List<PhotoItem>> get photosByCountry {
+    final map = <String, List<PhotoItem>>{};
+    for (final p in allPhotos) {
+      final key = p.country.isEmpty ? 'Unknown' : p.country;
+      map.putIfAbsent(key, () => []).add(p);
+    }
+    return map;
+  }
+
+  /// Photos grouped by province for a given country.
+  Map<String, List<PhotoItem>> photosByProvince(String country) {
+    final map = <String, List<PhotoItem>>{};
+    for (final p in allPhotos) {
+      final c = p.country.isEmpty ? 'Unknown' : p.country;
+      if (c != country) continue;
+      final key = p.province.isEmpty ? 'Unknown' : p.province;
+      map.putIfAbsent(key, () => []).add(p);
+    }
+    return map;
+  }
 }
 
 final galleryStateProvider =
@@ -71,57 +135,30 @@ final galleryStateProvider =
 class GalleryNotifier extends StateNotifier<GalleryState> {
   GalleryNotifier()
       : super(const GalleryState(
-          photos: {},
+          allPhotos: [],
+          selectedCountry: 'All',
           selectedProvince: 'All',
           isLoading: false,
-          isLoadingMore: false,
-          hasMore: false,
+          isGeocoding: false,
           error: null,
         )) {
-    Future.delayed(const Duration(milliseconds: 300), _loadFirstPage);
+    Future.delayed(const Duration(milliseconds: 300), _loadAll);
   }
 
-  static const _pageSize = 100;
-  int _loadedCount = 0;
-  int _totalCount = 0;
-  AssetPathEntity? _album;
-
-  Future<void> _loadFirstPage() async {
+  Future<void> _loadAll() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final albums = await PhotoManager.getAssetPathList(onlyAll: true);
       if (albums.isEmpty) {
-        state = state.copyWith(isLoading: false, hasMore: false);
+        state = state.copyWith(isLoading: false);
         return;
       }
-
-      _album = albums.first;
-      _totalCount = await _album!.assetCountAsync;
-      _loadedCount = 0;
-
-      final end = _totalCount.clamp(0, _pageSize);
-      final assets = await _album!.getAssetListRange(start: 0, end: end);
-      _loadedCount = end;
-
-      final photos = <String, List<PhotoItem>>{};
-      for (final asset in assets) {
-        if (asset.type == AssetType.image) {
-          const province = 'All';
-          photos.putIfAbsent(province, () => []);
-          photos[province]!.add(PhotoItem(
-            path: asset.id,
-            province: province,
-            timestamp: asset.createDateTime,
-            assetEntity: asset,
-          ));
-        }
-      }
-
-      state = state.copyWith(
-        photos: photos,
-        isLoading: false,
-        hasMore: _loadedCount < _totalCount,
-      );
+      final album = albums.first;
+      final total = await album.assetCountAsync;
+      final assets = await album.getAssetListRange(start: 0, end: total);
+      final photos = _buildPhotoItems(assets);
+      state = state.copyWith(allPhotos: photos, isLoading: false);
+      _geocodePhotos(photos);
     } catch (e) {
       final msg = e.toString().contains('Permission')
           ? 'Photo permission denied. Please allow access in Settings.'
@@ -130,126 +167,120 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     }
   }
 
-  Future<void> loadMore() async {
-    if (state.isLoadingMore || !state.hasMore || _album == null) return;
-
-    state = state.copyWith(isLoadingMore: true);
-    try {
-      final start = _loadedCount;
-      final end = (_loadedCount + _pageSize).clamp(0, _totalCount);
-      final assets = await _album!.getAssetListRange(start: start, end: end);
-      _loadedCount = end;
-
-      final existing = Map<String, List<PhotoItem>>.from(state.photos);
-      for (final asset in assets) {
-        if (asset.type == AssetType.image) {
-          const province = 'All';
-          existing.putIfAbsent(province, () => []);
-          existing[province]!.add(PhotoItem(
-            path: asset.id,
-            province: province,
-            timestamp: asset.createDateTime,
-            assetEntity: asset,
-          ));
-        }
+  List<PhotoItem> _buildPhotoItems(List<AssetEntity> assets) {
+    final items = <PhotoItem>[];
+    for (final asset in assets) {
+      if (asset.type == AssetType.image) {
+        items.add(PhotoItem(
+          path: asset.id,
+          country: '',
+          province: '',
+          timestamp: asset.createDateTime,
+          lat: asset.latitude ?? 0.0,
+          lng: asset.longitude ?? 0.0,
+          assetEntity: asset,
+        ));
       }
-
-      state = state.copyWith(
-        photos: existing,
-        isLoadingMore: false,
-        hasMore: _loadedCount < _totalCount,
-      );
-    } catch (e) {
-      state = state.copyWith(isLoadingMore: false);
     }
+    return items;
   }
 
-  void selectProvince(String province) {
-    state = state.copyWith(selectedProvince: province);
+  Future<void> _geocodePhotos(List<PhotoItem> photos) async {
+    final pending = <String, ({double lat, double lng})>{};
+    for (final photo in photos) {
+      if (!photo.hasLocation) continue;
+      final key =
+          '${photo.lat.toStringAsFixed(2)}_${photo.lng.toStringAsFixed(2)}';
+      pending[key] = (lat: photo.lat, lng: photo.lng);
+    }
+    if (pending.isEmpty) return;
+
+    state = state.copyWith(isGeocoding: true);
+
+    final resolved = <String, ({String country, String province})>{};
+    for (final entry in pending.entries) {
+      try {
+        final placemarks = await placemarkFromCoordinates(
+          entry.value.lat,
+          entry.value.lng,
+        );
+        if (placemarks.isNotEmpty) {
+          final pm = placemarks.first;
+          resolved[entry.key] = (
+            country: pm.country ?? 'Unknown',
+            province: _cleanProvinceName(pm.administrativeArea ?? ''),
+          );
+        }
+        await Future.delayed(const Duration(milliseconds: 350));
+      } catch (_) {
+        resolved[entry.key] = (country: 'Unknown', province: '');
+      }
+    }
+
+    final updated = state.allPhotos.map((photo) {
+      if (!photo.hasLocation) {
+        return photo.country.isEmpty
+            ? photo.copyWith(country: 'Unknown')
+            : photo;
+      }
+      if (photo.country.isNotEmpty) return photo;
+      final key =
+          '${photo.lat.toStringAsFixed(2)}_${photo.lng.toStringAsFixed(2)}';
+      final loc = resolved[key];
+      if (loc == null) return photo;
+      return photo.copyWith(country: loc.country, province: loc.province);
+    }).toList();
+
+    state = state.copyWith(allPhotos: updated, isGeocoding: false);
   }
+
+  static String _cleanProvinceName(String raw) {
+    return raw
+        .replaceAll(RegExp(r'^จังหวัด\s*'), '')
+        .replaceAll(RegExp(r'\s*จังหวัด$'), '')
+        .replaceAll(RegExp(r'\s*Province$', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s*Prefecture$', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s*Oblast$', caseSensitive: false), '')
+        .trim();
+  }
+
+  void selectCountry(String country) =>
+      state = state.copyWith(selectedCountry: country, selectedProvince: 'All');
+
+  void selectProvince(String province) =>
+      state = state.copyWith(selectedProvince: province);
 
   void addPhoto(String path, String province) {
-    final existing = Map<String, List<PhotoItem>>.from(state.photos);
-    final list = List<PhotoItem>.from(existing[province] ?? []);
-    list.insert(
-      0,
-      PhotoItem(path: path, province: province, timestamp: DateTime.now()),
+    final country =
+        state.selectedCountry == 'All' ? 'Unknown' : state.selectedCountry;
+    final photo = PhotoItem(
+      path: path,
+      country: country,
+      province: province == 'All' ? '' : province,
+      timestamp: DateTime.now(),
+      lat: 0,
+      lng: 0,
     );
-    existing[province] = list;
-    state = state.copyWith(photos: existing);
+    state = state.copyWith(allPhotos: [photo, ...state.allPhotos]);
   }
 
-  void removePhoto(String province, int index) {
-    final existing = Map<String, List<PhotoItem>>.from(state.photos);
-
-    if (province == 'All') {
-      final allPhotos = <PhotoItem>[];
-      for (final p in existing.values) { allPhotos.addAll(p); }
-      if (index < 0 || index >= allPhotos.length) return;
-
-      final target = allPhotos[index];
-      for (final entry in existing.entries) {
-        final i = entry.value.indexWhere((p) => p.path == target.path);
-        if (i != -1) {
-          final list = List<PhotoItem>.from(entry.value)..removeAt(i);
-          existing[entry.key] = list;
-          break;
-        }
-      }
-    } else {
-      final list = List<PhotoItem>.from(existing[province] ?? []);
-      if (index >= 0 && index < list.length) {
-        list.removeAt(index);
-        existing[province] = list;
-      }
-    }
-
-    state = state.copyWith(photos: existing);
+  /// Remove photo by its unique path.
+  void removePhoto(String photoPath) {
+    state = state.copyWith(
+      allPhotos: state.allPhotos.where((p) => p.path != photoPath).toList(),
+    );
   }
 
-  void updatePhotoProvince(String oldProvince, int index, String newProvince) {
-    final existing = Map<String, List<PhotoItem>>.from(state.photos);
-
-    PhotoItem? photo;
-
-    if (oldProvince == 'All') {
-      final allPhotos = <PhotoItem>[];
-      for (final p in existing.values) { allPhotos.addAll(p); }
-      if (index < 0 || index >= allPhotos.length) return;
-      photo = allPhotos[index];
-
-      for (final entry in existing.entries) {
-        final i = entry.value.indexWhere((p) => p.path == photo!.path);
-        if (i != -1) {
-          final list = List<PhotoItem>.from(entry.value)..removeAt(i);
-          existing[entry.key] = list;
-          break;
-        }
-      }
-    } else {
-      final list = List<PhotoItem>.from(existing[oldProvince] ?? []);
-      if (index < 0 || index >= list.length) return;
-      photo = list[index];
-      list.removeAt(index);
-      existing[oldProvince] = list;
-    }
-
-    final newList = List<PhotoItem>.from(existing[newProvince] ?? []);
-    newList.add(PhotoItem(
-      path: photo.path,
-      province: newProvince,
-      timestamp: photo.timestamp,
-      assetEntity: photo.assetEntity,
-    ));
-    existing[newProvince] = newList;
-    state = state.copyWith(photos: existing);
+  /// Update country/province for a photo identified by its path.
+  void updatePhotoLocation(
+      String photoPath, String newCountry, String newProvince) {
+    state = state.copyWith(
+      allPhotos: state.allPhotos.map((p) {
+        if (p.path != photoPath) return p;
+        return p.copyWith(country: newCountry, province: newProvince);
+      }).toList(),
+    );
   }
 
-  void clearProvince(String province) {
-    final existing = Map<String, List<PhotoItem>>.from(state.photos)
-      ..remove(province);
-    state = state.copyWith(photos: existing);
-  }
-
-  Future<void> reloadPhotos() => _loadFirstPage();
+  Future<void> reloadPhotos() => _loadAll();
 }

@@ -1,3 +1,26 @@
+class Country {
+  const Country({required this.name, required this.flag});
+
+  final String name;
+  final String flag;
+}
+
+const List<Country> countries = [
+  Country(name: 'Thailand', flag: '🇹🇭'),
+  Country(name: 'Japan', flag: '🇯🇵'),
+  Country(name: 'South Korea', flag: '🇰🇷'),
+  Country(name: 'Singapore', flag: '🇸🇬'),
+  Country(name: 'Vietnam', flag: '🇻🇳'),
+  Country(name: 'Indonesia', flag: '🇮🇩'),
+  Country(name: 'Malaysia', flag: '🇲🇾'),
+  Country(name: 'USA', flag: '🇺🇸'),
+  Country(name: 'UK', flag: '🇬🇧'),
+  Country(name: 'France', flag: '🇫🇷'),
+  Country(name: 'Germany', flag: '🇩🇪'),
+  Country(name: 'Italy', flag: '🇮🇹'),
+  Country(name: 'Australia', flag: '🇦🇺'),
+];
+
 class Province {
   const Province({required this.name, required this.region, required this.emoji});
 
