@@ -12,17 +12,6 @@ class MapScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Thailand Photo Map'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(mapProvider.notifier).loadMap(),
-          ),
-        ],
-      ),
       body: Stack(
         children: [
           if (state.isLoading)
@@ -30,29 +19,24 @@ class MapScreen extends ConsumerWidget {
           else if (state.provinces.isEmpty)
             const Center(child: Text('No Map Data Found'))
           else
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: InteractiveViewer(
-                boundaryMargin: const EdgeInsets.all(50),
-                minScale: 0.1,
-                maxScale: 10,
-                child: Center(
-                  child: AspectRatio(
-                    aspectRatio: 0.6, // Typical proportional aspect ratio for Thailand
-                    child: CustomPaint(
-                      painter: ThailandMapPainter(
-                        provinces: state.provinces,
-                        provincePhotos: state.provincePhotos,
-                        baseColor: const Color(0xFFF0F0F0),
-                        strokeColor: Colors.white,
-                      ),
-                      child: Container(),
-                    ),
+            InteractiveViewer(
+              boundaryMargin: const EdgeInsets.all(100),
+              minScale: 0.5,
+              maxScale: 10,
+              child: Center(
+                child: CustomPaint(
+                  size: Size.infinite,
+                  painter: ThailandMapPainter(
+                    provinces: state.provinces,
+                    provincePhotos: state.provincePhotos,
+                    baseColor: const Color(0xFFF0F0F0),
+                    strokeColor: Colors.white,
                   ),
+                  child: const SizedBox.expand(),
                 ),
               ),
             ),
-          
+
           // Floating overlay items like the screenshot
           PositionBag(),
         ],

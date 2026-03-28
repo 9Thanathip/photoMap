@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_map/features/province/data/province_data.dart';
 
 class PhotoItem {
   const PhotoItem({
@@ -236,12 +237,19 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         );
         if (placemarks.isNotEmpty) {
           final pm = placemarks.first;
+          // In Thailand, province can sometimes be in subAdministrativeArea 
+          // if administrativeArea is Krung Thep Maha Nakhon
+          String province = pm.administrativeArea ?? '';
+          if (province.isEmpty || province == 'Bangkok') {
+             province = pm.subAdministrativeArea ?? pm.locality ?? province;
+          }
+
           resolved[entry.key] = (
             country: pm.country ?? 'Unknown',
-            province: _cleanProvinceName(pm.administrativeArea ?? ''),
+            province: _cleanProvinceName(province),
           );
         }
-        await Future.delayed(const Duration(milliseconds: 350));
+        await Future.delayed(const Duration(milliseconds: 200));
       } catch (_) {
         resolved[entry.key] = (country: 'Unknown', province: '');
       }
@@ -253,25 +261,55 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
             ? photo.copyWith(country: 'Unknown')
             : photo;
       }
-      if (photo.country.isNotEmpty) return photo;
+      
+      // If already geocoded, keep it
+      if (photo.province.isNotEmpty && photo.country.isNotEmpty) return photo;
+
       final key =
           '${photo.lat.toStringAsFixed(2)}_${photo.lng.toStringAsFixed(2)}';
       final loc = resolved[key];
       if (loc == null) return photo;
-      return photo.copyWith(country: loc.country, province: loc.province);
+      
+      // If photo has no province, use the resolved one
+      return photo.copyWith(
+        country: photo.country.isEmpty ? loc.country : photo.country, 
+        province: photo.province.isEmpty ? loc.province : photo.province,
+      );
     }).toList();
 
     state = state.copyWith(allPhotos: updated, isGeocoding: false);
   }
 
   static String _cleanProvinceName(String raw) {
-    return raw
+    String cleaned = raw
         .replaceAll(RegExp(r'^จังหวัด\s*'), '')
         .replaceAll(RegExp(r'\s*จังหวัด$'), '')
         .replaceAll(RegExp(r'\s*Province$', caseSensitive: false), '')
         .replaceAll(RegExp(r'\s*Prefecture$', caseSensitive: false), '')
         .replaceAll(RegExp(r'\s*Oblast$', caseSensitive: false), '')
         .trim();
+
+    if (cleaned.isEmpty) return '';
+
+    // Specific mapping for common Thailand name variations
+    if (cleaned == 'Krung Thep Maha Nakhon' || cleaned == 'Bangkok City') return 'Bangkok';
+
+    // Attempt to match with canonical Thai provinces list
+    try {
+      final normalizedCleaned = cleaned.replaceAll(' ', '').toLowerCase();
+      for (final p in thaiProvinces) {
+        final normalizedP = p.name.replaceAll(' ', '').toLowerCase();
+        if (normalizedP == normalizedCleaned || 
+            normalizedP.contains(normalizedCleaned) || 
+            normalizedCleaned.contains(normalizedP)) {
+          return p.name;
+        }
+      }
+    } catch (_) {
+      // Fallback to cleaned name
+    }
+
+    return cleaned;
   }
 
   void selectCountry(String country) =>

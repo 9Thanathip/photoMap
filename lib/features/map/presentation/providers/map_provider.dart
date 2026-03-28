@@ -62,8 +62,9 @@ class MapNotifier extends StateNotifier<MapState> {
     final Map<String, AssetEntity> provinceSelectedPhotos = {};
     for (var photo in photosByProvince) {
       if (photo.province.isNotEmpty && photo.assetEntity != null) {
-        // Keep the first (likely latest/random) photo for now
-        provinceSelectedPhotos.putIfAbsent(photo.province, () => photo.assetEntity!);
+        // Normalize name by removing spaces, hyphens and converting to lowercase to match GeoJSON
+        final normalizedProvince = photo.province.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
+        provinceSelectedPhotos.putIfAbsent(normalizedProvince, () => photo.assetEntity!);
       }
     }
 

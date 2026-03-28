@@ -97,7 +97,9 @@ Future<List<ProvinceShape>> loadThailandProvinces() async {
 
   if (data['features'] != null) {
     for (var feature in data['features']) {
-      final name = feature['properties']['name'] ?? feature['properties']['NAME_1'] ?? 'Unknown';
+      final rawName = feature['properties']['CHA_NE'] ?? feature['properties']['name'] ?? feature['properties']['NAME_1'] ?? 'Unknown';
+      // Normalize name by removing spaces, hyphens and converting to lowercase
+      final name = rawName.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
       final geometry = feature['geometry'];
       final type = geometry['type'];
       final coordinates = geometry['coordinates'];
