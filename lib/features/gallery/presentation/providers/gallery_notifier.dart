@@ -22,15 +22,22 @@ class PhotoItem {
   final double lng;
   final AssetEntity? assetEntity;
 
-  bool get hasLocation => lat != 0.0 || lng != 0.0;
+  // Both must be non-zero — (0,0) is in the ocean and not a real location
+  bool get hasLocation => lat != 0.0 && lng != 0.0;
 
-  PhotoItem copyWith({String? country, String? province}) => PhotoItem(
+  PhotoItem copyWith({
+    String? country,
+    String? province,
+    double? lat,
+    double? lng,
+  }) =>
+      PhotoItem(
         path: path,
         country: country ?? this.country,
         province: province ?? this.province,
         timestamp: timestamp,
-        lat: lat,
-        lng: lng,
+        lat: lat ?? this.lat,
+        lng: lng ?? this.lng,
         assetEntity: assetEntity,
       );
 }
@@ -190,30 +197,43 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     state = state.copyWith(isGeocoding: true);
 
     // Step 1: fetch coordinates via latlngAsync for photos missing GPS data
-    final List<PhotoItem> withCoords = [];
-    for (final photo in photos) {
-      if (photo.hasLocation || photo.assetEntity == null) {
-        withCoords.add(photo);
-        continue;
+    // Step 1: fetch coordinates via latlngAsync for photos missing GPS data
+    state = state.copyWith(isGeocoding: true);
+    
+    final List<PhotoItem> withCoords = List.from(photos);
+    
+    // Batch process coordinates to avoid overloading the platform channel
+    const int batchSize = 30; // smaller batches for reliability
+    for (int i = 0; i < withCoords.length; i += batchSize) {
+      final int end = (i + batchSize < withCoords.length) ? i + batchSize : withCoords.length;
+      final List<Future<void>> batchFutures = [];
+      
+      for (int j = i; j < end; j++) {
+        final currentPhoto = withCoords[j];
+        if (currentPhoto.hasLocation || currentPhoto.assetEntity == null) continue;
+        
+        final photoIdx = j;
+        batchFutures.add(() async {
+          try {
+            final ll = await currentPhoto.assetEntity!.latlngAsync();
+            if (ll != null && ll.latitude != 0) {
+              withCoords[photoIdx] = currentPhoto.copyWith(
+                lat: ll.latitude,
+                lng: ll.longitude,
+              );
+            }
+          } catch (_) {}
+        }());
       }
-      try {
-        final ll = await photo.assetEntity!.latlngAsync();
-        final lat = ll?.latitude ?? 0.0;
-        final lng = ll?.longitude ?? 0.0;
-        withCoords.add(PhotoItem(
-          path: photo.path,
-          country: photo.country,
-          province: photo.province,
-          timestamp: photo.timestamp,
-          lat: lat,
-          lng: lng,
-          assetEntity: photo.assetEntity,
-        ));
-      } catch (_) {
-        withCoords.add(photo);
+      if (batchFutures.isNotEmpty) {
+        await Future.wait(batchFutures);
+        // update UI every 100 items to show progress
+        if (i % 100 == 0) {
+          state = state.copyWith(allPhotos: List.from(withCoords));
+        }
       }
     }
-    state = state.copyWith(allPhotos: withCoords);
+    state = state.copyWith(allPhotos: List.from(withCoords));
 
     // Step 2: collect unique coordinate clusters for geocoding
     final pending = <String, ({double lat, double lng})>{};
@@ -237,16 +257,16 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         );
         if (placemarks.isNotEmpty) {
           final pm = placemarks.first;
-          // In Thailand, province can sometimes be in subAdministrativeArea 
-          // if administrativeArea is Krung Thep Maha Nakhon
-          String province = pm.administrativeArea ?? '';
-          if (province.isEmpty || province == 'Bangkok') {
-             province = pm.subAdministrativeArea ?? pm.locality ?? province;
+          // Try administrativeArea first, then subAdministrativeArea
+          String province = _cleanProvinceName(pm.administrativeArea ?? '');
+          if (province.isEmpty || province == 'Unknown') {
+            final subProvince = _cleanProvinceName(pm.subAdministrativeArea ?? '');
+            if (subProvince.isNotEmpty) province = subProvince;
           }
-
+          
           resolved[entry.key] = (
             country: pm.country ?? 'Unknown',
-            province: _cleanProvinceName(province),
+            province: province,
           );
         }
         await Future.delayed(const Duration(milliseconds: 200));
@@ -281,32 +301,46 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   }
 
   static String _cleanProvinceName(String raw) {
-    String cleaned = raw
+    if (raw.isEmpty) return '';
+
+    // Strip zip codes (5 digits)
+    String cleaned = raw.replaceAll(RegExp(r'\d{5}'), '');
+
+    // Strip Thai/English province/district prefixes and suffixes
+    cleaned = cleaned
         .replaceAll(RegExp(r'^จังหวัด\s*'), '')
         .replaceAll(RegExp(r'\s*จังหวัด$'), '')
+        .replaceAll(RegExp(r'^อำเภอ\s*'), '')
+        .replaceAll(RegExp(r'^เขต\s*'), '')
         .replaceAll(RegExp(r'\s*Province$', caseSensitive: false), '')
         .replaceAll(RegExp(r'\s*Prefecture$', caseSensitive: false), '')
         .replaceAll(RegExp(r'\s*Oblast$', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s*District$', caseSensitive: false), '')
         .trim();
 
     if (cleaned.isEmpty) return '';
 
-    // Specific mapping for common Thailand name variations
-    if (cleaned == 'Krung Thep Maha Nakhon' || cleaned == 'Bangkok City') return 'Bangkok';
+    // Canonical Thai name remaps
+    const remaps = <String, String>{
+      'Krung Thep Maha Nakhon': 'Bangkok',
+      'Bangkok City': 'Bangkok',
+      'Krung Thep': 'Bangkok',
+    };
+    if (remaps.containsKey(cleaned)) return remaps[cleaned]!;
 
-    // Attempt to match with canonical Thai provinces list
-    try {
-      final normalizedCleaned = cleaned.replaceAll(' ', '').toLowerCase();
-      for (final p in thaiProvinces) {
-        final normalizedP = p.name.replaceAll(' ', '').toLowerCase();
-        if (normalizedP == normalizedCleaned || 
-            normalizedP.contains(normalizedCleaned) || 
-            normalizedCleaned.contains(normalizedP)) {
-          return p.name;
-        }
+    // Exact match against canonical province list (case-insensitive, spaces-insensitive)
+    final normalizedInput = cleaned.replaceAll(' ', '').toLowerCase();
+    for (final p in thaiProvinces) {
+      final normalizedP = p.name.replaceAll(' ', '').toLowerCase();
+      if (normalizedP == normalizedInput) return p.name;
+    }
+
+    // Try to find a province name contained WITHIN the string
+    for (final p in thaiProvinces) {
+      final normalizedP = p.name.replaceAll(' ', '').toLowerCase();
+      if (normalizedInput.contains(normalizedP)) {
+        return p.name;
       }
-    } catch (_) {
-      // Fallback to cleaned name
     }
 
     return cleaned;

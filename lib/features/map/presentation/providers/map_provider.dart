@@ -54,6 +54,8 @@ class MapNotifier extends StateNotifier<MapState> {
     await _updateProvincePhotos();
   }
 
+  final Map<String, ui.Image?> _imageCache = {};
+
   Future<void> _updateProvincePhotos() async {
     final photosByProvince = _ref.read(galleryStateProvider).allPhotos;
     final Map<String, ui.Image?> newPhotos = {};
@@ -62,25 +64,37 @@ class MapNotifier extends StateNotifier<MapState> {
     final Map<String, AssetEntity> provinceSelectedPhotos = {};
     for (var photo in photosByProvince) {
       if (photo.province.isNotEmpty && photo.assetEntity != null) {
-        // Normalize name by removing spaces, hyphens and converting to lowercase to match GeoJSON
         final normalizedProvince = photo.province.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
         provinceSelectedPhotos.putIfAbsent(normalizedProvince, () => photo.assetEntity!);
       }
     }
 
-    // Load images for each province
+    // Load images for each province IN PARALLEL
+    final List<Future<void>> futures = [];
     for (var entry in provinceSelectedPhotos.entries) {
-      final img = await _loadUiImage(entry.value);
-      if (img != null) {
-        newPhotos[entry.key] = img;
-      }
+      futures.add(() async {
+        final entity = entry.value;
+        // Simple cache check by ID
+        if (_imageCache.containsKey(entity.id)) {
+          newPhotos[entry.key] = _imageCache[entity.id];
+          return;
+        }
+
+        final img = await _loadUiImage(entity);
+        if (img != null) {
+          _imageCache[entity.id] = img;
+          newPhotos[entry.key] = img;
+        }
+      }());
     }
 
+    await Future.wait(futures);
     state = state.copyWith(provincePhotos: newPhotos);
   }
 
   Future<ui.Image?> _loadUiImage(AssetEntity entity) async {
-    final byteData = await entity.thumbnailData;
+    // requesting small 200x200 thumbnails for map performance
+    final byteData = await entity.thumbnailDataWithSize(const ThumbnailSize(200, 200));
     if (byteData == null) return null;
     
     final Completer<ui.Image> completer = Completer();
