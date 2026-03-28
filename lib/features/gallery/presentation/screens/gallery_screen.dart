@@ -68,7 +68,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
             height: _contentTopPad + 28,
             child: IgnorePointer(
               child: AnimatedOpacity(
-                opacity: _isScrolled ? 1.0 : 0.0,
+                opacity: _isScrolled ? 0.6 : 0.0,
                 duration: const Duration(milliseconds: 200),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
