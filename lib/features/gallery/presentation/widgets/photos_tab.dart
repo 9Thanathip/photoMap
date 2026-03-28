@@ -30,6 +30,9 @@ class PhotosTab extends StatelessWidget {
     required this.isEmpty,
     required this.onTap,
     required this.onLongPress,
+    this.isSelectMode = false,
+    this.selectedPaths = const {},
+    this.onToggleSelect,
   });
 
   final List<PhotoItem> photos;
@@ -38,6 +41,9 @@ class PhotosTab extends StatelessWidget {
   final bool isEmpty;
   final void Function(List<PhotoItem> photos, int index) onTap;
   final void Function(PhotoItem) onLongPress;
+  final bool isSelectMode;
+  final Set<String> selectedPaths;
+  final void Function(PhotoItem)? onToggleSelect;
 
   static const _months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -96,11 +102,20 @@ class PhotosTab extends StatelessWidget {
       padding: EdgeInsets.only(top: contentTopPad),
       gridDelegate: photoGridDelegate,
       itemCount: items.length,
-      itemBuilder: (_, i) => PhotoTile(
-        photo: items[i],
-        onTap: () => onTap(items, i),
-        onLongPress: () => onLongPress(items[i]),
-      ),
+      itemBuilder: (_, i) {
+        final item = items[i];
+        return PhotoTile(
+          photo: item,
+          isSelectMode: isSelectMode,
+          isSelected: selectedPaths.contains(item.path),
+          onTap: isSelectMode
+              ? () => onToggleSelect!(item)
+              : () => onTap(items, i),
+          onLongPress: isSelectMode
+              ? () {}
+              : () => onLongPress(item),
+        );
+      },
     );
   }
 
@@ -127,10 +142,17 @@ class PhotosTab extends StatelessWidget {
             delegate: SliverChildBuilderDelegate(
               (_, i) {
                 final sectionPhotos = sections[key]!;
+                final item = sectionPhotos[i];
                 return PhotoTile(
-                  photo: sectionPhotos[i],
-                  onTap: () => onTap(sectionPhotos, i),
-                  onLongPress: () => onLongPress(sectionPhotos[i]),
+                  photo: item,
+                  isSelectMode: isSelectMode,
+                  isSelected: selectedPaths.contains(item.path),
+                  onTap: isSelectMode
+                      ? () => onToggleSelect!(item)
+                      : () => onTap(sectionPhotos, i),
+                  onLongPress: isSelectMode
+                      ? () {}
+                      : () => onLongPress(item),
                 );
               },
               childCount: sections[key]!.length,

@@ -301,6 +301,14 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     );
   }
 
+  /// Remove multiple photos by their paths.
+  void removePhotos(List<String> paths) {
+    final set = paths.toSet();
+    state = state.copyWith(
+      allPhotos: state.allPhotos.where((p) => !set.contains(p.path)).toList(),
+    );
+  }
+
   /// Update country/province for a photo identified by its path.
   void updatePhotoLocation(
       String photoPath, String newCountry, String newProvince) {

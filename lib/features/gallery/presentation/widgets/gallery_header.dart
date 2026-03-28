@@ -15,6 +15,12 @@ class GalleryHeader extends StatelessWidget {
     required this.onAlbumTab,
     required this.onBack,
     required this.onFilterTap,
+    this.isSelectMode = false,
+    this.selectedCount = 0,
+    this.totalCount = 0,
+    this.onEnterSelect,
+    required this.onCancelSelect,
+    required this.onSelectAll,
   });
 
   final double topPad;
@@ -27,6 +33,12 @@ class GalleryHeader extends StatelessWidget {
   final VoidCallback onAlbumTab;
   final VoidCallback onBack;
   final VoidCallback onFilterTap;
+  final bool isSelectMode;
+  final int selectedCount;
+  final int totalCount;
+  final VoidCallback? onEnterSelect;
+  final VoidCallback onCancelSelect;
+  final VoidCallback onSelectAll;
 
   bool get _showBack => inAlbumsTab && inCountry;
 
@@ -39,8 +51,49 @@ class GalleryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    if (isSelectMode) {
+      return Padding(
+        padding: EdgeInsets.only(
+            top: topPad + 6, left: 8, right: 8, bottom: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                TextButton(
+                  onPressed: onSelectAll,
+                  child: Text(
+                    selectedCount == totalCount && totalCount > 0
+                        ? 'Deselect All'
+                        : 'Select All',
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    selectedCount == 0
+                        ? 'Select Items'
+                        : '$selectedCount Selected',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                        fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                TextButton(
+                  onPressed: onCancelSelect,
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
-      padding: EdgeInsets.only(top: topPad + 6, left: 16, right: 8, bottom: 6),
+      padding:
+          EdgeInsets.only(top: topPad + 6, left: 16, right: 8, bottom: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -67,6 +120,22 @@ class GalleryHeader extends StatelessWidget {
                 ),
               ),
               if (!_showBack)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.tune_rounded),
+                      color: theme.colorScheme.onSurface,
+                      onPressed: onFilterTap,
+                    ),
+                    if (onEnterSelect != null)
+                      TextButton(
+                        onPressed: onEnterSelect,
+                        child: const Text('Select'),
+                      ),
+                  ],
+                )
+              else
                 IconButton(
                   icon: const Icon(Icons.tune_rounded),
                   color: theme.colorScheme.onSurface,

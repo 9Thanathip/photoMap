@@ -25,6 +25,8 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
   ViewMode _viewMode = ViewMode.all;
   double _contentTopPad = 0;
   bool _isScrolled = false;
+  bool _isSelectMode = false;
+  final Set<String> _selectedPaths = {};
 
   @override
   void initState() {
@@ -41,6 +43,66 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
 
   bool get _inAlbumsTab => _tabs.index == 1;
 
+  void _enterSelectMode() =>
+      setState(() {
+        _isSelectMode = true;
+        _selectedPaths.clear();
+      });
+
+  void _exitSelectMode() =>
+      setState(() {
+        _isSelectMode = false;
+        _selectedPaths.clear();
+      });
+
+  void _toggleSelect(PhotoItem photo) {
+    setState(() {
+      if (_selectedPaths.contains(photo.path)) {
+        _selectedPaths.remove(photo.path);
+      } else {
+        _selectedPaths.add(photo.path);
+      }
+    });
+  }
+
+  void _selectAll(List<PhotoItem> photos) {
+    setState(() {
+      if (_selectedPaths.length == photos.length) {
+        _selectedPaths.clear();
+      } else {
+        _selectedPaths.addAll(photos.map((p) => p.path));
+      }
+    });
+  }
+
+  void _deleteSelected() {
+    showDialog<void>(
+      context: context,
+      builder: (dlg) => AlertDialog(
+        title: const Text('Delete Photos'),
+        content: Text('Delete ${_selectedPaths.length} photos?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dlg),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error),
+            onPressed: () {
+              Navigator.pop(dlg);
+              ref
+                  .read(galleryStateProvider.notifier)
+                  .removePhotos(_selectedPaths.toList());
+              _exitSelectMode();
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final gallery = ref.watch(galleryStateProvider);
@@ -49,6 +111,9 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
     final inProvince = inCountry && gallery.selectedProvince != 'All';
     final topPad = MediaQuery.paddingOf(context).top;
     _contentTopPad = topPad + 88;
+
+    final sortedPhotos = [...gallery.allPhotos]
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     return Scaffold(
       body: Stack(
@@ -59,7 +124,8 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
               if (scrolled != _isScrolled) setState(() => _isScrolled = scrolled);
               return false;
             },
-            child: _buildBody(context, gallery, theme, inCountry, inProvince),
+            child: _buildBody(
+                context, gallery, theme, inCountry, inProvince, sortedPhotos),
           ),
           Positioned(
             top: 0,
@@ -107,22 +173,66 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                     : notifier.selectCountry('All');
               },
               onFilterTap: () => _showFilterSheet(context, theme),
+              isSelectMode: _isSelectMode,
+              selectedCount: _selectedPaths.length,
+              totalCount: sortedPhotos.length,
+              onEnterSelect: !_inAlbumsTab ? _enterSelectMode : null,
+              onCancelSelect: _exitSelectMode,
+              onSelectAll: () => _selectAll(sortedPhotos),
             ),
           ),
+          if (_isSelectMode)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(
+                      color: theme.colorScheme.outlineVariant.withAlpha(80),
+                    ),
+                  ),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline,
+                          color: _selectedPaths.isNotEmpty
+                              ? theme.colorScheme.error
+                              : theme.colorScheme.onSurface.withAlpha(60),
+                        ),
+                        iconSize: 28,
+                        onPressed:
+                            _selectedPaths.isNotEmpty ? _deleteSelected : null,
+                        tooltip: 'Delete',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
-      floatingActionButton: _inAlbumsTab && inProvince
-          ? FloatingActionButton.extended(
-              onPressed: () => _pickImage(gallery.selectedProvince),
-              icon: const Icon(Icons.add_a_photo_outlined),
-              label: const Text('Add Photo'),
-            )
-          : null,
+      floatingActionButton: _isSelectMode
+          ? null
+          : (_inAlbumsTab && inProvince
+              ? FloatingActionButton.extended(
+                  onPressed: () => _pickImage(gallery.selectedProvince),
+                  icon: const Icon(Icons.add_a_photo_outlined),
+                  label: const Text('Add Photo'),
+                )
+              : null),
     );
   }
 
   Widget _buildBody(BuildContext context, GalleryState gallery, ThemeData theme,
-      bool inCountry, bool inProvince) {
+      bool inCountry, bool inProvince, List<PhotoItem> sortedPhotos) {
     if (gallery.isLoading) {
       return Center(
         child: Column(
@@ -173,11 +283,13 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
           : const AlwaysScrollableScrollPhysics(),
       children: [
         PhotosTab(
-          photos: [...gallery.allPhotos]
-            ..sort((a, b) => b.timestamp.compareTo(a.timestamp)),
+          photos: sortedPhotos,
           viewMode: _viewMode,
           contentTopPad: _contentTopPad,
           isEmpty: gallery.allPhotos.isEmpty && !gallery.isGeocoding,
+          isSelectMode: _isSelectMode,
+          selectedPaths: _selectedPaths,
+          onToggleSelect: _toggleSelect,
           onTap: (photos, index) => _openViewer(context, photos, index),
           onLongPress: (photo) => _showPhotoOptions(context, photo),
         ),
