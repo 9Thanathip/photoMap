@@ -61,7 +61,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     imageLoadTimes: state.imageLoadTimes,
                     currentTime: _currentTime,
                     openTime: _openTime,
-                    baseColor: const Color(0xFFF0F0F0),
+                    baseColor: const Color(0xFFD9D9D9),
                     strokeColor: Colors.white,
                   ),
                   child: const SizedBox.expand(),

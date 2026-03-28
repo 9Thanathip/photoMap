@@ -53,18 +53,18 @@ class ThailandMapPainter extends CustomPainter {
     canvas.translate(offsetX, offsetY);
     canvas.scale(scale);
 
-    // 1. Draw One Unified Drop Shadow for all provinces
+    // 1. Draw One Unified Soft Shadow (Material style like buttons)
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.25)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5.0);
+      ..color = Colors.black.withOpacity(0.18)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6.0 / scale);
     
     final combinedPath = Path();
     for (var province in provinces) {
       combinedPath.addPath(province.path, Offset.zero);
     }
-    // Draw shadow slightly offset (3 logical pixels down-right) for visible effect
+    // Match button shadow offset (slightly downward)
     canvas.save();
-    canvas.translate(3.0 / scale, 3.0 / scale);
+    canvas.translate(0, 3.0 / scale);
     canvas.drawPath(combinedPath, shadowPaint);
     canvas.restore();
 
