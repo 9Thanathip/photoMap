@@ -1,9 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import '../../../../features/province/data/province_data.dart';
 import '../providers/gallery_notifier.dart';
 
@@ -14,7 +15,7 @@ class GalleryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final gallery = ref.watch(galleryStateProvider);
     final theme = Theme.of(context);
-    final allProvinces = ['All', ...thaiProvinces.map((p) => p.name).toList()];
+    final allProvinces = ['All', ...thaiProvinces.map((p) => p.name)];
 
     return Scaffold(
       appBar: AppBar(
@@ -189,15 +190,45 @@ class GalleryScreen extends ConsumerWidget {
       );
     }
 
-    return GridView.builder(
+    // +1 for the "load more" indicator row at the bottom
+    final itemCount = gallery.hasMore
+        ? currentPhotos.length + 1
+        : currentPhotos.length;
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (n) {
+        if (n is ScrollEndNotification &&
+            n.metrics.extentAfter < 400 &&
+            gallery.hasMore &&
+            !gallery.isLoadingMore) {
+          ref.read(galleryStateProvider.notifier).loadMore();
+        }
+        return false;
+      },
+      child: GridView.builder(
       padding: const EdgeInsets.all(3),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 3,
         mainAxisSpacing: 3,
       ),
-      itemCount: currentPhotos.length,
+      itemCount: itemCount,
       itemBuilder: (context, index) {
+        // Loading indicator at the bottom
+        if (index >= currentPhotos.length) {
+          return Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.all(12),
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          );
+        }
         final photo = currentPhotos[index];
         return GestureDetector(
           onTap: () => _showPhotoEditor(context, photo, index, ref, gallery),
@@ -213,13 +244,25 @@ class GalleryScreen extends ConsumerWidget {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
-                image: DecorationImage(
-                  image: FileImage(File(photo.path)),
-                  fit: BoxFit.cover,
-                ),
               ),
               child: Stack(
                 children: [
+                  // Display photo using AssetEntity thumbnail
+                  Positioned.fill(
+                    child: photo.assetEntity != null
+                        ? Image(
+                            image: AssetEntityImageProvider(
+                              photo.assetEntity!,
+                              isOriginal: false,
+                              thumbnailSize: const ThumbnailSize.square(200),
+                            ),
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.broken_image),
+                          ),
+                  ),
                   Positioned(
                     bottom: 8,
                     right: 8,
@@ -247,7 +290,8 @@ class GalleryScreen extends ConsumerWidget {
           ),
         );
       },
-    );
+      ), // GridView.builder
+    ); // NotificationListener
   }
 
   void _pickImage(BuildContext context, WidgetRef ref, String province) async {
@@ -505,10 +549,15 @@ class _PhotoEditorSheetState extends ConsumerState<_PhotoEditorSheet> {
                         : _filters[_selectedFilter].color.withAlpha(60),
                     BlendMode.overlay,
                   ),
-                  child: Image.file(
-                    File(widget.photo.path),
-                    fit: BoxFit.contain,
-                  ),
+                  child: widget.photo.assetEntity != null
+                      ? Image(
+                          image: AssetEntityImageProvider(
+                            widget.photo.assetEntity!,
+                            isOriginal: true,
+                          ),
+                          fit: BoxFit.contain,
+                        )
+                      : const SizedBox(),
                 ),
               ),
             ),
@@ -550,10 +599,17 @@ class _PhotoEditorSheetState extends ConsumerState<_PhotoEditorSheet> {
                                       : _filters[i].color.withAlpha(80),
                                   BlendMode.overlay,
                                 ),
-                                child: Image.file(
-                                  File(widget.photo.path),
-                                  fit: BoxFit.cover,
-                                ),
+                                child: widget.photo.assetEntity != null
+                                    ? Image(
+                                        image: AssetEntityImageProvider(
+                                          widget.photo.assetEntity!,
+                                          isOriginal: false,
+                                          thumbnailSize:
+                                              const ThumbnailSize.square(100),
+                                        ),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : const SizedBox(),
                               ),
                             ),
                           ),
