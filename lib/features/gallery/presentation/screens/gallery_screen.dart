@@ -7,8 +7,8 @@ import '../providers/gallery_notifier.dart';
 import '../widgets/albums_tab.dart';
 import '../widgets/gallery_header.dart';
 import '../widgets/location_selector_sheet.dart';
-import '../widgets/photo_editor_sheet.dart';
 import '../widgets/photo_options_sheet.dart';
+import '../widgets/photo_viewer_screen.dart';
 import '../widgets/photos_tab.dart';
 import '../widgets/sheet_handle.dart';
 
@@ -178,7 +178,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
           viewMode: _viewMode,
           contentTopPad: _contentTopPad,
           isEmpty: gallery.allPhotos.isEmpty && !gallery.isGeocoding,
-          onTap: (photo, tag) => _showPhotoEditor(context, photo, tag),
+          onTap: (photos, index) => _openViewer(context, photos, index),
           onLongPress: (photo) => _showPhotoOptions(context, photo),
         ),
         AlbumsTab(
@@ -186,7 +186,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
           contentTopPad: _contentTopPad,
           inCountry: inCountry,
           inProvince: inProvince,
-          onTap: (photo, tag) => _showPhotoEditor(context, photo, tag),
+          onTap: (photos, index) => _openViewer(context, photos, index),
           onLongPress: (photo) => _showPhotoOptions(context, photo),
         ),
       ],
@@ -225,13 +225,15 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
     }
   }
 
-  void _showPhotoEditor(BuildContext context, PhotoItem photo, String heroTag) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => PhotoEditorSheet(photo: photo, heroTag: heroTag),
+  void _openViewer(
+      BuildContext context, List<PhotoItem> photos, int initialIndex) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) =>
+            PhotoViewerScreen(photos: photos, initialIndex: initialIndex),
+      ),
     );
   }
 

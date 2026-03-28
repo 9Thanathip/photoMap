@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../features/province/data/province_data.dart';
 import '../providers/gallery_notifier.dart';
 import 'album_card.dart';
 import 'empty_view.dart';
@@ -29,7 +28,7 @@ class AlbumsTab extends ConsumerWidget {
   final double contentTopPad;
   final bool inCountry;
   final bool inProvince;
-  final void Function(PhotoItem, String) onTap;
+  final void Function(List<PhotoItem> photos, int index) onTap;
   final void Function(PhotoItem) onLongPress;
 
   @override
@@ -49,18 +48,19 @@ class AlbumsTab extends ConsumerWidget {
         showSpinner: gallery.isGeocoding,
       );
     }
-    final names = byCountry.keys.toList()..sort();
+    final names = byCountry.keys
+        .where((k) => k != 'Unknown')
+        .toList()
+      ..sort();
     return GridView.builder(
       padding: EdgeInsets.fromLTRB(10, contentTopPad, 10, 10),
       gridDelegate: _albumGridDelegate,
       itemCount: names.length,
       itemBuilder: (_, i) {
         final name = names[i];
-        final flag = countries.where((c) => c.name == name).firstOrNull?.flag;
         return AlbumCard(
           title: name,
           subtitle: '${byCountry[name]!.length} photos',
-          leading: flag,
           coverPhoto: byCountry[name]!.first,
           onTap: () =>
               ref.read(galleryStateProvider.notifier).selectCountry(name),
@@ -104,17 +104,11 @@ class AlbumsTab extends ConsumerWidget {
       padding: EdgeInsets.only(top: contentTopPad),
       gridDelegate: photoGridDelegate,
       itemCount: photos.length,
-      itemBuilder: (_, i) {
-        final photo = photos[i];
-        final tag =
-            'album_${gallery.selectedCountry}_${gallery.selectedProvince}_$i';
-        return PhotoTile(
-          photo: photo,
-          heroTag: tag,
-          onTap: () => onTap(photo, tag),
-          onLongPress: () => onLongPress(photo),
-        );
-      },
+      itemBuilder: (_, i) => PhotoTile(
+        photo: photos[i],
+        onTap: () => onTap(photos, i),
+        onLongPress: () => onLongPress(photos[i]),
+      ),
     );
   }
 }

@@ -186,16 +186,46 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   }
 
   Future<void> _geocodePhotos(List<PhotoItem> photos) async {
-    final pending = <String, ({double lat, double lng})>{};
+    state = state.copyWith(isGeocoding: true);
+
+    // Step 1: fetch coordinates via latlngAsync for photos missing GPS data
+    final List<PhotoItem> withCoords = [];
     for (final photo in photos) {
+      if (photo.hasLocation || photo.assetEntity == null) {
+        withCoords.add(photo);
+        continue;
+      }
+      try {
+        final ll = await photo.assetEntity!.latlngAsync();
+        final lat = ll?.latitude ?? 0.0;
+        final lng = ll?.longitude ?? 0.0;
+        withCoords.add(PhotoItem(
+          path: photo.path,
+          country: photo.country,
+          province: photo.province,
+          timestamp: photo.timestamp,
+          lat: lat,
+          lng: lng,
+          assetEntity: photo.assetEntity,
+        ));
+      } catch (_) {
+        withCoords.add(photo);
+      }
+    }
+    state = state.copyWith(allPhotos: withCoords);
+
+    // Step 2: collect unique coordinate clusters for geocoding
+    final pending = <String, ({double lat, double lng})>{};
+    for (final photo in withCoords) {
       if (!photo.hasLocation) continue;
       final key =
           '${photo.lat.toStringAsFixed(2)}_${photo.lng.toStringAsFixed(2)}';
       pending[key] = (lat: photo.lat, lng: photo.lng);
     }
-    if (pending.isEmpty) return;
-
-    state = state.copyWith(isGeocoding: true);
+    if (pending.isEmpty) {
+      state = state.copyWith(isGeocoding: false);
+      return;
+    }
 
     final resolved = <String, ({String country, String province})>{};
     for (final entry in pending.entries) {

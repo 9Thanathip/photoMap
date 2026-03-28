@@ -7,13 +7,11 @@ class PhotoTile extends StatelessWidget {
   const PhotoTile({
     super.key,
     required this.photo,
-    required this.heroTag,
     required this.onTap,
     required this.onLongPress,
   });
 
   final PhotoItem photo;
-  final String heroTag;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
@@ -22,22 +20,19 @@ class PhotoTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       onLongPress: onLongPress,
-      child: Hero(
-        tag: heroTag,
-        child: photo.assetEntity != null
-            ? Image(
-                image: AssetEntityImageProvider(
-                  photo.assetEntity!,
-                  isOriginal: false,
-                  thumbnailSize: const ThumbnailSize.square(200),
-                ),
-                fit: BoxFit.cover,
-              )
-            : Container(
-                color: Colors.grey[300],
-                child: const Icon(Icons.broken_image),
+      child: photo.assetEntity != null
+          ? Image(
+              image: AssetEntityImageProvider(
+                photo.assetEntity!,
+                isOriginal: false,
+                thumbnailSize: const ThumbnailSize.square(200),
               ),
-      ),
+              fit: BoxFit.cover,
+            )
+          : Container(
+              color: Colors.grey[300],
+              child: const Icon(Icons.broken_image),
+            ),
     );
   }
 }

@@ -36,7 +36,7 @@ class PhotosTab extends StatelessWidget {
   final ViewMode viewMode;
   final double contentTopPad;
   final bool isEmpty;
-  final void Function(PhotoItem, String) onTap;
+  final void Function(List<PhotoItem> photos, int index) onTap;
   final void Function(PhotoItem) onLongPress;
 
   static const _months = [
@@ -51,7 +51,7 @@ class PhotosTab extends StatelessWidget {
           message: 'No photos found', sub: 'Your photo library is empty');
     }
     return switch (viewMode) {
-      ViewMode.all => _flatGrid(photos, 'photos_all'),
+      ViewMode.all => _flatGrid(photos),
       ViewMode.year => _sectionedGrid(
           _groupBy(photos, (p) => '${p.timestamp.year}'),
           (k) => k,
@@ -91,20 +91,16 @@ class PhotosTab extends StatelessWidget {
     return map;
   }
 
-  Widget _flatGrid(List<PhotoItem> items, String tagPrefix) {
+  Widget _flatGrid(List<PhotoItem> items) {
     return GridView.builder(
       padding: EdgeInsets.only(top: contentTopPad),
       gridDelegate: photoGridDelegate,
       itemCount: items.length,
-      itemBuilder: (_, i) {
-        final tag = '${tagPrefix}_$i';
-        return PhotoTile(
-          photo: items[i],
-          heroTag: tag,
-          onTap: () => onTap(items[i], tag),
-          onLongPress: () => onLongPress(items[i]),
-        );
-      },
+      itemBuilder: (_, i) => PhotoTile(
+        photo: items[i],
+        onTap: () => onTap(items, i),
+        onLongPress: () => onLongPress(items[i]),
+      ),
     );
   }
 
@@ -121,7 +117,8 @@ class PhotosTab extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(10, 12, 10, 4),
               child: Text(label(key),
                   style: GoogleFonts.poppins(
-                      fontSize: 13, fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
                       color: theme.colorScheme.onSurface)),
             ),
           ),
@@ -129,13 +126,11 @@ class PhotosTab extends StatelessWidget {
             gridDelegate: photoGridDelegate,
             delegate: SliverChildBuilderDelegate(
               (_, i) {
-                final photo = sections[key]![i];
-                final tag = 'photos_${key}_$i';
+                final sectionPhotos = sections[key]!;
                 return PhotoTile(
-                  photo: photo,
-                  heroTag: tag,
-                  onTap: () => onTap(photo, tag),
-                  onLongPress: () => onLongPress(photo),
+                  photo: sectionPhotos[i],
+                  onTap: () => onTap(sectionPhotos, i),
+                  onLongPress: () => onLongPress(sectionPhotos[i]),
                 );
               },
               childCount: sections[key]!.length,
