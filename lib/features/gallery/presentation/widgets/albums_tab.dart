@@ -13,7 +13,7 @@ const _albumGridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
   childAspectRatio: 0.92,
 );
 
-class AlbumsTab extends ConsumerWidget {
+class AlbumsTab extends ConsumerStatefulWidget {
   const AlbumsTab({
     super.key,
     required this.gallery,
@@ -32,28 +32,80 @@ class AlbumsTab extends ConsumerWidget {
   final void Function(PhotoItem) onLongPress;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (inProvince) return _provincePhotos(ref);
-    if (inCountry) return _provincesGrid(ref);
-    return _countriesGrid(ref);
+  ConsumerState<AlbumsTab> createState() => _AlbumsTabState();
+}
+
+class _AlbumsTabState extends ConsumerState<AlbumsTab> {
+  bool _goingDeeper = true;
+
+  int _depthOf(bool inCountry, bool inProvince) =>
+      inProvince ? 2 : (inCountry ? 1 : 0);
+
+  @override
+  void didUpdateWidget(AlbumsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldD = _depthOf(oldWidget.inCountry, oldWidget.inProvince);
+    final newD = _depthOf(widget.inCountry, widget.inProvince);
+    if (newD != oldD) _goingDeeper = newD > oldD;
   }
 
-  Widget _countriesGrid(WidgetRef ref) {
-    final byCountry = gallery.photosByCountry;
+  @override
+  Widget build(BuildContext context) {
+    final Widget content;
+    final String switchKey;
+
+    if (widget.inProvince) {
+      content = _provincePhotos();
+      switchKey =
+          'province:${widget.gallery.selectedCountry}:${widget.gallery.selectedProvince}';
+    } else if (widget.inCountry) {
+      content = _provincesGrid();
+      switchKey = 'country:${widget.gallery.selectedCountry}';
+    } else {
+      content = _countriesGrid();
+      switchKey = 'all';
+    }
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 260),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        // Incoming child has the current switchKey; outgoing has the previous one.
+        final isIncoming = child.key == ValueKey(switchKey);
+        final Offset slideBegin;
+        if (_goingDeeper) {
+          slideBegin =
+              isIncoming ? const Offset(0.07, 0) : const Offset(-0.07, 0);
+        } else {
+          slideBegin =
+              isIncoming ? const Offset(-0.07, 0) : const Offset(0.07, 0);
+        }
+        return SlideTransition(
+          position: Tween<Offset>(begin: slideBegin, end: Offset.zero)
+              .animate(animation),
+          child: FadeTransition(opacity: animation, child: child),
+        );
+      },
+      child: KeyedSubtree(key: ValueKey(switchKey), child: content),
+    );
+  }
+
+  Widget _countriesGrid() {
+    final byCountry = widget.gallery.photosByCountry;
     if (byCountry.isEmpty) {
       return EmptyView(
-        message:
-            gallery.isGeocoding ? 'Detecting locations...' : 'No photos found',
-        sub: gallery.isGeocoding ? 'Your photos will appear shortly' : '',
-        showSpinner: gallery.isGeocoding,
+        message: widget.gallery.isGeocoding
+            ? 'Detecting locations...'
+            : 'No photos found',
+        sub: widget.gallery.isGeocoding ? 'Your photos will appear shortly' : '',
+        showSpinner: widget.gallery.isGeocoding,
       );
     }
-    final names = byCountry.keys
-        .where((k) => k != 'Unknown')
-        .toList()
-      ..sort();
+    final names = byCountry.keys.where((k) => k != 'Unknown').toList()..sort();
     return GridView.builder(
-      padding: EdgeInsets.fromLTRB(10, contentTopPad, 10, 10),
+      padding:
+          EdgeInsets.fromLTRB(10, widget.contentTopPad, 10, 10),
       gridDelegate: _albumGridDelegate,
       itemCount: names.length,
       itemBuilder: (_, i) {
@@ -69,15 +121,17 @@ class AlbumsTab extends ConsumerWidget {
     );
   }
 
-  Widget _provincesGrid(WidgetRef ref) {
-    final byProvince = gallery.photosByProvince(gallery.selectedCountry);
+  Widget _provincesGrid() {
+    final byProvince =
+        widget.gallery.photosByProvince(widget.gallery.selectedCountry);
     if (byProvince.isEmpty) {
       return EmptyView(
-          message: 'No photos in ${gallery.selectedCountry}', sub: '');
+          message: 'No photos in ${widget.gallery.selectedCountry}', sub: '');
     }
     final names = byProvince.keys.toList()..sort();
     return GridView.builder(
-      padding: EdgeInsets.fromLTRB(10, contentTopPad, 10, 10),
+      padding:
+          EdgeInsets.fromLTRB(10, widget.contentTopPad, 10, 10),
       gridDelegate: _albumGridDelegate,
       itemCount: names.length,
       itemBuilder: (_, i) {
@@ -93,21 +147,21 @@ class AlbumsTab extends ConsumerWidget {
     );
   }
 
-  Widget _provincePhotos(WidgetRef ref) {
-    final photos = gallery.filteredPhotos;
+  Widget _provincePhotos() {
+    final photos = widget.gallery.filteredPhotos;
     if (photos.isEmpty) {
       return const EmptyView(
           message: 'No photos here',
           sub: 'Tap the button below to add photos');
     }
     return GridView.builder(
-      padding: EdgeInsets.only(top: contentTopPad),
+      padding: EdgeInsets.only(top: widget.contentTopPad),
       gridDelegate: photoGridDelegate,
       itemCount: photos.length,
       itemBuilder: (_, i) => PhotoTile(
         photo: photos[i],
-        onTap: () => onTap(photos, i),
-        onLongPress: () => onLongPress(photos[i]),
+        onTap: () => widget.onTap(photos, i),
+        onLongPress: () => widget.onLongPress(photos[i]),
       ),
     );
   }
