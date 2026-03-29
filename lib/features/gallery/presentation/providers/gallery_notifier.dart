@@ -158,13 +158,32 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
   Future<void> _initAndLoad() async {
     await _geoService.initialize();
+
+    // Request permission before loading — critical on first install
+    final permission = await PhotoManager.requestPermissionExtend();
+    if (!permission.hasAccess) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Photo permission denied. Please allow access in Settings.',
+      );
+      return;
+    }
+
     await _loadAll();
   }
 
   Future<void> _loadAll() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final albums = await PhotoManager.getAssetPathList(onlyAll: true);
+      // Retry up to 3 times with delay — iOS may not expose photos immediately
+      // after the permission dialog is dismissed for the first time.
+      List<AssetPathEntity> albums = [];
+      for (int attempt = 0; attempt < 3; attempt++) {
+        albums = await PhotoManager.getAssetPathList(onlyAll: true);
+        if (albums.isNotEmpty) break;
+        await Future.delayed(const Duration(milliseconds: 800));
+      }
+
       if (albums.isEmpty) {
         state = state.copyWith(isLoading: false);
         return;
