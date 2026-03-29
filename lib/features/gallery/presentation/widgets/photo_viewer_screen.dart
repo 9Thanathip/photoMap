@@ -281,17 +281,36 @@ class _ImagePageState extends State<_ImagePage> {
         minScale: 1.0,
         maxScale: 4.0,
         panEnabled: _isZoomed,
-        child: Center(
+        child: SizedBox.expand(
           child: widget.photo.assetEntity != null
               ? Image(
                   image: AssetEntityImageProvider(
                     widget.photo.assetEntity!,
-                    isOriginal: false,
-                    thumbnailSize: const ThumbnailSize(1920, 1920),
+                    isOriginal: true,
                   ),
                   fit: BoxFit.contain,
+                  frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                    if (wasSynchronouslyLoaded || frame != null) return child;
+                    // Show thumbnail while full-res loads
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image(
+                          image: AssetEntityImageProvider(
+                            widget.photo.assetEntity!,
+                            isOriginal: false,
+                            thumbnailSize: const ThumbnailSize(800, 800),
+                          ),
+                          fit: BoxFit.contain,
+                        ),
+                        child,
+                      ],
+                    );
+                  },
                 )
-              : const Icon(Icons.broken_image, color: Colors.white, size: 64),
+              : const Center(
+                  child: Icon(Icons.broken_image, color: Colors.white, size: 64),
+                ),
         ),
       ),
     );

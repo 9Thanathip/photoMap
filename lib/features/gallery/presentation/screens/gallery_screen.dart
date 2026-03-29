@@ -339,8 +339,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
 
   void _openViewer(
       BuildContext context, List<PhotoItem> photos, int initialIndex) {
-    Navigator.push(
-      context,
+    Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
         fullscreenDialog: true,
         builder: (_) =>
