@@ -9,10 +9,8 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:video_player/video_player.dart';
 import '../providers/gallery_notifier.dart';
 import 'photo_editor_sheet.dart';
-
-// Single source of truth — both precache and display must use the same key
-// so the preloaded image is actually served from cache when the page appears.
-const _kDisplaySize = ThumbnailSize(1920, 1920);
+import 'image_viewer_page.dart';
+import 'video_viewer_page.dart';
 
 class PhotoViewerScreen extends StatefulWidget {
   const PhotoViewerScreen({
@@ -105,9 +103,6 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       return;
     }
 
-    controller.addListener(() {
-      if (mounted) setState(() {});
-    });
     setState(() {
       _videoController = controller;
       _videoInitialized = true;
@@ -122,7 +117,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       if (asset == null || asset.type == AssetType.video) continue;
       precacheImage(
         AssetEntityImageProvider(asset,
-            isOriginal: false, thumbnailSize: _kDisplaySize),
+            isOriginal: false, thumbnailSize: kDisplaySize),
         context,
       );
     }
@@ -245,7 +240,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       itemBuilder: (_, index) {
         final photo = widget.photos[index];
         final page = photo.assetEntity?.type == AssetType.video
-            ? _VideoPage(
+            ? VideoViewerPage(
                 controller: index == _currentIndex ? _videoController : null,
                 initialized: index == _currentIndex && _videoInitialized,
                 onTap: _toggleOverlay,
@@ -254,7 +249,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                 onSliderDragEnd: () =>
                     setState(() => _isSliderDragging = false),
               )
-            : _ImagePage(
+            : ImageViewerPage(
                 photo: photo,
                 onZoomChanged: _onZoomChanged,
                 onTap: _toggleOverlay,
@@ -387,369 +382,6 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
           ),
         ),
       ],
-    );
-  }
-}
-
-// ── Image page ────────────────────────────────────────────────────────────────
-
-class _ImagePage extends StatefulWidget {
-  const _ImagePage({
-    required this.photo,
-    required this.onZoomChanged,
-    required this.onTap,
-  });
-
-  final PhotoItem photo;
-  final ValueChanged<bool> onZoomChanged;
-  final VoidCallback onTap;
-
-  @override
-  State<_ImagePage> createState() => _ImagePageState();
-}
-
-class _ImagePageState extends State<_ImagePage> {
-  final _controller = TransformationController();
-  bool _isZoomed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller.addListener(_onTransform);
-  }
-
-  void _onTransform() {
-    final scale = _controller.value.getMaxScaleOnAxis();
-    final zoomed = scale > 1.05;
-    if (zoomed != _isZoomed) {
-      setState(() => _isZoomed = zoomed);
-      widget.onZoomChanged(zoomed);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_onTransform);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: InteractiveViewer(
-        transformationController: _controller,
-        minScale: 1.0,
-        maxScale: 4.0,
-        panEnabled: _isZoomed,
-        child: SizedBox.expand(
-          child: widget.photo.assetEntity != null
-              ? Image(
-                  image: AssetEntityImageProvider(
-                    widget.photo.assetEntity!,
-                    isOriginal: false,
-                    thumbnailSize: _kDisplaySize,
-                  ),
-                  fit: BoxFit.contain,
-                  frameBuilder:
-                      (context, child, frame, wasSynchronouslyLoaded) {
-                    if (wasSynchronouslyLoaded || frame != null) return child;
-                    // Low-res placeholder while 1920px thumbnail decodes
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image(
-                          image: AssetEntityImageProvider(
-                            widget.photo.assetEntity!,
-                            isOriginal: false,
-                            thumbnailSize: const ThumbnailSize(400, 400),
-                          ),
-                          fit: BoxFit.contain,
-                        ),
-                        child,
-                      ],
-                    );
-                  },
-                )
-              : const Center(
-                  child:
-                      Icon(Icons.broken_image, color: Colors.white, size: 64),
-                ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Video page ────────────────────────────────────────────────────────────────
-
-class _VideoPage extends StatefulWidget {
-  const _VideoPage({
-    this.controller,
-    required this.initialized,
-    required this.onTap,
-    required this.onSliderDragStart,
-    required this.onSliderDragEnd,
-  });
-
-  final VideoPlayerController? controller;
-  final bool initialized;
-  final VoidCallback onTap;
-  final VoidCallback onSliderDragStart;
-  final VoidCallback onSliderDragEnd;
-
-  @override
-  State<_VideoPage> createState() => _VideoPageState();
-}
-
-class _VideoPageState extends State<_VideoPage> {
-  bool _showControls = true;
-  bool _muted = false;
-  Timer? _hideTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.controller?.addListener(_onController);
-    _scheduleHide();
-  }
-
-  @override
-  void didUpdateWidget(_VideoPage old) {
-    super.didUpdateWidget(old);
-    if (old.controller != widget.controller) {
-      old.controller?.removeListener(_onController);
-      widget.controller?.addListener(_onController);
-    }
-  }
-
-  @override
-  void dispose() {
-    _hideTimer?.cancel();
-    widget.controller?.removeListener(_onController);
-    super.dispose();
-  }
-
-  void _onController() => setState(() {});
-
-  void _scheduleHide() {
-    _hideTimer?.cancel();
-    _hideTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted && (widget.controller?.value.isPlaying ?? false)) {
-        setState(() => _showControls = false);
-      }
-    });
-  }
-
-  void _onTap() {
-    setState(() => _showControls = !_showControls);
-    if (_showControls) _scheduleHide();
-    widget.onTap();
-  }
-
-  void _togglePlay() {
-    final c = widget.controller;
-    if (c == null) return;
-    if (c.value.isPlaying) {
-      c.pause();
-      _hideTimer?.cancel();
-      setState(() => _showControls = true);
-    } else {
-      c.play();
-      _scheduleHide();
-      setState(() {});
-    }
-  }
-
-  void _toggleMute() {
-    setState(() => _muted = !_muted);
-    widget.controller?.setVolume(_muted ? 0 : 1);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!widget.initialized || widget.controller == null) {
-      return GestureDetector(
-        onTap: widget.onTap,
-        child: const ColoredBox(
-          color: Colors.black,
-          child: Center(child: CircularProgressIndicator(color: Colors.white)),
-        ),
-      );
-    }
-
-    final c = widget.controller!;
-    return GestureDetector(
-      onTap: _onTap,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Video
-          Center(
-            child: AspectRatio(
-              aspectRatio: c.value.aspectRatio,
-              child: VideoPlayer(c),
-            ),
-          ),
-
-          // Centre play / pause button
-          AnimatedOpacity(
-            opacity: _showControls ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 250),
-            child: Center(
-              child: GestureDetector(
-                onTap: _togglePlay,
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.black.withValues(alpha: 0.45),
-                    border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.25), width: 1),
-                  ),
-                  child: Icon(
-                    c.value.isPlaying
-                        ? Icons.pause_rounded
-                        : Icons.play_arrow_rounded,
-                    color: Colors.white,
-                    size: 36,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Bottom controls
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: AnimatedOpacity(
-              opacity: _showControls ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 250),
-              child: _VideoControls(
-                controller: c,
-                muted: _muted,
-                onToggleMute: _toggleMute,
-                onSeeking: _scheduleHide,
-                onSliderDragStart: widget.onSliderDragStart,
-                onSliderDragEnd: widget.onSliderDragEnd,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Video controls ────────────────────────────────────────────────────────────
-
-class _VideoControls extends StatelessWidget {
-  const _VideoControls({
-    required this.controller,
-    required this.muted,
-    required this.onToggleMute,
-    required this.onSeeking,
-    required this.onSliderDragStart,
-    required this.onSliderDragEnd,
-  });
-
-  final VideoPlayerController controller;
-  final bool muted;
-  final VoidCallback onToggleMute;
-  final VoidCallback onSeeking;
-  final VoidCallback onSliderDragStart;
-  final VoidCallback onSliderDragEnd;
-
-  static String _fmt(Duration d) {
-    if (d.inHours > 0) {
-      return '${d.inHours}:'
-          '${(d.inMinutes % 60).toString().padLeft(2, '0')}:'
-          '${(d.inSeconds % 60).toString().padLeft(2, '0')}';
-    }
-    return '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final pos = controller.value.position;
-    final dur = controller.value.duration;
-    final progress = dur.inMilliseconds > 0
-        ? (pos.inMilliseconds / dur.inMilliseconds).clamp(0.0, 1.0)
-        : 0.0;
-
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [Color(0xCC000000), Colors.transparent],
-        ),
-      ),
-      padding: const EdgeInsets.fromLTRB(0, 24, 0, 0),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Scrubber — inset from edges so it doesn't fight PageView swipe
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: 3,
-                activeTrackColor: Colors.white,
-                inactiveTrackColor: Colors.white38,
-                thumbColor: Colors.white,
-                thumbShape:
-                    const RoundSliderThumbShape(enabledThumbRadius: 7),
-                overlayShape: SliderComponentShape.noOverlay,
-              ),
-              child: Slider(
-                value: progress.toDouble(),
-                onChangeStart: (_) => onSliderDragStart(),
-                onChangeEnd: (_) => onSliderDragEnd(),
-                onChanged: (v) {
-                  onSeeking();
-                  controller.seekTo(Duration(
-                      milliseconds: (v * dur.inMilliseconds).round()));
-                },
-              ),
-            ),
-            ),
-            // Time row
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-              child: Row(
-                children: [
-                  Text(
-                    '${_fmt(pos)}  /  ${_fmt(dur)}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: onToggleMute,
-                    child: Icon(
-                      muted
-                          ? Icons.volume_off_rounded
-                          : Icons.volume_up_rounded,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
