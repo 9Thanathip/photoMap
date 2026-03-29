@@ -22,29 +22,78 @@ class ImageViewerPage extends StatefulWidget {
   State<ImageViewerPage> createState() => _ImageViewerPageState();
 }
 
-class _ImageViewerPageState extends State<ImageViewerPage> {
+class _ImageViewerPageState extends State<ImageViewerPage>
+    with SingleTickerProviderStateMixin {
   final _controller = TransformationController();
+  late AnimationController _animationController;
+  Animation<Matrix4>? _animation;
   bool _isZoomed = false;
+  Offset? _doubleTapPosition;
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(_onTransform);
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    )..addListener(_onAnimationUpdate);
   }
 
   void _onTransform() {
     final scale = _controller.value.getMaxScaleOnAxis();
     final zoomed = scale > 1.05;
     if (zoomed != _isZoomed) {
-      setState(() => _isZoomed = zoomed);
+      _isZoomed = zoomed;
       widget.onZoomChanged(zoomed);
     }
+  }
+
+  void _onAnimationUpdate() {
+    if (_animation != null) {
+      _controller.value = _animation!.value;
+    }
+  }
+
+  void _handleDoubleTap() {
+    final Matrix4 matrix = _controller.value;
+    final double scale = matrix.getMaxScaleOnAxis();
+
+    _animationController.stop();
+
+    if (scale > 1.1) {
+      // Zoom out
+      _animation = Matrix4Tween(
+        begin: matrix,
+        end: Matrix4.identity(),
+      ).animate(CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutCubic,
+      ));
+    } else {
+      // Zoom in at tap position
+      final position = _doubleTapPosition ?? Offset.zero;
+      final Matrix4 zoomedMatrix = Matrix4.identity()
+        ..translate(-position.dx * 1.5, -position.dy * 1.5)
+        ..scale(2.5);
+
+      _animation = Matrix4Tween(
+        begin: matrix,
+        end: zoomedMatrix,
+      ).animate(CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutCubic,
+      ));
+    }
+
+    _animationController.forward(from: 0);
   }
 
   @override
   void dispose() {
     _controller.removeListener(_onTransform);
     _controller.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -52,6 +101,8 @@ class _ImageViewerPageState extends State<ImageViewerPage> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: widget.onTap,
+      onDoubleTapDown: (details) => _doubleTapPosition = details.localPosition,
+      onDoubleTap: _handleDoubleTap,
       child: InteractiveViewer(
         transformationController: _controller,
         minScale: 1.0,
