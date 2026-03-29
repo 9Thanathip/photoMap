@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/mock_auth_repository.dart';
 import '../../domain/auth_repository.dart';
 
@@ -31,16 +32,29 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   final AuthRepository _repo;
+  static const _userIdKey = 'userId';
 
   Future<void> _init() async {
-    await Future<void>.delayed(const Duration(seconds: 2));
-    if (mounted) state = AuthState.unauthenticated();
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString(_userIdKey);
+
+    await Future<void>.delayed(const Duration(seconds: 1)); // Reduced delay for better UX
+    
+    if (mounted) {
+      if (userId != null) {
+        state = AuthState.authenticated(userId);
+      } else {
+        state = AuthState.unauthenticated();
+      }
+    }
   }
 
   Future<void> signIn(String email, String password) async {
     state = AuthState.loading();
     try {
       final userId = await _repo.signIn(email, password);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_userIdKey, userId);
       state = AuthState.authenticated(userId);
     } catch (e) {
       state = AuthState.unauthenticated(e.toString());
@@ -51,6 +65,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = AuthState.loading();
     try {
       final userId = await _repo.signUp(email, password, name);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_userIdKey, userId);
       state = AuthState.authenticated(userId);
     } catch (e) {
       state = AuthState.unauthenticated(e.toString());
@@ -60,12 +76,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> signOut() async {
     state = AuthState.loading();
     await _repo.signOut();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_userIdKey);
     if (mounted) state = AuthState.unauthenticated();
   }
 
   Future<void> deleteAccount() async {
     state = AuthState.loading();
     await _repo.deleteAccount();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_userIdKey);
     if (mounted) state = AuthState.unauthenticated();
   }
 }
