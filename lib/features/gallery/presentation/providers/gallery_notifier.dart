@@ -159,8 +159,18 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   Future<void> _initAndLoad() async {
     await _geoService.initialize();
 
-    // Request permission before loading — critical on first install
-    final permission = await PhotoManager.requestPermissionExtend();
+    // Request permission before loading — critical on first install.
+    // On Android 10+, mediaLocation:true is required to read GPS EXIF data.
+    // The ACCESS_MEDIA_LOCATION permission must also be declared in AndroidManifest.xml.
+    // requestOption is ignored on iOS so this is Android-only behaviour.
+    final permission = await PhotoManager.requestPermissionExtend(
+      requestOption: const PermissionRequestOption(
+        androidPermission: AndroidPermission(
+          type: RequestType.common,
+          mediaLocation: true,
+        ),
+      ),
+    );
     if (!permission.hasAccess) {
       state = state.copyWith(
         isLoading: false,
