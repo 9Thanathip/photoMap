@@ -38,6 +38,10 @@ class AlbumsTab extends ConsumerStatefulWidget {
 class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   bool _goingDeeper = true;
 
+  // Swipe-back tracking
+  double _dragX = 0;
+  bool _isDragging = false;
+
   int _depthOf(bool inCountry, bool inProvince) =>
       inProvince ? 2 : (inCountry ? 1 : 0);
 
@@ -48,6 +52,52 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     final newD = _depthOf(widget.inCountry, widget.inProvince);
     if (newD != oldD) _goingDeeper = newD > oldD;
   }
+
+  void _goBack() {
+    setState(() {
+      _goingDeeper = false;
+      _dragX = 0;
+      _isDragging = false;
+    });
+    final notifier = ref.read(galleryStateProvider.notifier);
+    if (widget.inProvince) {
+      notifier.selectProvince('All');
+    } else {
+      notifier.selectCountry('All');
+    }
+  }
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    if (!widget.inCountry) return;
+    // Only track rightward drag
+    final newX = (_dragX + details.delta.dx).clamp(0.0, double.infinity);
+    setState(() {
+      _dragX = newX;
+      _isDragging = true;
+    });
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    if (!widget.inCountry) return;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final velocity = details.primaryVelocity ?? 0;
+    final shouldGoBack =
+        velocity > 400 || _dragX > screenWidth * 0.3;
+
+    if (shouldGoBack) {
+      _goBack();
+    } else {
+      setState(() {
+        _dragX = 0;
+        _isDragging = false;
+      });
+    }
+  }
+
+  void _onDragCancel() => setState(() {
+        _dragX = 0;
+        _isDragging = false;
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -66,12 +116,11 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
       switchKey = 'all';
     }
 
-    return AnimatedSwitcher(
+    Widget switcher = AnimatedSwitcher(
       duration: const Duration(milliseconds: 260),
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
       transitionBuilder: (child, animation) {
-        // Incoming child has the current switchKey; outgoing has the previous one.
         final isIncoming = child.key == ValueKey(switchKey);
         final Offset slideBegin;
         if (_goingDeeper) {
@@ -82,13 +131,32 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
               isIncoming ? const Offset(-0.07, 0) : const Offset(0.07, 0);
         }
         return SlideTransition(
-          position: Tween<Offset>(begin: slideBegin, end: Offset.zero)
-              .animate(animation),
+          position:
+              Tween<Offset>(begin: slideBegin, end: Offset.zero).animate(animation),
           child: FadeTransition(opacity: animation, child: child),
         );
       },
       child: KeyedSubtree(key: ValueKey(switchKey), child: content),
     );
+
+    // Wrap with swipe-back gesture when inside an album
+    if (widget.inCountry) {
+      switcher = GestureDetector(
+        onHorizontalDragUpdate: _onDragUpdate,
+        onHorizontalDragEnd: _onDragEnd,
+        onHorizontalDragCancel: _onDragCancel,
+        child: AnimatedContainer(
+          duration: _isDragging
+              ? Duration.zero
+              : const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+          transform: Matrix4.translationValues(_dragX * 0.35, 0, 0),
+          child: switcher,
+        ),
+      );
+    }
+
+    return switcher;
   }
 
   Widget _countriesGrid() {
@@ -98,14 +166,15 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
         message: widget.gallery.isGeocoding
             ? 'Detecting locations...'
             : 'No photos found',
-        sub: widget.gallery.isGeocoding ? 'Your photos will appear shortly' : '',
+        sub:
+            widget.gallery.isGeocoding ? 'Your photos will appear shortly' : '',
         showSpinner: widget.gallery.isGeocoding,
       );
     }
     final names = byCountry.keys.where((k) => k != 'Unknown').toList()..sort();
     return GridView.builder(
-      padding:
-          EdgeInsets.fromLTRB(10, widget.contentTopPad, 10, 10),
+      key: const PageStorageKey('albums_countries'),
+      padding: EdgeInsets.fromLTRB(10, widget.contentTopPad, 10, 10),
       gridDelegate: _albumGridDelegate,
       itemCount: names.length,
       itemBuilder: (_, i) {
@@ -130,8 +199,8 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     }
     final names = byProvince.keys.toList()..sort();
     return GridView.builder(
-      padding:
-          EdgeInsets.fromLTRB(10, widget.contentTopPad, 10, 10),
+      key: PageStorageKey('albums_provinces_${widget.gallery.selectedCountry}'),
+      padding: EdgeInsets.fromLTRB(10, widget.contentTopPad, 10, 10),
       gridDelegate: _albumGridDelegate,
       itemCount: names.length,
       itemBuilder: (_, i) {
@@ -155,6 +224,8 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
           sub: 'Tap the button below to add photos');
     }
     return GridView.builder(
+      key: PageStorageKey(
+          'albums_photos_${widget.gallery.selectedCountry}_${widget.gallery.selectedProvince}'),
       padding: EdgeInsets.only(top: widget.contentTopPad),
       gridDelegate: photoGridDelegate,
       itemCount: photos.length,
