@@ -7,12 +7,14 @@ import '../widgets/thailand_map_painter.dart';
 
 class MapState {
   final List<ProvinceShape> provinces;
+  final ui.Path? combinedPath;
   final Map<String, ui.Image?> provincePhotos;
   final Map<String, DateTime> imageLoadTimes; // Track when images were loaded
   final bool isLoading;
 
   MapState({
     required this.provinces,
+    this.combinedPath,
     required this.provincePhotos,
     required this.imageLoadTimes,
     required this.isLoading,
@@ -20,16 +22,17 @@ class MapState {
 
   MapState copyWith({
     List<ProvinceShape>? provinces,
+    ui.Path? combinedPath,
     Map<String, ui.Image?>? provincePhotos,
     Map<String, DateTime>? imageLoadTimes,
     bool? isLoading,
-  }) =>
-      MapState(
-        provinces: provinces ?? this.provinces,
-        provincePhotos: provincePhotos ?? this.provincePhotos,
-        imageLoadTimes: imageLoadTimes ?? this.imageLoadTimes,
-        isLoading: isLoading ?? this.isLoading,
-      );
+  }) => MapState(
+    provinces: provinces ?? this.provinces,
+    combinedPath: combinedPath ?? this.combinedPath,
+    provincePhotos: provincePhotos ?? this.provincePhotos,
+    imageLoadTimes: imageLoadTimes ?? this.imageLoadTimes,
+    isLoading: isLoading ?? this.isLoading,
+  );
 }
 
 final mapProvider = StateNotifierProvider<MapNotifier, MapState>((ref) {
@@ -42,11 +45,14 @@ class MapNotifier extends StateNotifier<MapState> {
   final Ref _ref;
 
   MapNotifier(this._ref)
-      : super(MapState(
-            provinces: [], 
-            provincePhotos: {}, 
-            imageLoadTimes: {},
-            isLoading: true)) {
+    : super(
+        MapState(
+          provinces: [],
+          provincePhotos: {},
+          imageLoadTimes: {},
+          isLoading: true,
+        ),
+      ) {
     _ref.listen(galleryStateProvider, (previous, next) {
       if (previous?.allPhotos != next.allPhotos) {
         _updateProvincePhotos();
@@ -57,7 +63,18 @@ class MapNotifier extends StateNotifier<MapState> {
   Future<void> loadMap() async {
     state = state.copyWith(isLoading: true);
     final shapes = await loadThailandProvinces();
-    state = state.copyWith(provinces: shapes, isLoading: false);
+
+    // Pre-calculate combined path once to avoid expensive per-frame path creation
+    final combined = ui.Path();
+    for (final s in shapes) {
+      combined.addPath(s.path, ui.Offset.zero);
+    }
+
+    state = state.copyWith(
+      provinces: shapes,
+      combinedPath: combined,
+      isLoading: false,
+    );
     await _updateProvincePhotos();
   }
 
@@ -67,13 +84,18 @@ class MapNotifier extends StateNotifier<MapState> {
     final photosByProvince = _ref.read(galleryStateProvider).allPhotos;
     final Map<String, ui.Image?> newPhotos = {};
     final newLoadTimes = Map<String, DateTime>.from(state.imageLoadTimes);
-    
+
     // Group photos by province
     final Map<String, AssetEntity> provinceSelectedPhotos = {};
     for (var photo in photosByProvince) {
       if (photo.province.isNotEmpty && photo.assetEntity != null) {
-        final normalizedProvince = photo.province.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
-        provinceSelectedPhotos.putIfAbsent(normalizedProvince, () => photo.assetEntity!);
+        final normalizedProvince = photo.province
+            .replaceAll(RegExp(r'[\s-]'), '')
+            .toLowerCase();
+        provinceSelectedPhotos.putIfAbsent(
+          normalizedProvince,
+          () => photo.assetEntity!,
+        );
       }
     }
 
@@ -99,7 +121,7 @@ class MapNotifier extends StateNotifier<MapState> {
     }
 
     await Future.wait(futures);
-    
+
     // Captured AFTER loading so the fade starts exactly when they are rendered
     final now = DateTime.now();
     for (var provinceName in newPhotos.keys) {
@@ -115,10 +137,13 @@ class MapNotifier extends StateNotifier<MapState> {
   }
 
   Future<ui.Image?> _loadUiImage(AssetEntity entity) async {
-    // Increased to 768 for "Normal Resolution" as requested
-    final byteData = await entity.thumbnailDataWithSize(const ThumbnailSize(768, 768));
+    // 400x400 is the safest point for stability on Android.
+    // 768x768 uses ~180MB for 77 images, which exceeds many device limits when zooming.
+    final byteData = await entity.thumbnailDataWithSize(
+      const ThumbnailSize(400, 400),
+    );
     if (byteData == null) return null;
-    
+
     final Completer<ui.Image> completer = Completer();
     ui.decodeImageFromList(byteData, (img) => completer.complete(img));
     return completer.future;

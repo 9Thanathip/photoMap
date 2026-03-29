@@ -13,6 +13,7 @@ class ProvinceShape {
 
 class ThailandMapPainter extends CustomPainter {
   final List<ProvinceShape> provinces;
+  final Path? combinedPath; // Cached combined path for shadows
   final Map<String, ui.Image?> provincePhotos;
   final Map<String, DateTime> imageLoadTimes;
   final DateTime currentTime;
@@ -23,6 +24,7 @@ class ThailandMapPainter extends CustomPainter {
 
   ThailandMapPainter({
     required this.provinces,
+    this.combinedPath,
     required this.provincePhotos,
     required this.imageLoadTimes,
     required this.currentTime,
@@ -53,20 +55,23 @@ class ThailandMapPainter extends CustomPainter {
     canvas.translate(offsetX, offsetY);
     canvas.scale(scale);
 
-    // 1. Draw One Unified Soft Shadow (Material style like buttons)
-    final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.18)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6.0 / scale);
-    
-    final combinedPath = Path();
-    for (var province in provinces) {
-      combinedPath.addPath(province.path, Offset.zero);
+    // Get the visible area in the current (province) coordinate system.
+    // This allows us to skip drawing provinces that are off-screen.
+    final Rect visibleRect = canvas.getLocalClipBounds();
+
+    // 1. Draw One Unified Soft Shadow (Pre-calculated for performance)
+    // Only draw shadow at low zoom levels (scale < 3.0) to save GPU memory.
+    // At high zoom, the country-wide shadow is irrelevant and prone to crashing GPUs.
+    if (combinedPath != null && scale < 2.5) {
+      final shadowPaint = Paint()
+        ..color = Colors.black.withOpacity(0.18)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6.0 / scale);
+      
+      canvas.save();
+      canvas.translate(0, 3.0 / scale);
+      canvas.drawPath(combinedPath!, shadowPaint);
+      canvas.restore();
     }
-    // Match button shadow offset (slightly downward)
-    canvas.save();
-    canvas.translate(0, 3.0 / scale);
-    canvas.drawPath(combinedPath, shadowPaint);
-    canvas.restore();
 
     final fillPaint = Paint()..style = ui.PaintingStyle.fill;
     final strokePaint = Paint()
@@ -75,22 +80,26 @@ class ThailandMapPainter extends CustomPainter {
       ..strokeWidth = 0.5 / scale;
 
     for (var province in provinces) {
+      // Frustum Culling: Skip if province is outside visible area
+      if (!visibleRect.overlaps(province.bounds)) continue;
+
       final image = provincePhotos[province.name];
       final isSelected = province.name == selectedProvince;
 
       if (image != null) {
+        // Optimized: SaveLayer is expensive, especially in a loop.
+        // We use clipPath + drawImageRect.
         canvas.save();
         canvas.clipPath(province.path);
         
-        // Use the later of (when image loaded) or (when screen opened)
         final imageLoadTime = imageLoadTimes[province.name] ?? openTime;
         final animStartTime = imageLoadTime.isAfter(openTime) ? imageLoadTime : openTime;
-        
         final diff = currentTime.difference(animStartTime).inMilliseconds;
-        final opacity = (diff / 750).clamp(0.0, 1.0); // Faster 750ms fade
+        final opacity = (diff / 750).clamp(0.0, 1.0);
 
         final imagePaint = Paint()
-          ..filterQuality = ui.FilterQuality.medium
+          // Reduced to low quality for better frame rates during zoom/movement
+          ..filterQuality = ui.FilterQuality.low 
           ..color = Colors.white.withOpacity(opacity);
         
         final imgSize = Size(image.width.toDouble(), image.height.toDouble());

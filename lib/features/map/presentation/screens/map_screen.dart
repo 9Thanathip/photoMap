@@ -54,9 +54,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
               maxScale: 10,
               child: Center(
                 child: CustomPaint(
-                  size: Size.infinite,
+                  size: const Size(1000, 1000),
                   painter: ThailandMapPainter(
                     provinces: state.provinces,
+                    combinedPath: state.combinedPath,
                     provincePhotos: state.provincePhotos,
                     imageLoadTimes: state.imageLoadTimes,
                     currentTime: _currentTime,
