@@ -26,14 +26,23 @@ class PhotoTile extends StatefulWidget {
 class _PhotoTileState extends State<PhotoTile> {
   bool _pressed = false;
 
+  static String _fmtDuration(Duration d) {
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    Widget image = widget.photo.assetEntity != null
+    final asset = widget.photo.assetEntity;
+    final isVideo = asset?.type == AssetType.video;
+
+    Widget thumbnail = asset != null
         ? Image(
             image: AssetEntityImageProvider(
-              widget.photo.assetEntity!,
+              asset,
               isOriginal: false,
               thumbnailSize: const ThumbnailSize.square(200),
             ),
@@ -52,6 +61,34 @@ class _PhotoTileState extends State<PhotoTile> {
             color: Colors.grey[300],
             child: const Icon(Icons.broken_image),
           );
+
+    // Overlay play icon + duration for videos
+    Widget image = isVideo
+        ? Stack(
+            fit: StackFit.expand,
+            children: [
+              thumbnail,
+              const Align(
+                alignment: Alignment.center,
+                child: Icon(Icons.play_circle_filled_rounded,
+                    color: Colors.white, size: 28),
+              ),
+              Positioned(
+                right: 4,
+                bottom: 4,
+                child: Text(
+                  _fmtDuration(asset!.videoDuration),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    shadows: [Shadow(blurRadius: 4)],
+                  ),
+                ),
+              ),
+            ],
+          )
+        : thumbnail;
 
     Widget content = widget.isSelectMode
         ? Stack(

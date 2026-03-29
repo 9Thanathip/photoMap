@@ -205,7 +205,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   List<PhotoItem> _buildPhotoItems(List<AssetEntity> assets) {
     final items = <PhotoItem>[];
     for (final asset in assets) {
-      if (asset.type == AssetType.image) {
+      if (asset.type == AssetType.image || asset.type == AssetType.video) {
         items.add(PhotoItem(
           path: asset.id,
           country: '',

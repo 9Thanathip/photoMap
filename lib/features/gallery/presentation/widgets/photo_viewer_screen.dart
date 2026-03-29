@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
   bool _showOverlay = true;
   bool _isZoomed = false;
   bool _dragging = false;
+  bool _isSliderDragging = false;
   VideoPlayerController? _videoController;
   bool _videoInitialized = false;
 
@@ -228,7 +230,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     // PageView is built once and reused — AnimatedBuilder won't rebuild it
     final pageView = PageView.builder(
       controller: _pageController,
-      physics: _isZoomed
+      physics: _isZoomed || _isSliderDragging
           ? const NeverScrollableScrollPhysics()
           : const ClampingScrollPhysics(),
       itemCount: widget.photos.length,
@@ -247,6 +249,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                 controller: index == _currentIndex ? _videoController : null,
                 initialized: index == _currentIndex && _videoInitialized,
                 onTap: _toggleOverlay,
+                onSliderDragStart: () =>
+                    setState(() => _isSliderDragging = true),
+                onSliderDragEnd: () =>
+                    setState(() => _isSliderDragging = false),
               )
             : _ImagePage(
                 photo: photo,
@@ -352,8 +358,6 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (_isVideo && _videoInitialized && _videoController != null)
-                  _VideoControls(controller: _videoController!),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                   child: Row(
@@ -480,37 +484,162 @@ class _ImagePageState extends State<_ImagePage> {
 
 // ── Video page ────────────────────────────────────────────────────────────────
 
-class _VideoPage extends StatelessWidget {
+class _VideoPage extends StatefulWidget {
   const _VideoPage({
     this.controller,
     required this.initialized,
     required this.onTap,
+    required this.onSliderDragStart,
+    required this.onSliderDragEnd,
   });
 
   final VideoPlayerController? controller;
   final bool initialized;
   final VoidCallback onTap;
+  final VoidCallback onSliderDragStart;
+  final VoidCallback onSliderDragEnd;
+
+  @override
+  State<_VideoPage> createState() => _VideoPageState();
+}
+
+class _VideoPageState extends State<_VideoPage> {
+  bool _showControls = true;
+  bool _muted = false;
+  Timer? _hideTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller?.addListener(_onController);
+    _scheduleHide();
+  }
+
+  @override
+  void didUpdateWidget(_VideoPage old) {
+    super.didUpdateWidget(old);
+    if (old.controller != widget.controller) {
+      old.controller?.removeListener(_onController);
+      widget.controller?.addListener(_onController);
+    }
+  }
+
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    widget.controller?.removeListener(_onController);
+    super.dispose();
+  }
+
+  void _onController() => setState(() {});
+
+  void _scheduleHide() {
+    _hideTimer?.cancel();
+    _hideTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted && (widget.controller?.value.isPlaying ?? false)) {
+        setState(() => _showControls = false);
+      }
+    });
+  }
+
+  void _onTap() {
+    setState(() => _showControls = !_showControls);
+    if (_showControls) _scheduleHide();
+    widget.onTap();
+  }
+
+  void _togglePlay() {
+    final c = widget.controller;
+    if (c == null) return;
+    if (c.value.isPlaying) {
+      c.pause();
+      _hideTimer?.cancel();
+      setState(() => _showControls = true);
+    } else {
+      c.play();
+      _scheduleHide();
+      setState(() {});
+    }
+  }
+
+  void _toggleMute() {
+    setState(() => _muted = !_muted);
+    widget.controller?.setVolume(_muted ? 0 : 1);
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (!initialized || controller == null) {
+    if (!widget.initialized || widget.controller == null) {
       return GestureDetector(
-        onTap: onTap,
+        onTap: widget.onTap,
         child: const ColoredBox(
           color: Colors.black,
-          child: Center(
-            child: CircularProgressIndicator(color: Colors.white),
-          ),
+          child: Center(child: CircularProgressIndicator(color: Colors.white)),
         ),
       );
     }
+
+    final c = widget.controller!;
     return GestureDetector(
-      onTap: onTap,
-      child: Center(
-        child: AspectRatio(
-          aspectRatio: controller!.value.aspectRatio,
-          child: VideoPlayer(controller!),
-        ),
+      onTap: _onTap,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Video
+          Center(
+            child: AspectRatio(
+              aspectRatio: c.value.aspectRatio,
+              child: VideoPlayer(c),
+            ),
+          ),
+
+          // Centre play / pause button
+          AnimatedOpacity(
+            opacity: _showControls ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 250),
+            child: Center(
+              child: GestureDetector(
+                onTap: _togglePlay,
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black.withValues(alpha: 0.45),
+                    border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.25), width: 1),
+                  ),
+                  child: Icon(
+                    c.value.isPlaying
+                        ? Icons.pause_rounded
+                        : Icons.play_arrow_rounded,
+                    color: Colors.white,
+                    size: 36,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Bottom controls
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: AnimatedOpacity(
+              opacity: _showControls ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 250),
+              child: _VideoControls(
+                controller: c,
+                muted: _muted,
+                onToggleMute: _toggleMute,
+                onSeeking: _scheduleHide,
+                onSliderDragStart: widget.onSliderDragStart,
+                onSliderDragEnd: widget.onSliderDragEnd,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -519,68 +648,108 @@ class _VideoPage extends StatelessWidget {
 // ── Video controls ────────────────────────────────────────────────────────────
 
 class _VideoControls extends StatelessWidget {
-  const _VideoControls({required this.controller});
+  const _VideoControls({
+    required this.controller,
+    required this.muted,
+    required this.onToggleMute,
+    required this.onSeeking,
+    required this.onSliderDragStart,
+    required this.onSliderDragEnd,
+  });
 
   final VideoPlayerController controller;
+  final bool muted;
+  final VoidCallback onToggleMute;
+  final VoidCallback onSeeking;
+  final VoidCallback onSliderDragStart;
+  final VoidCallback onSliderDragEnd;
 
-  String _fmt(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
+  static String _fmt(Duration d) {
+    if (d.inHours > 0) {
+      return '${d.inHours}:'
+          '${(d.inMinutes % 60).toString().padLeft(2, '0')}:'
+          '${(d.inSeconds % 60).toString().padLeft(2, '0')}';
+    }
+    return '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
-    final value = controller.value;
-    final position = value.position;
-    final duration = value.duration;
-    final progress = duration.inMilliseconds > 0
-        ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
+    final pos = controller.value.position;
+    final dur = controller.value.duration;
+    final progress = dur.inMilliseconds > 0
+        ? (pos.inMilliseconds / dur.inMilliseconds).clamp(0.0, 1.0)
         : 0.0;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-            trackHeight: 2,
-            activeTrackColor: Colors.white,
-            inactiveTrackColor: Colors.white38,
-            thumbColor: Colors.white,
-            overlayShape: SliderComponentShape.noOverlay,
-          ),
-          child: Slider(
-            value: progress.toDouble(),
-            onChanged: (v) => controller.seekTo(
-              Duration(milliseconds: (v * duration.inMilliseconds).round()),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [Color(0xCC000000), Colors.transparent],
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(0, 24, 0, 0),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Scrubber — inset from edges so it doesn't fight PageView swipe
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 3,
+                activeTrackColor: Colors.white,
+                inactiveTrackColor: Colors.white38,
+                thumbColor: Colors.white,
+                thumbShape:
+                    const RoundSliderThumbShape(enabledThumbRadius: 7),
+                overlayShape: SliderComponentShape.noOverlay,
+              ),
+              child: Slider(
+                value: progress.toDouble(),
+                onChangeStart: (_) => onSliderDragStart(),
+                onChangeEnd: (_) => onSliderDragEnd(),
+                onChanged: (v) {
+                  onSeeking();
+                  controller.seekTo(Duration(
+                      milliseconds: (v * dur.inMilliseconds).round()));
+                },
+              ),
             ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: () =>
-                    value.isPlaying ? controller.pause() : controller.play(),
-                child: Icon(
-                  value.isPlaying
-                      ? Icons.pause_circle_filled_rounded
-                      : Icons.play_circle_filled_rounded,
-                  color: Colors.white,
-                  size: 40,
-                ),
+            ),
+            // Time row
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+              child: Row(
+                children: [
+                  Text(
+                    '${_fmt(pos)}  /  ${_fmt(dur)}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: onToggleMute,
+                    child: Icon(
+                      muted
+                          ? Icons.volume_off_rounded
+                          : Icons.volume_up_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 10),
-              Text(
-                '${_fmt(position)} / ${_fmt(duration)}',
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
