@@ -8,7 +8,8 @@ class ProvinceShape {
   final Path path;
   final Rect bounds;
 
-  ProvinceShape({required this.name, required this.path}) : bounds = path.getBounds();
+  ProvinceShape({required this.name, required this.path})
+    : bounds = path.getBounds();
 }
 
 class ThailandMapPainter extends CustomPainter {
@@ -56,8 +57,11 @@ class ThailandMapPainter extends CustomPainter {
     final scaleY = size.height / totalBounds.height;
     final scale = (scaleX < scaleY ? scaleX : scaleY) * 0.80;
 
-    final offsetX = (size.width - totalBounds.width * scale) / 2 - totalBounds.left * scale;
-    final offsetY = (size.height - totalBounds.height * scale) / 2 - totalBounds.top * scale;
+    final offsetX =
+        (size.width - totalBounds.width * scale) / 2 - totalBounds.left * scale;
+    final offsetY =
+        (size.height - totalBounds.height * scale) / 2 -
+        totalBounds.top * scale;
 
     canvas.save();
     canvas.translate(offsetX, offsetY);
@@ -74,7 +78,7 @@ class ThailandMapPainter extends CustomPainter {
       final shadowPaint = Paint()
         ..color = Colors.black.withValues(alpha: 0.18)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6.0 / scale);
-      
+
       canvas.save();
       canvas.translate(0, 3.0 / scale);
       canvas.drawPath(combinedPath!, shadowPaint);
@@ -95,12 +99,16 @@ class ThailandMapPainter extends CustomPainter {
       final isSelected = province.name == selectedProvince;
 
       // Always draw base fill so the province shape is visible during fade-in
-      fillPaint.color = isSelected ? Colors.blue.withValues(alpha: 0.3) : baseColor;
+      fillPaint.color = isSelected
+          ? Colors.blue.withValues(alpha: 0.3)
+          : baseColor;
       canvas.drawPath(province.path, fillPaint);
 
       if (image != null) {
         final imageLoadTime = imageLoadTimes[province.name] ?? openTime;
-        final animStartTime = imageLoadTime.isAfter(openTime) ? imageLoadTime : openTime;
+        final animStartTime = imageLoadTime.isAfter(openTime)
+            ? imageLoadTime
+            : openTime;
         final diff = currentTime.difference(animStartTime).inMilliseconds;
         final opacity = (diff / 750).clamp(0.0, 1.0);
 
@@ -115,9 +123,19 @@ class ThailandMapPainter extends CustomPainter {
           final imgSize = Size(image.width.toDouble(), image.height.toDouble());
           final provinceRect = province.bounds;
 
-          final fittedSize = applyBoxFit(BoxFit.cover, imgSize, provinceRect.size);
-          final inputRect = Alignment.center.inscribe(fittedSize.source, Offset.zero & imgSize);
-          final outputRect = Alignment.center.inscribe(fittedSize.destination, provinceRect);
+          final fittedSize = applyBoxFit(
+            BoxFit.cover,
+            imgSize,
+            provinceRect.size,
+          );
+          final inputRect = Alignment.center.inscribe(
+            fittedSize.source,
+            Offset.zero & imgSize,
+          );
+          final outputRect = Alignment.center.inscribe(
+            fittedSize.destination,
+            provinceRect,
+          );
 
           canvas.drawImageRect(image, inputRect, outputRect, imagePaint);
           canvas.restore();
@@ -129,27 +147,62 @@ class ThailandMapPainter extends CustomPainter {
     }
 
     canvas.restore();
+
+    // Draw "T H A I L A N D" text at the bottom center
+    // This is drawn AFTER canvas.restore so it stays fixed and centered on the final export
+    final isDarkBackground =
+        canvasColor != null &&
+        ThemeData.estimateBrightnessForColor(canvasColor!) == Brightness.dark;
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: 'T  H  A  I  L  A  N  D',
+        style: TextStyle(
+          color: isDarkBackground
+              ? Colors.white.withValues(alpha: 0.4)
+              : Colors.black.withValues(alpha: 0.4),
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 4,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    textPainter.paint(
+      canvas,
+      Offset(
+        (size.width - textPainter.width) / 2,
+        size.height - textPainter.height - 60, // Positioned near the bottom
+      ),
+    );
   }
 
   @override
   bool shouldRepaint(covariant ThailandMapPainter oldDelegate) {
     return oldDelegate.provincePhotos != provincePhotos ||
-           oldDelegate.selectedProvince != selectedProvince ||
-           oldDelegate.currentTime != currentTime ||
-           oldDelegate.openTime != openTime ||
-           oldDelegate.baseColor != baseColor ||
-           oldDelegate.canvasColor != canvasColor;
+        oldDelegate.selectedProvince != selectedProvince ||
+        oldDelegate.currentTime != currentTime ||
+        oldDelegate.openTime != openTime ||
+        oldDelegate.baseColor != baseColor ||
+        oldDelegate.canvasColor != canvasColor;
   }
 }
 
 Future<List<ProvinceShape>> loadThailandProvinces() async {
-  final String jsonString = await rootBundle.loadString('assets/data/thailand.json');
+  final String jsonString = await rootBundle.loadString(
+    'assets/data/thailand.json',
+  );
   final data = json.decode(jsonString);
   final List<ProvinceShape> shapes = [];
 
   if (data['features'] != null) {
     for (var feature in data['features']) {
-      final rawName = feature['properties']['CHA_NE'] ?? feature['properties']['name'] ?? feature['properties']['NAME_1'] ?? 'Unknown';
+      final rawName =
+          feature['properties']['CHA_NE'] ??
+          feature['properties']['name'] ??
+          feature['properties']['NAME_1'] ??
+          'Unknown';
       // Normalize name by removing spaces, hyphens and converting to lowercase
       final name = rawName.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
       final geometry = feature['geometry'];
@@ -172,7 +225,10 @@ Future<List<ProvinceShape>> loadThailandProvinces() async {
 
 void _addPolygonToPath(Path path, List coordinates) {
   if (coordinates.isEmpty) return;
-  path.moveTo(coordinates[0][0].toDouble(), -coordinates[0][1].toDouble()); // Note the negative Y for screen coords
+  path.moveTo(
+    coordinates[0][0].toDouble(),
+    -coordinates[0][1].toDouble(),
+  ); // Note the negative Y for screen coords
   for (var i = 1; i < coordinates.length; i++) {
     path.lineTo(coordinates[i][0].toDouble(), -coordinates[i][1].toDouble());
   }
