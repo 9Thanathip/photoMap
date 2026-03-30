@@ -22,6 +22,8 @@ class ThailandMapPainter extends CustomPainter {
   final Color baseColor;
   final Color strokeColor;
 
+  final Color? canvasColor;
+
   ThailandMapPainter({
     required this.provinces,
     this.combinedPath,
@@ -32,11 +34,17 @@ class ThailandMapPainter extends CustomPainter {
     this.selectedProvince,
     this.baseColor = const Color(0xFFE0E0E0),
     this.strokeColor = Colors.white,
+    this.canvasColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (provinces.isEmpty) return;
+
+    // Fill canvas background (used when exporting and for dark themes)
+    if (canvasColor != null) {
+      canvas.drawRect(Offset.zero & size, Paint()..color = canvasColor!);
+    }
 
     // Calculate scaling to fit provinces into the canvas size
     Rect totalBounds = provinces.first.bounds;
@@ -64,7 +72,7 @@ class ThailandMapPainter extends CustomPainter {
     // At high zoom, the country-wide shadow is irrelevant and prone to crashing GPUs.
     if (combinedPath != null && scale < 2.5) {
       final shadowPaint = Paint()
-        ..color = Colors.black.withOpacity(0.18)
+        ..color = Colors.black.withValues(alpha: 0.18)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6.0 / scale);
       
       canvas.save();
@@ -125,10 +133,12 @@ class ThailandMapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant ThailandMapPainter oldDelegate) {
-    return oldDelegate.provincePhotos != provincePhotos || 
+    return oldDelegate.provincePhotos != provincePhotos ||
            oldDelegate.selectedProvince != selectedProvince ||
            oldDelegate.currentTime != currentTime ||
-           oldDelegate.openTime != openTime;
+           oldDelegate.openTime != openTime ||
+           oldDelegate.baseColor != baseColor ||
+           oldDelegate.canvasColor != canvasColor;
   }
 }
 
