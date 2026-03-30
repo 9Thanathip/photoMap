@@ -7,12 +7,15 @@ import 'package:video_player/video_player.dart';
 class VideoViewerPage extends StatefulWidget {
   const VideoViewerPage({
     super.key,
+    required this.tag,
     this.controller,
     required this.initialized,
     required this.onTap,
     required this.onSliderDragStart,
     required this.onSliderDragEnd,
   });
+
+  final String tag;
 
   final VideoPlayerController? controller;
   final bool initialized;
@@ -103,9 +106,12 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
         children: [
           // Video - Don't rebuild this on every frame
           Center(
-            child: AspectRatio(
-              aspectRatio: c.value.aspectRatio,
-              child: VideoPlayer(c),
+            child: Hero(
+              tag: widget.tag,
+              child: AspectRatio(
+                aspectRatio: c.value.aspectRatio,
+                child: VideoPlayer(c),
+              ),
             ),
           ),
 

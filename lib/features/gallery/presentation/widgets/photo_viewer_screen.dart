@@ -42,11 +42,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
 
   double get _dy => _spring.value;
 
-  // Raw pointer tracking (avoids gesture arena so PageView stays smooth)
-  int? _trackPointer;
-  double _dragStartX = 0, _dragStartY = 0;
-  bool _vertActive = false;
-  VelocityTracker? _vt;
+  // Gesture tracking
 
   @override
   void initState() {
@@ -132,75 +128,32 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     if (zoomed != _isZoomed) setState(() => _isZoomed = zoomed);
   }
 
-  void _onPointerDown(PointerDownEvent e) {
+  void _onVerticalDragStart(DragStartDetails e) {
     if (_isZoomed) return;
-    _trackPointer = e.pointer;
-    _dragStartX = e.localPosition.dx;
-    _dragStartY = e.localPosition.dy;
-    _vertActive = false;
-    _vt = VelocityTracker.withKind(e.kind);
+    setState(() => _dragging = true);
   }
 
-  void _onPointerMove(PointerMoveEvent e) {
-    if (_isZoomed || e.pointer != _trackPointer) return;
-    _vt?.addPosition(e.timeStamp, e.localPosition);
-
-    final dx = e.localPosition.dx - _dragStartX;
-    final dy = e.localPosition.dy - _dragStartY;
-
-    if (!_vertActive) {
-      if (dx.abs() + dy.abs() < 8) return; // wait for enough movement
-      // Only activate for clearly downward, more vertical than horizontal
-      if (dy > 0 && dy > dx.abs() * 1.5) {
-        _vertActive = true;
-        setState(() => _dragging = true);
-      } else {
-        _trackPointer = null; // yield to PageView
-        return;
-      }
-    }
-
+  void _onVerticalDragUpdate(DragUpdateDetails e) {
+    if (_isZoomed) return;
     _spring.stop();
-    _spring.value = dy.clamp(0.0, 3000.0);
+    // Use delta to prevent the initial "jump" caused by gesture slop.
+    _spring.value = (_spring.value + e.delta.dy).clamp(-3000.0, 3000.0);
   }
 
-  void _onPointerUp(PointerUpEvent e) {
-    if (e.pointer != _trackPointer || !_vertActive) return;
-    _vertActive = false;
-    _trackPointer = null;
+  void _onVerticalDragEnd(DragEndDetails e) {
+    if (_isZoomed) return;
     setState(() => _dragging = false);
 
     final screenH = MediaQuery.sizeOf(context).height;
-    final vel = _vt?.getVelocity().pixelsPerSecond.dy ?? 0;
+    final vel = e.primaryVelocity ?? 0;
 
-    if (vel > 700 || _dy > screenH * 0.2) {
-      final targetY = screenH * 1.3;
-      final speed = vel.clamp(800.0, 4000.0);
-      final ms = ((targetY - _dy) / speed * 1000).clamp(100.0, 280.0);
-      _spring
-          .animateTo(targetY,
-              duration: Duration(milliseconds: ms.round()),
-              curve: Curves.easeIn)
-          .then((_) {
-        if (mounted) Navigator.of(context).pop();
-      });
+    if (vel.abs() > 700 || _dy.abs() > screenH * 0.2) {
+      // Let the Hero transition handle the beautiful return flight back into the grid!
+      if (mounted) Navigator.of(context).pop();
     } else {
       _spring.animateWith(SpringSimulation(
         const SpringDescription(mass: 1, stiffness: 600, damping: 38),
         _dy, 0, vel,
-      ));
-    }
-  }
-
-  void _onPointerCancel(PointerCancelEvent e) {
-    if (e.pointer != _trackPointer) return;
-    _vertActive = false;
-    _trackPointer = null;
-    setState(() => _dragging = false);
-    if (_dy != 0) {
-      _spring.animateWith(SpringSimulation(
-        const SpringDescription(mass: 1, stiffness: 600, damping: 38),
-        _dy, 0, 0,
       ));
     }
   }
@@ -241,6 +194,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
         final photo = widget.photos[index];
         final page = photo.assetEntity?.type == AssetType.video
             ? VideoViewerPage(
+                tag: photo.path,
                 controller: index == _currentIndex ? _videoController : null,
                 initialized: index == _currentIndex && _videoInitialized,
                 onTap: _toggleOverlay,
@@ -270,22 +224,22 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
         animation: _spring,
         builder: (context, child) {
           final dy = _spring.value;
-          final progress = (dy / (screenH * 0.45)).clamp(0.0, 1.0);
-          final bgOpacity = (1.0 - progress * 0.9).clamp(0.0, 1.0);
-          final scale = 1.0 - progress * 0.07;
+          final progress = (dy.abs() / (screenH * 0.45)).clamp(0.0, 1.0);
+          final bgOpacity = (1.0 - progress).clamp(0.0, 1.0);
+          final scale = 1.0 - progress * 0.25; // Smooth squish when dragged
           // Drag-based fade only — tap-based toggle is handled by AnimatedOpacity below
-          final overlayOpacity = (1.0 - progress * 2.5).clamp(0.0, 1.0);
+          final overlayOpacity = (1.0 - progress * 3.0).clamp(0.0, 1.0);
 
           return ColoredBox(
             color: Colors.black.withValues(alpha: bgOpacity),
             child: Stack(
               children: [
                 // ── Photo layer — only Transform rebuilds, PageView is reused ──
-                Listener(
-                  onPointerDown: _onPointerDown,
-                  onPointerMove: _onPointerMove,
-                  onPointerUp: _onPointerUp,
-                  onPointerCancel: _onPointerCancel,
+                GestureDetector(
+                  onVerticalDragStart: _onVerticalDragStart,
+                  onVerticalDragUpdate: _onVerticalDragUpdate,
+                  onVerticalDragEnd: _onVerticalDragEnd,
+                  behavior: HitTestBehavior.opaque,
                   child: Transform.translate(
                     offset: Offset(0, dy),
                     child: Transform.scale(scale: scale, child: child),

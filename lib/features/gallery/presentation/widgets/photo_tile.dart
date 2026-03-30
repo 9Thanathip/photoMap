@@ -135,7 +135,10 @@ class _PhotoTileState extends State<PhotoTile> {
       child: AnimatedOpacity(
         opacity: _pressed ? 0.7 : 1.0,
         duration: const Duration(milliseconds: 80),
-        child: content,
+        child: Hero(
+          tag: widget.photo.path, // Using path as unique ID
+          child: content,
+        ),
       ),
     );
   }

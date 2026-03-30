@@ -340,10 +340,16 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
   void _openViewer(
       BuildContext context, List<PhotoItem> photos, int initialIndex) {
     Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(
-        fullscreenDialog: true,
-        builder: (_) =>
-            PhotoViewerScreen(photos: photos, initialIndex: initialIndex),
+      PageRouteBuilder<void>(
+        opaque: false,
+        transitionDuration: const Duration(milliseconds: 300),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: PhotoViewerScreen(photos: photos, initialIndex: initialIndex),
+          );
+        },
       ),
     );
   }

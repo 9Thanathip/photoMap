@@ -110,32 +110,35 @@ class _ImageViewerPageState extends State<ImageViewerPage>
         panEnabled: _isZoomed,
         child: SizedBox.expand(
           child: widget.photo.assetEntity != null
-              ? Image(
-                  image: AssetEntityImageProvider(
-                    widget.photo.assetEntity!,
-                    isOriginal: false,
-                    thumbnailSize: kDisplaySize,
-                  ),
-                  fit: BoxFit.contain,
-                  frameBuilder:
-                      (context, child, frame, wasSynchronouslyLoaded) {
-                    if (wasSynchronouslyLoaded || frame != null) return child;
-                    // Low-res placeholder while 1920px thumbnail decodes
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image(
-                          image: AssetEntityImageProvider(
-                            widget.photo.assetEntity!,
-                            isOriginal: false,
-                            thumbnailSize: const ThumbnailSize(400, 400),
+              ? Hero(
+                  tag: widget.photo.path,
+                  child: Image(
+                    image: AssetEntityImageProvider(
+                      widget.photo.assetEntity!,
+                      isOriginal: false,
+                      thumbnailSize: kDisplaySize,
+                    ),
+                    fit: BoxFit.contain,
+                    frameBuilder:
+                        (context, child, frame, wasSynchronouslyLoaded) {
+                      if (wasSynchronouslyLoaded || frame != null) return child;
+                      // Low-res placeholder while 1920px thumbnail decodes
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image(
+                            image: AssetEntityImageProvider(
+                              widget.photo.assetEntity!,
+                              isOriginal: false,
+                              thumbnailSize: const ThumbnailSize(400, 400),
+                            ),
+                            fit: BoxFit.contain,
                           ),
-                          fit: BoxFit.contain,
-                        ),
-                        child,
-                      ],
-                    );
-                  },
+                          child,
+                        ],
+                      );
+                    },
+                  ),
                 )
               : const Center(
                   child:
