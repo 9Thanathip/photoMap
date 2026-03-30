@@ -5,8 +5,12 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/map_provider.dart';
 import '../widgets/thailand_map_painter.dart';
+
+const _kKeyProvinceColor = 'map_province_color';
+const _kKeyCanvasColor = 'map_canvas_color';
 
 class _ColorPreset {
   const _ColorPreset(this.label, this.color);
@@ -65,6 +69,24 @@ class _MapScreenState extends ConsumerState<MapScreen>
     _ticker =
         createTicker((_) => setState(() => _currentTime = DateTime.now()))
           ..start();
+    _loadColors();
+  }
+
+  Future<void> _loadColors() async {
+    final prefs = await SharedPreferences.getInstance();
+    final provinceVal = prefs.getInt(_kKeyProvinceColor);
+    final canvasVal = prefs.getInt(_kKeyCanvasColor);
+    if (!mounted) return;
+    setState(() {
+      if (provinceVal != null) _provinceColor = Color(provinceVal);
+      if (canvasVal != null) _canvasColor = Color(canvasVal);
+    });
+  }
+
+  Future<void> _saveColors() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kKeyProvinceColor, _provinceColor.toARGB32());
+    await prefs.setInt(_kKeyCanvasColor, _canvasColor.toARGB32());
   }
 
   @override
@@ -83,8 +105,14 @@ class _MapScreenState extends ConsumerState<MapScreen>
       builder: (_) => _SettingsSheet(
         currentProvince: _provinceColor,
         currentCanvas: _canvasColor,
-        onProvinceSelect: (c) => setState(() => _provinceColor = c),
-        onCanvasSelect: (c) => setState(() => _canvasColor = c),
+        onProvinceSelect: (c) {
+          setState(() => _provinceColor = c);
+          _saveColors();
+        },
+        onCanvasSelect: (c) {
+          setState(() => _canvasColor = c);
+          _saveColors();
+        },
       ),
     );
   }
