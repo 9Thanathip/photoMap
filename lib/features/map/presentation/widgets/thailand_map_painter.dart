@@ -46,7 +46,7 @@ class ThailandMapPainter extends CustomPainter {
 
     final scaleX = size.width / totalBounds.width;
     final scaleY = size.height / totalBounds.height;
-    final scale = (scaleX < scaleY ? scaleX : scaleY) * 0.95;
+    final scale = (scaleX < scaleY ? scaleX : scaleY) * 0.80;
 
     final offsetX = (size.width - totalBounds.width * scale) / 2 - totalBounds.left * scale;
     final offsetY = (size.height - totalBounds.height * scale) / 2 - totalBounds.top * scale;
