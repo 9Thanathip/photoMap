@@ -66,9 +66,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
   void initState() {
     super.initState();
     _openTime = DateTime.now();
-    _ticker =
-        createTicker((_) => setState(() => _currentTime = DateTime.now()))
-          ..start();
+    _ticker = createTicker((_) => setState(() => _currentTime = DateTime.now()))
+      ..start();
     _loadColors();
   }
 
@@ -124,14 +123,14 @@ class _MapScreenState extends ConsumerState<MapScreen>
     setState(() => _downloading = true);
 
     try {
-      final boundary = _repaintKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
+      final boundary =
+          _repaintKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) return;
 
       // Render at 2x for a crisp export
       final image = await boundary.toImage(pixelRatio: 2.0);
-      final byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) return;
 
       final bytes = byteData.buffer.asUint8List();
@@ -149,8 +148,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
           SnackBar(
             content: const Text('Saved to Photos'),
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -160,8 +160,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
           SnackBar(
             content: const Text('Failed to save image'),
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -179,8 +180,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final botPad = MediaQuery.paddingOf(context).bottom;
 
     final brightness = ThemeData.estimateBrightnessForColor(_provinceColor);
-    final strokeColor =
-        brightness == Brightness.dark ? Colors.white30 : Colors.white;
+    final strokeColor = brightness == Brightness.dark
+        ? Colors.white30
+        : Colors.white;
 
     return Scaffold(
       backgroundColor: _canvasColor,
@@ -223,14 +225,15 @@ class _MapScreenState extends ConsumerState<MapScreen>
             top: topPad + 12,
             left: 20,
             child: _GlassCard(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.map_outlined,
-                      size: 15,
-                      color: Colors.black.withValues(alpha: 0.55)),
+                  Icon(
+                    Icons.map_outlined,
+                    size: 15,
+                    color: Colors.black.withValues(alpha: 0.55),
+                  ),
                   const SizedBox(width: 6),
                   const Text(
                     'Thailand',
@@ -319,8 +322,9 @@ class _SettingsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final botPad = MediaQuery.paddingOf(context).bottom;
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+      margin: EdgeInsets.fromLTRB(16, 0, 16, botPad + 16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
@@ -398,8 +402,9 @@ class _ColorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark =
         ThemeData.estimateBrightnessForColor(color) == Brightness.dark;
-    final textColor =
-        isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black54;
+    final textColor = isDark
+        ? Colors.white.withValues(alpha: 0.9)
+        : Colors.black54;
 
     return GestureDetector(
       onTap: onTap,
@@ -438,15 +443,12 @@ class _ColorCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black)
-                      .withValues(alpha: 0.12),
+                  color: (isDark ? Colors.white : Colors.black).withValues(
+                    alpha: 0.12,
+                  ),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.colorize_rounded,
-                  size: 14,
-                  color: textColor,
-                ),
+                child: Icon(Icons.colorize_rounded, size: 14, color: textColor),
               ),
             ),
           ],
@@ -495,8 +497,9 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final botPad = MediaQuery.paddingOf(context).bottom;
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+      margin: EdgeInsets.fromLTRB(16, 0, 16, botPad + 16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
@@ -563,7 +566,7 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
 
           // Apply button
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: SizedBox(
               width: double.infinity,
               child: FilledButton(
@@ -571,12 +574,14 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
                 style: FilledButton.styleFrom(
                   backgroundColor: const ui.Color.fromARGB(255, 213, 213, 213),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text('Apply',
-                    style: TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
+                child: const Text(
+                  'Apply',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
               ),
             ),
           ),
@@ -591,6 +596,7 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GridView.builder(
+        padding: EdgeInsets.only(bottom: 24),
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -611,15 +617,17 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
                 duration: const Duration(milliseconds: 150),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  gradient: const SweepGradient(colors: [
-                    Color(0xFFFF0000),
-                    Color(0xFFFFFF00),
-                    Color(0xFF00FF00),
-                    Color(0xFF00FFFF),
-                    Color(0xFF0000FF),
-                    Color(0xFFFF00FF),
-                    Color(0xFFFF0000),
-                  ]),
+                  gradient: const SweepGradient(
+                    colors: [
+                      Color(0xFFFF0000),
+                      Color(0xFFFFFF00),
+                      Color(0xFF00FF00),
+                      Color(0xFF00FFFF),
+                      Color(0xFF0000FF),
+                      Color(0xFFFF00FF),
+                      Color(0xFFFF0000),
+                    ],
+                  ),
                   border: customSel
                       ? Border.all(
                           color: Theme.of(context).colorScheme.primary,
@@ -670,7 +678,7 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
                           color: preset.color.withValues(alpha: 0.5),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
-                        )
+                        ),
                       ]
                     : null,
               ),
@@ -680,9 +688,9 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
                       size: 22,
                       color:
                           ThemeData.estimateBrightnessForColor(preset.color) ==
-                                  Brightness.dark
-                              ? Colors.white
-                              : Colors.black87,
+                              Brightness.dark
+                          ? Colors.white
+                          : Colors.black87,
                     )
                   : null,
             ),
@@ -780,8 +788,11 @@ class _ActionButton extends StatelessWidget {
         child: SizedBox(
           width: 48,
           height: 48,
-          child: Icon(icon,
-              size: 20, color: Colors.black.withValues(alpha: 0.7)),
+          child: Icon(
+            icon,
+            size: 20,
+            color: Colors.black.withValues(alpha: 0.7),
+          ),
         ),
       ),
     );
