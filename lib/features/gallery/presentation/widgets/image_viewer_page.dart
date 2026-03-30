@@ -99,51 +99,50 @@ class _ImageViewerPageState extends State<ImageViewerPage>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      onDoubleTapDown: (details) => _doubleTapPosition = details.localPosition,
-      onDoubleTap: _handleDoubleTap,
-      child: InteractiveViewer(
-        transformationController: _controller,
-        minScale: 1.0,
-        maxScale: 4.0,
-        panEnabled: _isZoomed,
-        child: SizedBox.expand(
-          child: widget.photo.assetEntity != null
-              ? Hero(
-                  tag: widget.photo.path,
-                  child: Image(
+    if (widget.photo.assetEntity == null) {
+      return const Center(
+        child: Icon(Icons.broken_image, color: Colors.white, size: 64),
+      );
+    }
+
+    return Hero(
+      tag: widget.photo.path,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onDoubleTapDown: (details) => _doubleTapPosition = details.localPosition,
+        onDoubleTap: _handleDoubleTap,
+        child: InteractiveViewer(
+          transformationController: _controller,
+          minScale: 1.0,
+          maxScale: 4.0,
+          panEnabled: _isZoomed,
+          child: Image(
+            image: AssetEntityImageProvider(
+              widget.photo.assetEntity!,
+              isOriginal: false,
+              thumbnailSize: kDisplaySize,
+            ),
+            fit: BoxFit.contain,
+            width: double.infinity,
+            height: double.infinity,
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded || frame != null) return child;
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image(
                     image: AssetEntityImageProvider(
                       widget.photo.assetEntity!,
                       isOriginal: false,
-                      thumbnailSize: kDisplaySize,
+                      thumbnailSize: const ThumbnailSize(400, 400),
                     ),
                     fit: BoxFit.contain,
-                    frameBuilder:
-                        (context, child, frame, wasSynchronouslyLoaded) {
-                      if (wasSynchronouslyLoaded || frame != null) return child;
-                      // Low-res placeholder while 1920px thumbnail decodes
-                      return Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Image(
-                            image: AssetEntityImageProvider(
-                              widget.photo.assetEntity!,
-                              isOriginal: false,
-                              thumbnailSize: const ThumbnailSize(400, 400),
-                            ),
-                            fit: BoxFit.contain,
-                          ),
-                          child,
-                        ],
-                      );
-                    },
                   ),
-                )
-              : const Center(
-                  child:
-                      Icon(Icons.broken_image, color: Colors.white, size: 64),
-                ),
+                  child,
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
