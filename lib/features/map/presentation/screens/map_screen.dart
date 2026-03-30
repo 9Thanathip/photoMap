@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../providers/map_provider.dart';
@@ -19,7 +20,7 @@ const _kProvincePresets = [
   _ColorPreset('Warm Sand', Color(0xFFE8D5B7)),
   _ColorPreset('Sage', Color(0xFFB2C9AD)),
   _ColorPreset('Sky', Color(0xFFB8D4E8)),
-  _ColorPreset('Blush', Color(0xFFE8B4B8)),
+  // _ColorPreset('Blush', Color(0xFFE8B4B8)),
   _ColorPreset('Slate', Color(0xFF7A8BA0)),
   _ColorPreset('Charcoal', Color(0xFF3A3A3A)),
   _ColorPreset('Ink', Color(0xFF1A1A2E)),
@@ -34,7 +35,7 @@ const _kCanvasPresets = [
   _ColorPreset('Blush', Color(0xFFF8EEF0)),
   _ColorPreset('Dark', Color(0xFF1C1C1E)),
   _ColorPreset('Midnight', Color(0xFF0D1B2A)),
-  _ColorPreset('Forest', Color(0xFF1A2A1A)),
+  // _ColorPreset('Forest', Color(0xFF1A2A1A)),
 ];
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -253,7 +254,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   }
 }
 
-// ── Settings sheet ────────────────────────────────────────────────────────────
+// ── Settings sheet — two color preview cards, tap to edit ────────────────────
 
 class _SettingsSheet extends StatelessWidget {
   const _SettingsSheet({
@@ -268,6 +269,26 @@ class _SettingsSheet extends StatelessWidget {
   final ValueChanged<Color> onProvinceSelect;
   final ValueChanged<Color> onCanvasSelect;
 
+  void _openColorPicker(
+    BuildContext context, {
+    required String title,
+    required Color current,
+    required List<_ColorPreset> presets,
+    required ValueChanged<Color> onSelect,
+  }) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _ColorPickerSheet(
+        title: title,
+        current: current,
+        presets: presets,
+        onSelect: onSelect,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -278,12 +299,11 @@ class _SettingsSheet extends StatelessWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Handle
           Center(
             child: Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              margin: const EdgeInsets.only(top: 12, bottom: 20),
               width: 36,
               height: 4,
               decoration: BoxDecoration(
@@ -292,129 +312,381 @@ class _SettingsSheet extends StatelessWidget {
               ),
             ),
           ),
-          // Province color section
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
-            child: Text(
-              'Province Color',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.2,
-              ),
-            ),
-          ),
-          _ColorGrid(
-            presets: _kProvincePresets,
-            current: currentProvince,
-            onSelect: onProvinceSelect,
-          ),
-          // Divider
+          // Two color cards side by side
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Divider(
-                height: 1,
-                color: Colors.black.withValues(alpha: 0.07)),
-          ),
-          // Canvas / background color section
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
-            child: Text(
-              'Background Color',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.2,
-              ),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _ColorCard(
+                    label: 'Province',
+                    color: currentProvince,
+                    onTap: () => _openColorPicker(
+                      context,
+                      title: 'Province Color',
+                      current: currentProvince,
+                      presets: _kProvincePresets,
+                      onSelect: onProvinceSelect,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _ColorCard(
+                    label: 'Background',
+                    color: currentCanvas,
+                    onTap: () => _openColorPicker(
+                      context,
+                      title: 'Background Color',
+                      current: currentCanvas,
+                      presets: _kCanvasPresets,
+                      onSelect: onCanvasSelect,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          _ColorGrid(
-            presets: _kCanvasPresets,
-            current: currentCanvas,
-            onSelect: onCanvasSelect,
-          ),
-          const SizedBox(height: 8),
         ],
       ),
     );
   }
 }
 
-// ── Reusable color swatch grid ────────────────────────────────────────────────
+// ── Color preview card ────────────────────────────────────────────────────────
 
-class _ColorGrid extends StatelessWidget {
-  const _ColorGrid({
-    required this.presets,
-    required this.current,
-    required this.onSelect,
+class _ColorCard extends StatelessWidget {
+  const _ColorCard({
+    required this.label,
+    required this.color,
+    required this.onTap,
   });
 
-  final List<_ColorPreset> presets;
-  final Color current;
-  final ValueChanged<Color> onSelect;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        children: presets.map((preset) {
-          final selected = preset.color.toARGB32() == current.toARGB32();
-          return GestureDetector(
-            onTap: () => onSelect(preset.color),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+    final isDark =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark;
+    final textColor =
+        isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black54;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        height: 80,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 14,
+              bottom: 12,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ),
+            Positioned(
+              right: 10,
+              top: 10,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: (isDark ? Colors.white : Colors.black)
+                      .withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.colorize_rounded,
+                  size: 14,
+                  color: textColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Color picker sheet — grid + custom ───────────────────────────────────────
+
+class _ColorPickerSheet extends StatefulWidget {
+  const _ColorPickerSheet({
+    required this.title,
+    required this.current,
+    required this.presets,
+    required this.onSelect,
+  });
+
+  final String title;
+  final Color current;
+  final List<_ColorPreset> presets;
+  final ValueChanged<Color> onSelect;
+
+  @override
+  State<_ColorPickerSheet> createState() => _ColorPickerSheetState();
+}
+
+class _ColorPickerSheetState extends State<_ColorPickerSheet> {
+  late Color _selected;
+  bool _showHuePicker = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.current;
+  }
+
+  bool get _isCustom =>
+      !widget.presets.any((p) => p.color.toARGB32() == _selected.toARGB32());
+
+  void _apply() {
+    widget.onSelect(_selected);
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
+            child: Row(
               children: [
+                Text(
+                  widget.title,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                const Spacer(),
+                // Live preview pill
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
-                  width: 48,
-                  height: 48,
+                  width: 52,
+                  height: 28,
                   decoration: BoxDecoration(
-                    color: preset.color,
-                    borderRadius: BorderRadius.circular(13),
-                    border: Border.all(
-                      color: selected
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.black.withValues(alpha: 0.08),
-                      width: selected ? 2.5 : 1,
-                    ),
+                    color: _selected,
+                    borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: preset.color.withValues(alpha: 0.35),
-                        blurRadius: selected ? 10 : 4,
+                        color: _selected.withValues(alpha: 0.45),
+                        blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: selected
-                      ? Icon(
-                          Icons.check_rounded,
-                          color:
-                              ThemeData.estimateBrightnessForColor(preset.color) ==
-                                      Brightness.dark
-                                  ? Colors.white
-                                  : Colors.black87,
-                          size: 18,
-                        )
-                      : null,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  preset.label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight:
-                        selected ? FontWeight.w600 : FontWeight.w400,
-                    color: Colors.black.withValues(alpha: 0.55),
-                  ),
                 ),
               ],
             ),
-          );
-        }).toList(),
+          ),
+
+          // Grid or Hue picker
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 220),
+            crossFadeState: _showHuePicker
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            firstChild: _buildGrid(),
+            secondChild: _buildHuePicker(),
+          ),
+
+          // Apply button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _apply,
+                style: FilledButton.styleFrom(
+                  backgroundColor: const ui.Color.fromARGB(255, 213, 213, 213),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text('Apply',
+                    style: TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildGrid() {
+    const cols = 4;
+    final items = [...widget.presets, null]; // null = custom slot
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: cols,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: 1,
+        ),
+        itemCount: items.length,
+        itemBuilder: (_, i) {
+          final preset = items[i];
+          if (preset == null) {
+            // Custom rainbow tile
+            final customSel = _isCustom;
+            return GestureDetector(
+              onTap: () => setState(() => _showHuePicker = true),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: const SweepGradient(colors: [
+                    Color(0xFFFF0000),
+                    Color(0xFFFFFF00),
+                    Color(0xFF00FF00),
+                    Color(0xFF00FFFF),
+                    Color(0xFF0000FF),
+                    Color(0xFFFF00FF),
+                    Color(0xFFFF0000),
+                  ]),
+                  border: customSel
+                      ? Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 3,
+                        )
+                      : null,
+                ),
+                child: customSel
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 22,
+                        shadows: const [Shadow(blurRadius: 4)],
+                      )
+                    : Icon(
+                        Icons.add_rounded,
+                        color: Colors.white,
+                        size: 22,
+                        shadows: const [Shadow(blurRadius: 4)],
+                      ),
+              ),
+            );
+          }
+
+          final sel = preset.color.toARGB32() == _selected.toARGB32();
+          return GestureDetector(
+            onTap: () => setState(() {
+              _selected = preset.color;
+              _showHuePicker = false;
+            }),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              decoration: BoxDecoration(
+                color: preset.color,
+                borderRadius: BorderRadius.circular(16),
+                border: sel
+                    ? Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 3,
+                      )
+                    : Border.all(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        width: 1,
+                      ),
+                boxShadow: sel
+                    ? [
+                        BoxShadow(
+                          color: preset.color.withValues(alpha: 0.5),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        )
+                      ]
+                    : null,
+              ),
+              child: sel
+                  ? Icon(
+                      Icons.check_rounded,
+                      size: 22,
+                      color:
+                          ThemeData.estimateBrightnessForColor(preset.color) ==
+                                  Brightness.dark
+                              ? Colors.white
+                              : Colors.black87,
+                    )
+                  : null,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildHuePicker() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+          child: HueRingPicker(
+            pickerColor: _selected,
+            onColorChanged: (c) => setState(() => _selected = c),
+            enableAlpha: false,
+            displayThumbColor: true,
+          ),
+        ),
+        TextButton(
+          onPressed: () => setState(() => _showHuePicker = false),
+          child: Text(
+            'Back to presets',
+            style: TextStyle(
+              color: Colors.black.withValues(alpha: 0.45),
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
