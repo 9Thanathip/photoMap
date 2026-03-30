@@ -53,7 +53,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     // Hold more decoded images so slides after the 3rd don't re-decode
     PaintingBinding.instance.imageCache.maximumSizeBytes = 256 << 20; // 256 MB
     _initVideo(_currentIndex);
@@ -273,9 +273,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
           final progress = (dy / (screenH * 0.45)).clamp(0.0, 1.0);
           final bgOpacity = (1.0 - progress * 0.9).clamp(0.0, 1.0);
           final scale = 1.0 - progress * 0.07;
-          final overlayOpacity = _showOverlay
-              ? (1.0 - progress * 2.5).clamp(0.0, 1.0)
-              : 0.0;
+          // Drag-based fade only — tap-based toggle is handled by AnimatedOpacity below
+          final overlayOpacity = (1.0 - progress * 2.5).clamp(0.0, 1.0);
 
           return ColoredBox(
             color: Colors.black.withValues(alpha: bgOpacity),
@@ -292,10 +291,15 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                     child: Transform.scale(scale: scale, child: child),
                   ),
                 ),
-                // ── Overlay — fixed position, fades with drag ─────────────────
+                // ── Overlay — tap toggles via AnimatedOpacity, drag fades via Opacity ──
                 IgnorePointer(
                   ignoring: !_showOverlay || _dragging,
-                  child: Opacity(opacity: overlayOpacity, child: overlay),
+                  child: AnimatedOpacity(
+                    opacity: _showOverlay ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    child: Opacity(opacity: overlayOpacity, child: overlay),
+                  ),
                 ),
               ],
             ),
