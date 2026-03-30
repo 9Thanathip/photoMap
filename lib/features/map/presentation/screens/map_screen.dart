@@ -171,6 +171,30 @@ class _MapScreenState extends ConsumerState<MapScreen>
     }
   }
 
+  void _resetView() {
+    final Matrix4 end = Matrix4.identity();
+    final Matrix4 start = _transformController.value;
+
+    final animation = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    final CurvedAnimation curve = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeInOutCubic,
+    );
+
+    curve.addListener(() {
+      _transformController.value = Matrix4Tween(
+        begin: start,
+        end: end,
+      ).evaluate(curve);
+    });
+
+    animation.forward().then((_) => animation.dispose());
+  }
+
   // ── Build ───────────────────────────────────────────────────────────────────
 
   @override
@@ -262,6 +286,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     icon: Icons.palette_outlined,
                     tooltip: 'Background',
                     onTap: _showSettings,
+                  ),
+                  Divider(
+                    height: 1,
+                    thickness: 0.5,
+                    color: Colors.black.withValues(alpha: 0.08),
+                  ),
+                  _ActionButton(
+                    icon: Icons.center_focus_strong_outlined,
+                    tooltip: 'Center Map',
+                    onTap: _resetView,
                   ),
                   Divider(
                     height: 1,
