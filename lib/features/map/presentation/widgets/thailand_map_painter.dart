@@ -86,34 +86,34 @@ class ThailandMapPainter extends CustomPainter {
       final image = provincePhotos[province.name];
       final isSelected = province.name == selectedProvince;
 
+      // Always draw base fill so the province shape is visible during fade-in
+      fillPaint.color = isSelected ? Colors.blue.withValues(alpha: 0.3) : baseColor;
+      canvas.drawPath(province.path, fillPaint);
+
       if (image != null) {
-        // Optimized: SaveLayer is expensive, especially in a loop.
-        // We use clipPath + drawImageRect.
-        canvas.save();
-        canvas.clipPath(province.path);
-        
         final imageLoadTime = imageLoadTimes[province.name] ?? openTime;
         final animStartTime = imageLoadTime.isAfter(openTime) ? imageLoadTime : openTime;
         final diff = currentTime.difference(animStartTime).inMilliseconds;
         final opacity = (diff / 750).clamp(0.0, 1.0);
 
-        final imagePaint = Paint()
-          // Reduced to low quality for better frame rates during zoom/movement
-          ..filterQuality = ui.FilterQuality.low 
-          ..color = Colors.white.withOpacity(opacity);
-        
-        final imgSize = Size(image.width.toDouble(), image.height.toDouble());
-        final provinceRect = province.bounds;
-        
-        final fittedSize = applyBoxFit(BoxFit.cover, imgSize, provinceRect.size);
-        final inputRect = Alignment.center.inscribe(fittedSize.source, Offset.zero & imgSize);
-        final outputRect = Alignment.center.inscribe(fittedSize.destination, provinceRect);
-        
-        canvas.drawImageRect(image, inputRect, outputRect, imagePaint);
-        canvas.restore();
-      } else {
-        fillPaint.color = isSelected ? Colors.blue.withOpacity(0.3) : baseColor;
-        canvas.drawPath(province.path, fillPaint);
+        if (opacity > 0) {
+          canvas.save();
+          canvas.clipPath(province.path);
+
+          final imagePaint = Paint()
+            ..filterQuality = ui.FilterQuality.low
+            ..color = Colors.white.withValues(alpha: opacity);
+
+          final imgSize = Size(image.width.toDouble(), image.height.toDouble());
+          final provinceRect = province.bounds;
+
+          final fittedSize = applyBoxFit(BoxFit.cover, imgSize, provinceRect.size);
+          final inputRect = Alignment.center.inscribe(fittedSize.source, Offset.zero & imgSize);
+          final outputRect = Alignment.center.inscribe(fittedSize.destination, provinceRect);
+
+          canvas.drawImageRect(image, inputRect, outputRect, imagePaint);
+          canvas.restore();
+        }
       }
 
       // Draw border

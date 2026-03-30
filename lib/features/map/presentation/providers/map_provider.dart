@@ -122,12 +122,17 @@ class MapNotifier extends StateNotifier<MapState> {
 
     await Future.wait(futures);
 
-    // Captured AFTER loading so the fade starts exactly when they are rendered
+    // Stagger fade-in timestamps so provinces appear sequentially rather than
+    // all at once. 40 ms offset per province — fast enough to look fluid but
+    // distinct enough to be visible as a wave effect.
+    const staggerMs = 40;
     final now = DateTime.now();
-    for (var provinceName in newPhotos.keys) {
-      if (!state.provincePhotos.containsKey(provinceName)) {
-        newLoadTimes[provinceName] = now;
-      }
+    final newKeys = newPhotos.keys
+        .where((k) => !state.provincePhotos.containsKey(k))
+        .toList();
+    for (var i = 0; i < newKeys.length; i++) {
+      newLoadTimes[newKeys[i]] =
+          now.add(Duration(milliseconds: i * staggerMs));
     }
 
     state = state.copyWith(
