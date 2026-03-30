@@ -8,7 +8,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:video_player/video_player.dart';
 import '../providers/gallery_notifier.dart';
-import 'photo_editor_sheet.dart';
+import 'photo_editor_screen.dart';
 import 'image_viewer_page.dart';
 import 'video_viewer_page.dart';
 
@@ -159,14 +159,21 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
   }
 
   void _openEditor() {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => PhotoEditorSheet(
-        photo: _current,
-        heroTag: 'viewer_$_currentIndex',
+    Navigator.push(
+      context,
+      PageRouteBuilder<void>(
+        opaque: false, // Allows cross-fade beautifully
+        transitionDuration: const Duration(milliseconds: 300),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: PhotoEditorScreen(
+              photo: _current,
+              heroTag: _current.path,
+            ),
+          );
+        },
       ),
     );
   }

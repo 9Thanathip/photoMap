@@ -154,28 +154,28 @@ class ThailandMapPainter extends CustomPainter {
         canvasColor != null &&
         ThemeData.estimateBrightnessForColor(canvasColor!) == Brightness.dark;
 
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: 'T  H  A  I  L  A  N  D',
-        style: TextStyle(
-          color: isDarkBackground
-              ? Colors.white.withValues(alpha: 0.4)
-              : Colors.black.withValues(alpha: 0.4),
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 4,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
+    // final textPainter = TextPainter(
+    //   text: TextSpan(
+    //     text: 'T  H  A  I  L  A  N  D',
+    //     style: TextStyle(
+    //       color: isDarkBackground
+    //           ? Colors.white.withValues(alpha: 0.4)
+    //           : Colors.black.withValues(alpha: 0.4),
+    //       fontSize: 16,
+    //       fontWeight: FontWeight.w400,
+    //       letterSpacing: 4,
+    //     ),
+    //   ),
+    //   textDirection: TextDirection.ltr,
+    // )..layout();
 
-    textPainter.paint(
-      canvas,
-      Offset(
-        (size.width - textPainter.width) / 2,
-        size.height - textPainter.height - 60, // Positioned near the bottom
-      ),
-    );
+    // textPainter.paint(
+    //   canvas,
+    //   Offset(
+    //     (size.width - textPainter.width) / 2,
+    //     size.height - textPainter.height - 60, // Positioned near the bottom
+    //   ),
+    // );
   }
 
   @override
