@@ -20,7 +20,7 @@ class GalleryScreen extends ConsumerStatefulWidget {
 }
 
 class _GalleryScreenState extends ConsumerState<GalleryScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final TabController _tabs;
   ViewMode _viewMode = ViewMode.all;
   double _contentTopPad = 0;
@@ -33,12 +33,21 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
     super.initState();
     _tabs = TabController(length: 2, vsync: this);
     _tabs.addListener(() => setState(() => _isScrolled = false));
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabs.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    if (lifecycleState == AppLifecycleState.resumed) {
+      ref.read(galleryStateProvider.notifier).reloadPhotos();
+    }
   }
 
   bool get _inAlbumsTab => _tabs.index == 1;
