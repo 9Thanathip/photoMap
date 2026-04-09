@@ -450,4 +450,33 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   }
 
   Future<void> reloadPhotos() => _loadAll();
+
+  /// Reload without spinner — only adds genuinely new photos and geocodes them.
+  /// Preserves scroll position and existing geocoded data.
+  Future<void> silentReload() async {
+    try {
+      final albums = await PhotoManager.getAssetPathList(onlyAll: true);
+      if (albums.isEmpty) return;
+
+      final album = albums.first;
+      final total = await album.assetCountAsync;
+      final assets = await album.getAssetListRange(start: 0, end: total);
+
+      final existingPaths = state.allPhotos.map((p) => p.path).toSet();
+      final newAssets = assets
+          .where((a) =>
+              (a.type == AssetType.image || a.type == AssetType.video) &&
+              !existingPaths.contains(a.id))
+          .toList();
+
+      if (newAssets.isEmpty) return;
+
+      final newPhotos = _buildPhotoItems(newAssets);
+      final merged = [...newPhotos, ...state.allPhotos];
+      state = state.copyWith(allPhotos: merged);
+      _geocodePhotos(merged);
+    } catch (_) {
+      // Silent fail — don't disrupt the UI on background refresh
+    }
+  }
 }

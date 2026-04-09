@@ -46,7 +46,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
     if (lifecycleState == AppLifecycleState.resumed) {
-      ref.read(galleryStateProvider.notifier).reloadPhotos();
+      ref.read(galleryStateProvider.notifier).silentReload();
     }
   }
 
