@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../providers/gallery_notifier.dart';
+import '../providers/gallery_select_provider.dart';
 import '../widgets/albums_tab.dart';
 import '../widgets/gallery_header.dart';
 import '../widgets/location_selector_sheet.dart';
@@ -25,8 +26,6 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
   ViewMode _viewMode = ViewMode.all;
   double _contentTopPad = 0;
   bool _isScrolled = false;
-  bool _isSelectMode = false;
-  final Set<String> _selectedPaths = {};
 
   @override
   void initState() {
@@ -52,69 +51,10 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
 
   bool get _inAlbumsTab => _tabs.index == 1;
 
-  void _enterSelectMode() =>
-      setState(() {
-        _isSelectMode = true;
-        _selectedPaths.clear();
-      });
-
-  void _exitSelectMode() =>
-      setState(() {
-        _isSelectMode = false;
-        _selectedPaths.clear();
-      });
-
-  void _toggleSelect(PhotoItem photo) {
-    setState(() {
-      if (_selectedPaths.contains(photo.path)) {
-        _selectedPaths.remove(photo.path);
-      } else {
-        _selectedPaths.add(photo.path);
-      }
-    });
-  }
-
-  void _selectAll(List<PhotoItem> photos) {
-    setState(() {
-      if (_selectedPaths.length == photos.length) {
-        _selectedPaths.clear();
-      } else {
-        _selectedPaths.addAll(photos.map((p) => p.path));
-      }
-    });
-  }
-
-  void _deleteSelected() {
-    showDialog<void>(
-      context: context,
-      builder: (dlg) => AlertDialog(
-        title: const Text('Delete Photos'),
-        content: Text('Delete ${_selectedPaths.length} photos?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dlg),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () {
-              Navigator.pop(dlg);
-              ref
-                  .read(galleryStateProvider.notifier)
-                  .removePhotos(_selectedPaths.toList());
-              _exitSelectMode();
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final gallery = ref.watch(galleryStateProvider);
+    final select = ref.watch(gallerySelectProvider);
     final theme = Theme.of(context);
     final inCountry = gallery.selectedCountry != 'All';
     final inProvince = inCountry && gallery.selectedProvince != 'All';
@@ -182,56 +122,27 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                     : notifier.selectCountry('All');
               },
               onFilterTap: () => _showFilterSheet(context, theme),
-              isSelectMode: _isSelectMode,
-              selectedCount: _selectedPaths.length,
+              isSelectMode: select.isSelectMode,
+              selectedCount: select.selectedCount,
               totalCount: sortedPhotos.length,
-              onEnterSelect: !_inAlbumsTab ? _enterSelectMode : null,
-              onCancelSelect: _exitSelectMode,
-              onSelectAll: () => _selectAll(sortedPhotos),
+              onEnterSelect: !_inAlbumsTab
+                  ? () => ref.read(gallerySelectProvider.notifier).enter()
+                  : null,
+              onCancelSelect: () =>
+                  ref.read(gallerySelectProvider.notifier).exit(),
+              onSelectAll: () {
+                final notifier = ref.read(gallerySelectProvider.notifier);
+                if (select.selectedCount == sortedPhotos.length) {
+                  notifier.clearSelection();
+                } else {
+                  notifier.selectAll(sortedPhotos.map((p) => p.path));
+                }
+              },
             ),
           ),
-          if (_isSelectMode)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  border: Border(
-                    top: BorderSide(
-                      color: theme.colorScheme.outlineVariant.withAlpha(80),
-                    ),
-                  ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.viewPaddingOf(context).bottom +
-                        (NavigationBarTheme.of(context).height ?? 80.0),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.delete_outline,
-                          color: _selectedPaths.isNotEmpty
-                              ? theme.colorScheme.error
-                              : theme.colorScheme.onSurface.withAlpha(60),
-                        ),
-                        iconSize: 28,
-                        onPressed:
-                            _selectedPaths.isNotEmpty ? _deleteSelected : null,
-                        tooltip: 'Delete',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
-      floatingActionButton: _isSelectMode
+      floatingActionButton: select.isSelectMode
           ? null
           : (_inAlbumsTab && inProvince
               ? FloatingActionButton.extended(
@@ -288,6 +199,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
       );
     }
 
+    final select = ref.watch(gallerySelectProvider);
     return TabBarView(
       controller: _tabs,
       physics: inCountry
@@ -299,9 +211,10 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
           viewMode: _viewMode,
           contentTopPad: _contentTopPad,
           isEmpty: gallery.allPhotos.isEmpty && !gallery.isGeocoding,
-          isSelectMode: _isSelectMode,
-          selectedPaths: _selectedPaths,
-          onToggleSelect: _toggleSelect,
+          isSelectMode: select.isSelectMode,
+          selectedPaths: select.selectedPaths,
+          onToggleSelect: (photo) =>
+              ref.read(gallerySelectProvider.notifier).toggle(photo.path),
           onTap: (photos, index) => _openViewer(context, photos, index),
           onLongPress: (photo) => _showPhotoOptions(context, photo),
         ),
@@ -325,8 +238,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
         children: [
           const SheetHandle(title: 'View Mode'),
           ...ViewMode.values.map((m) => ListTile(
-                title: Text(m.label,
-                    style: GoogleFonts.poppins(fontSize: 14)),
+                title: Text(m.label, style: GoogleFonts.poppins(fontSize: 14)),
                 trailing: _viewMode == m
                     ? Icon(Icons.check_rounded,
                         color: theme.colorScheme.primary)
@@ -371,7 +283,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
       context: context,
       builder: (ctx) => PhotoOptionsSheet(
         photo: photo,
-        onChangeLocation: () {
+        onAddToAlbums: () {
           Navigator.pop(ctx);
           showModalBottomSheet<void>(
             context: context,
@@ -393,8 +305,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                     child: const Text('Cancel')),
                 FilledButton(
                   style: FilledButton.styleFrom(
-                      backgroundColor:
-                          Theme.of(context).colorScheme.error),
+                      backgroundColor: Theme.of(context).colorScheme.error),
                   onPressed: () {
                     Navigator.pop(dlg);
                     ref
