@@ -423,19 +423,27 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     state = state.copyWith(allPhotos: [photo, ...state.allPhotos]);
   }
 
-  /// Remove photo by its unique path.
-  void removePhoto(String photoPath) {
-    state = state.copyWith(
-      allPhotos: state.allPhotos.where((p) => p.path != photoPath).toList(),
-    );
+  /// Remove photo by its unique path and delete it from the device.
+  Future<void> removePhoto(String photoPath) async {
+    final deleted = await PhotoManager.editor.deleteWithIds([photoPath]);
+    if (deleted.contains(photoPath)) {
+      state = state.copyWith(
+        allPhotos: state.allPhotos.where((p) => p.path != photoPath).toList(),
+      );
+    }
   }
 
-  /// Remove multiple photos by their paths.
-  void removePhotos(List<String> paths) {
-    final set = paths.toSet();
-    state = state.copyWith(
-      allPhotos: state.allPhotos.where((p) => !set.contains(p.path)).toList(),
-    );
+  /// Remove multiple photos by their paths and delete them from the device.
+  Future<void> removePhotos(List<String> paths) async {
+    final deleted = await PhotoManager.editor.deleteWithIds(paths);
+    if (deleted.isNotEmpty) {
+      final deletedSet = deleted.toSet();
+      state = state.copyWith(
+        allPhotos: state.allPhotos
+            .where((p) => !deletedSet.contains(p.path))
+            .toList(),
+      );
+    }
   }
 
   /// Update country/province for a photo identified by its path.

@@ -204,8 +204,11 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                     ),
                   ),
                 ),
-                child: SafeArea(
-                  top: false,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.viewPaddingOf(context).bottom +
+                        (NavigationBarTheme.of(context).height ?? 80.0),
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
