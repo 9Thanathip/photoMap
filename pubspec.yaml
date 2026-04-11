@@ -36,3 +36,5 @@ flutter:
 
   assets:
     - assets/data/thailand.json
+    - assets/data/districts_full.geojson
+    - assets/data/districts/

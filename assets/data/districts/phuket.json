@@ -1,0 +1,21 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Mueang Phuket" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[98.39, 7.88], [98.41, 7.88], [98.41, 7.86], [98.39, 7.86], [98.39, 7.88]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Kathu" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[98.30, 7.90], [98.35, 7.90], [98.35, 7.85], [98.30, 7.85], [98.30, 7.90]]]
+      }
+    }
+  ]
+}
