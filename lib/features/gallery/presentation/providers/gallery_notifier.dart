@@ -9,6 +9,7 @@ class PhotoItem {
     required this.path,
     required this.country,
     required this.province,
+    this.district = '',
     required this.timestamp,
     required this.lat,
     required this.lng,
@@ -18,6 +19,7 @@ class PhotoItem {
   final String path;
   final String country;
   final String province;
+  final String district;
   final DateTime timestamp;
   final double lat;
   final double lng;
@@ -29,6 +31,7 @@ class PhotoItem {
   PhotoItem copyWith({
     String? country,
     String? province,
+    String? district,
     double? lat,
     double? lng,
   }) =>
@@ -36,6 +39,7 @@ class PhotoItem {
         path: path,
         country: country ?? this.country,
         province: province ?? this.province,
+        district: district ?? this.district,
         timestamp: timestamp,
         lat: lat ?? this.lat,
         lng: lng ?? this.lng,
@@ -130,6 +134,18 @@ class GalleryState {
       final c = p.country.isEmpty ? 'Unknown' : p.country;
       if (c != country) continue;
       final key = p.province.isEmpty ? 'Unknown' : p.province;
+      map.putIfAbsent(key, () => []).add(p);
+    }
+    return map;
+  }
+
+  /// Photos grouped by district for a given province.
+  Map<String, List<PhotoItem>> photosByDistrict(String province) {
+    final map = <String, List<PhotoItem>>{};
+    for (final p in allPhotos) {
+      final prov = p.province.isEmpty ? 'Unknown' : p.province;
+      if (prov != province) continue;
+      final key = p.district.isEmpty ? 'Unknown' : p.district;
       map.putIfAbsent(key, () => []).add(p);
     }
     return map;
@@ -285,13 +301,13 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       return;
     }
 
-    final resolved = <String, ({String country, String province})>{};
+    final resolved = <String, ({String country, String province, String district})>{};
     for (final entry in pending.entries) {
       // 1. Try Offline GeoJSON Lookup FIRST (Physical Boundary matching is 100% accurate)
       final geoProvince = _geoService.getProvince(entry.value.lat, entry.value.lng);
-      
+
       if (geoProvince != null) {
-        String provinceName = geoProvince; 
+        String provinceName = geoProvince;
         for (final p in thaiProvinces) {
           if (p.name.replaceAll(RegExp(r'[\s-]'), '').toLowerCase() == geoProvince) {
             provinceName = p.name;
@@ -299,11 +315,25 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
           }
         }
 
+        // Also try to get district via internet geocoding for Thai photos
+        String district = '';
+        try {
+          final placemarks = await placemarkFromCoordinates(
+            entry.value.lat,
+            entry.value.lng,
+          );
+          if (placemarks.isNotEmpty) {
+            final pm = placemarks.first;
+            district = _cleanDistrictName(pm.subAdministrativeArea ?? pm.locality ?? '');
+          }
+        } catch (_) {}
+
         resolved[entry.key] = (
           country: 'Thailand',
           province: provinceName,
+          district: district,
         );
-        continue; // Found province boundary, skip internet geocoding
+        continue;
       }
 
       // 2. Fallback to Internet Geocoding for countries outside Thailand or missed boundaries
@@ -320,15 +350,17 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
             final subProvince = _cleanProvinceName(pm.subAdministrativeArea ?? '');
             if (subProvince.isNotEmpty) province = subProvince;
           }
-          
+          final district = _cleanDistrictName(pm.subAdministrativeArea ?? pm.locality ?? '');
+
           resolved[entry.key] = (
             country: pm.country ?? 'Unknown',
             province: province,
+            district: district,
           );
         }
         await Future.delayed(const Duration(milliseconds: 200));
       } catch (_) {
-        resolved[entry.key] = (country: 'Unknown', province: '');
+        resolved[entry.key] = (country: 'Unknown', province: '', district: '');
       }
     }
 
@@ -349,12 +381,26 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       
       // If photo has no province, use the resolved one
       return photo.copyWith(
-        country: photo.country.isEmpty ? loc.country : photo.country, 
+        country: photo.country.isEmpty ? loc.country : photo.country,
         province: photo.province.isEmpty ? loc.province : photo.province,
+        district: photo.district.isEmpty ? loc.district : photo.district,
       );
     }).toList();
 
     state = state.copyWith(allPhotos: updated, isGeocoding: false);
+  }
+
+  static String _cleanDistrictName(String raw) {
+    if (raw.isEmpty) return '';
+    String cleaned = raw
+        .replaceAll(RegExp(r'^อำเภอ\s*'), '')
+        .replaceAll(RegExp(r'^เขต\s*'), '')
+        .replaceAll(RegExp(r'^แขวง\s*'), '')
+        .replaceAll(RegExp(r'\s*District$', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s*Subdistrict$', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\d{5}'), '')
+        .trim();
+    return cleaned;
   }
 
   static String _cleanProvinceName(String raw) {

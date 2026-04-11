@@ -6,8 +6,11 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../province/data/province_data.dart';
 import '../providers/map_provider.dart';
 import '../widgets/thailand_map_painter.dart';
+import 'province_district_screen.dart';
+import 'province_gallery_screen.dart';
 
 const _kKeyProvinceColor = 'map_province_color';
 const _kKeyCanvasColor = 'map_canvas_color';
@@ -61,6 +64,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   Color _provinceColor = _kProvincePresets.first.color;
   Color _canvasColor = _kCanvasPresets.first.color;
   bool _downloading = false;
+  Offset? _tapDownPosition;
 
   @override
   void initState() {
@@ -171,6 +175,123 @@ class _MapScreenState extends ConsumerState<MapScreen>
     }
   }
 
+  // ── Province tap ───────────────────────────────────────────────────────────
+
+  void _handleMapTap(
+      BuildContext context, Offset globalPosition, List<ProvinceShape> provinces) {
+    if (provinces.isEmpty) return;
+
+    // Step 1: convert global pointer position → CustomPaint local space
+    final renderBox =
+        _repaintKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+    final canvasPos = renderBox.globalToLocal(globalPosition);
+    final canvasSize = renderBox.size; // actual rendered size of the CustomPaint
+
+    // Step 2: replicate the painter's coordinate transform
+    Rect totalBounds = provinces.first.bounds;
+    for (final p in provinces.skip(1)) {
+      totalBounds = totalBounds.expandToInclude(p.bounds);
+    }
+    final scaleX = canvasSize.width / totalBounds.width;
+    final scaleY = canvasSize.height / totalBounds.height;
+    final scale = (scaleX < scaleY ? scaleX : scaleY) * 0.80;
+    final offsetX =
+        (canvasSize.width - totalBounds.width * scale) / 2 - totalBounds.left * scale;
+    final offsetY =
+        (canvasSize.height - totalBounds.height * scale) / 2 - totalBounds.top * scale;
+
+    // Step 3: convert canvas position → province coordinate space
+    final px = (canvasPos.dx - offsetX) / scale;
+    final py = (canvasPos.dy - offsetY) / scale;
+    final provincePoint = Offset(px, py);
+
+    for (final province in provinces) {
+      if (province.path.contains(provincePoint)) {
+        final prettyName = _prettyProvinceName(province.name);
+        _showProvinceMenu(context, prettyName);
+        return;
+      }
+    }
+  }
+
+  String _prettyProvinceName(String normalizedName) {
+    for (final p in thaiProvinces) {
+      if (p.name.replaceAll(RegExp(r'[\s-]'), '').toLowerCase() == normalizedName) {
+        return p.name;
+      }
+    }
+    return normalizedName.isNotEmpty
+        ? normalizedName[0].toUpperCase() + normalizedName.substring(1)
+        : normalizedName;
+  }
+
+  void _showProvinceMenu(BuildContext context, String provinceName) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) {
+        final theme = Theme.of(context);
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 4),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurfaceVariant.withAlpha(60),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  provinceName,
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+            Divider(
+                height: 1,
+                color: theme.colorScheme.outlineVariant.withAlpha(80)),
+            ListTile(
+              leading: const Icon(Icons.map_outlined),
+              title: const Text('View by Districts'),
+              subtitle: const Text('Browse photos by district'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        ProvinceDistrictScreen(provinceName: provinceName),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('View Gallery'),
+              subtitle: const Text('All photos in this province'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        ProvinceGalleryScreen(provinceName: provinceName),
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: MediaQuery.paddingOf(context).bottom + 8),
+          ],
+        );
+      },
+    );
+  }
+
   void _resetView() {
     final Matrix4 end = Matrix4.identity();
     final Matrix4 start = _transformController.value;
@@ -217,7 +338,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
           else if (state.provinces.isEmpty)
             const Center(child: Text('No Map Data Found'))
           else
-            InteractiveViewer(
+            Listener(
+              onPointerDown: (e) => _tapDownPosition = e.position,
+              onPointerUp: (e) {
+                final down = _tapDownPosition;
+                _tapDownPosition = null;
+                if (down != null && (e.position - down).distance < 18) {
+                  _handleMapTap(context, e.position, state.provinces);
+                }
+              },
+              child: InteractiveViewer(
               transformationController: _transformController,
               boundaryMargin: const EdgeInsets.all(120),
               minScale: 0.4,
@@ -226,19 +356,20 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 child: RepaintBoundary(
                   key: _repaintKey,
                   child: CustomPaint(
-                    size: const Size(1000, 1000),
-                    painter: ThailandMapPainter(
-                      provinces: state.provinces,
-                      combinedPath: state.combinedPath,
-                      provincePhotos: state.provincePhotos,
-                      imageLoadTimes: state.imageLoadTimes,
-                      currentTime: _currentTime,
-                      openTime: _openTime,
-                      baseColor: _provinceColor,
-                      strokeColor: strokeColor,
-                      canvasColor: _canvasColor,
+                      size: const Size(1000, 1000),
+                      painter: ThailandMapPainter(
+                        provinces: state.provinces,
+                        combinedPath: state.combinedPath,
+                        provincePhotos: state.provincePhotos,
+                        imageLoadTimes: state.imageLoadTimes,
+                        currentTime: _currentTime,
+                        openTime: _openTime,
+                        baseColor: _provinceColor,
+                        strokeColor: strokeColor,
+                        canvasColor: _canvasColor,
+                      ),
+                      child: const SizedBox.expand(),
                     ),
-                    child: const SizedBox.expand(),
                   ),
                 ),
               ),
