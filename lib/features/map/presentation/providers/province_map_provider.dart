@@ -225,7 +225,7 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
 
     await Future.wait(futures);
 
-    const staggerMs = 50;
+    const staggerMs = 80;
     final now = DateTime.now();
     final newKeys = newPhotos.keys
         .where((k) => !state.districtPhotos.containsKey(k))

@@ -76,7 +76,7 @@ class ThailandMapPainter extends CustomPainter {
     // At high zoom, the country-wide shadow is irrelevant and prone to crashing GPUs.
     if (combinedPath != null && scale < 2.5) {
       final shadowPaint = Paint()
-        ..color = Colors.black.withValues(alpha: 0.18)
+        ..color = Colors.black.withOpacity(0.18)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6.0 / scale);
 
       canvas.save();
@@ -100,7 +100,7 @@ class ThailandMapPainter extends CustomPainter {
 
       // Always draw base fill so the province shape is visible during fade-in
       fillPaint.color = isSelected
-          ? Colors.blue.withValues(alpha: 0.3)
+          ? Colors.blue.withOpacity(0.3)
           : baseColor;
       canvas.drawPath(province.path, fillPaint);
 
@@ -118,7 +118,7 @@ class ThailandMapPainter extends CustomPainter {
 
           final imagePaint = Paint()
             ..filterQuality = ui.FilterQuality.low
-            ..color = Colors.white.withValues(alpha: opacity);
+            ..color = Colors.white.withOpacity(opacity);
 
           final imgSize = Size(image.width.toDouble(), image.height.toDouble());
           final provinceRect = province.bounds;
@@ -159,8 +159,8 @@ class ThailandMapPainter extends CustomPainter {
     //     text: 'T  H  A  I  L  A  N  D',
     //     style: TextStyle(
     //       color: isDarkBackground
-    //           ? Colors.white.withValues(alpha: 0.4)
-    //           : Colors.black.withValues(alpha: 0.4),
+    //           ? Colors.white.withOpacity(0.4)
+    //           : Colors.black.withOpacity(0.4),
     //       fontSize: 16,
     //       fontWeight: FontWeight.w400,
     //       letterSpacing: 4,

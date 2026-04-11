@@ -134,9 +134,9 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
                         height: 76,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.black.withValues(alpha: 0.4),
+                          color: Colors.black.withOpacity(0.4),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.15),
+                            color: Colors.white.withOpacity(0.15),
                             width: 0.5,
                           ),
                         ),
@@ -232,8 +232,8 @@ class _VideoControls extends StatelessWidget {
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
           colors: [
-            Colors.black.withValues(alpha: 0.7),
-            Colors.black.withValues(alpha: 0.3),
+            Colors.black.withOpacity(0.7),
+            Colors.black.withOpacity(0.3),
             Colors.transparent,
           ],
         ),
@@ -277,7 +277,7 @@ class _VideoControls extends StatelessWidget {
               data: SliderTheme.of(context).copyWith(
                 trackHeight: 4,
                 activeTrackColor: Colors.white,
-                inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
+                inactiveTrackColor: Colors.white.withOpacity(0.2),
                 thumbColor: Colors.white,
                 thumbShape: const RoundSliderThumbShape(
                   enabledThumbRadius: 6,

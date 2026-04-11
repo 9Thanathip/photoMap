@@ -125,7 +125,7 @@ class MapNotifier extends StateNotifier<MapState> {
     // Stagger fade-in timestamps so provinces appear sequentially rather than
     // all at once. 40 ms offset per province — fast enough to look fluid but
     // distinct enough to be visible as a wave effect.
-    const staggerMs = 40;
+    const staggerMs = 80;
     final now = DateTime.now();
     final newKeys = newPhotos.keys
         .where((k) => !state.provincePhotos.containsKey(k))

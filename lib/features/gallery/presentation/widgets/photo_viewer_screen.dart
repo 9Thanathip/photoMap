@@ -238,7 +238,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
           final overlayOpacity = (1.0 - progress * 3.0).clamp(0.0, 1.0);
 
           return ColoredBox(
-            color: Colors.black.withValues(alpha: bgOpacity),
+            color: Colors.black.withOpacity(bgOpacity),
             child: Stack(
               children: [
                 // ── Photo layer — only Transform rebuilds, PageView is reused ──

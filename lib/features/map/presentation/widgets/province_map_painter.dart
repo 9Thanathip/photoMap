@@ -66,7 +66,7 @@ class ProvinceMapPainter extends CustomPainter {
     // Shadow
     if (combinedPath != null && scale < 10.0) {
       final shadowPaint = Paint()
-        ..color = Colors.black.withValues(alpha: 0.15)
+        ..color = Colors.black.withOpacity(0.15)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, 4.0 / scale);
 
       canvas.save();
@@ -88,7 +88,7 @@ class ProvinceMapPainter extends CustomPainter {
       final isSelected = district.name == selectedDistrict;
 
       fillPaint.color = isSelected
-          ? Colors.blue.withValues(alpha: 0.3)
+          ? Colors.blue.withOpacity(0.3)
           : baseColor;
       canvas.drawPath(district.path, fillPaint);
 
@@ -106,7 +106,7 @@ class ProvinceMapPainter extends CustomPainter {
 
           final imagePaint = Paint()
             ..filterQuality = ui.FilterQuality.low
-            ..color = Colors.white.withValues(alpha: opacity);
+            ..color = Colors.white.withOpacity(opacity);
 
           final imgSize = Size(image.width.toDouble(), image.height.toDouble());
           final districtRect = district.bounds;

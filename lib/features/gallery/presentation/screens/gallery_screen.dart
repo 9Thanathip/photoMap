@@ -93,7 +93,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                       colors: [
                         theme.colorScheme.surface,
                         theme.colorScheme.surface,
-                        theme.colorScheme.surface.withValues(alpha: 0),
+                        theme.colorScheme.surface.withOpacity(0),
                       ],
                       stops: const [0.0, 0.72, 1.0],
                     ),

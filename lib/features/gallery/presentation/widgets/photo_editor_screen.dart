@@ -229,7 +229,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   width: 56,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: Colors.white.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(4),
                     border: isSelected
                         ? Border.all(color: Colors.white, width: 2)
@@ -389,7 +389,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             activeTrackColor: Colors.white,
             inactiveTrackColor: Colors.white24,
             thumbColor: Colors.white,
-            overlayColor: Colors.white.withValues(alpha: 0.1),
+            overlayColor: Colors.white.withOpacity(0.1),
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
           ),
           child: Padding(
