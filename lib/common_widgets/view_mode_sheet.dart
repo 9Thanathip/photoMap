@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:photo_map/features/gallery/presentation/widgets/photos_tab.dart';
+import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 
 /// Shows a bottom sheet for selecting a [ViewMode].
 /// Call this from any screen that needs a view mode filter.
@@ -10,7 +11,8 @@ void showViewModeSheet(
 }) {
   showModalBottomSheet<void>(
     context: context,
-    backgroundColor: Colors.transparent,
+    backgroundColor: Colors.transparent, // Background transparent for custom design
+    isScrollControlled: true,
     builder: (_) => _ViewModeSheet(current: current, onSelected: onSelected),
   );
 }
@@ -27,27 +29,27 @@ class _ViewModeSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final botPad = MediaQuery.paddingOf(context).bottom;
+
     return Container(
-      margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              'View Mode',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+          const AppSheetHandle(title: 'View Mode'),
+          Divider(
+            height: 1,
+            color: theme.colorScheme.outlineVariant.withAlpha(80),
           ),
           ...ViewMode.values.map(
             (v) => ListTile(
-              title: Text(v.label),
+              title: Text(
+                v.label,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
               trailing: current == v
                   ? Icon(Icons.check_rounded, color: theme.colorScheme.primary)
                   : null,
@@ -57,7 +59,7 @@ class _ViewModeSheet extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: botPad + 16),
         ],
       ),
     );
