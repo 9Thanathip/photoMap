@@ -504,8 +504,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
   Future<void> reloadPhotos() => _loadAll();
 
-  /// Reload without spinner — only adds genuinely new photos and geocodes them.
-  /// Preserves scroll position and existing geocoded data.
+  /// Reload without spinner — adds new photos and re-geocodes any that still
+  /// lack coordinates (e.g. user just added location in iOS Photos).
   Future<void> silentReload() async {
     try {
       final albums = await PhotoManager.getAssetPathList(onlyAll: true);
@@ -516,18 +516,50 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       final assets = await album.getAssetListRange(start: 0, end: total);
 
       final existingPaths = state.allPhotos.map((p) => p.path).toSet();
+
+      // 1. Add brand-new assets
       final newAssets = assets
           .where((a) =>
               (a.type == AssetType.image || a.type == AssetType.video) &&
               !existingPaths.contains(a.id))
           .toList();
 
-      if (newAssets.isEmpty) return;
+      List<PhotoItem> merged = state.allPhotos;
+      if (newAssets.isNotEmpty) {
+        final newPhotos = _buildPhotoItems(newAssets);
+        merged = [...newPhotos, ...merged];
+        state = state.copyWith(allPhotos: merged);
+      }
 
-      final newPhotos = _buildPhotoItems(newAssets);
-      final merged = [...newPhotos, ...state.allPhotos];
-      state = state.copyWith(allPhotos: merged);
-      _geocodePhotos(merged);
+      // 2. Re-fetch coordinates for existing photos that have no location yet
+      //    (covers the case where user added location in iOS Photos app)
+      final assetById = {for (final a in assets) a.id: a};
+      final noLocation = merged
+          .where((p) => !p.hasLocation && assetById.containsKey(p.path))
+          .toList();
+
+      if (noLocation.isEmpty) return;
+
+      final updated = List<PhotoItem>.from(merged);
+      final futures = noLocation.map((photo) async {
+        final asset = assetById[photo.path]!;
+        try {
+          final ll = await asset.latlngAsync();
+          if (ll != null && ll.latitude != 0) {
+            final idx = updated.indexWhere((p) => p.path == photo.path);
+            if (idx != -1) {
+              updated[idx] = photo.copyWith(
+                lat: ll.latitude,
+                lng: ll.longitude,
+              );
+            }
+          }
+        } catch (_) {}
+      });
+      await Future.wait(futures);
+
+      state = state.copyWith(allPhotos: updated);
+      _geocodePhotos(updated);
     } catch (_) {
       // Silent fail — don't disrupt the UI on background refresh
     }

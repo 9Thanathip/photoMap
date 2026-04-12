@@ -323,7 +323,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      if (!_isVideo)
+                      if (!_isVideo) ...[
+                        const SizedBox(width: 8),
                         FilledButton.tonal(
                           onPressed: _openEditor,
                           style: FilledButton.styleFrom(
@@ -339,6 +340,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                             ],
                           ),
                         ),
+                      ],
                     ],
                   ),
                 ),

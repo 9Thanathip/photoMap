@@ -25,6 +25,7 @@ dependencies:
   geocoding: ^3.0.0
   video_player: ^2.9.2
   flutter_colorpicker: ^1.1.0
+  native_exif: ^0.7.0
 
 dev_dependencies:
   flutter_test:
