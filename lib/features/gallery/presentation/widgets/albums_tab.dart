@@ -175,7 +175,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     final names = byCountry.keys.where((k) => k != 'Unknown').toList()..sort();
     return GridView.builder(
       key: const PageStorageKey('albums_countries'),
-      padding: EdgeInsets.fromLTRB(10, widget.contentTopPad, 10, 10),
+      padding: EdgeInsets.fromLTRB(10, widget.contentTopPad, 10, 120),
       gridDelegate: _albumGridDelegate,
       itemCount: names.length,
       itemBuilder: (_, i) {
@@ -203,7 +203,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     final names = byProvince.keys.toList()..sort();
     return GridView.builder(
       key: PageStorageKey('albums_provinces_${widget.gallery.selectedCountry}'),
-      padding: EdgeInsets.fromLTRB(10, widget.contentTopPad, 10, 10),
+      padding: EdgeInsets.fromLTRB(10, widget.contentTopPad, 10, 120),
       gridDelegate: _albumGridDelegate,
       itemCount: names.length,
       itemBuilder: (_, i) {
@@ -230,7 +230,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     return GridView.builder(
       key: PageStorageKey(
           'albums_photos_${widget.gallery.selectedCountry}_${widget.gallery.selectedProvince}'),
-      padding: EdgeInsets.only(top: widget.contentTopPad),
+      padding: EdgeInsets.only(top: widget.contentTopPad, bottom: 120),
       gridDelegate: photoGridDelegate,
       itemCount: photos.length,
       itemBuilder: (_, i) => PhotoTile(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:photo_map/common_widgets/glass_card.dart';
 import '../providers/gallery_notifier.dart';
 import '../providers/gallery_select_provider.dart';
 import '../widgets/albums_tab.dart';
@@ -70,11 +71,18 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
           NotificationListener<ScrollNotification>(
             onNotification: (n) {
               final scrolled = n.metrics.pixels > 0;
-              if (scrolled != _isScrolled) setState(() => _isScrolled = scrolled);
+              if (scrolled != _isScrolled)
+                setState(() => _isScrolled = scrolled);
               return false;
             },
             child: _buildBody(
-                context, gallery, theme, inCountry, inProvince, sortedPhotos),
+              context,
+              gallery,
+              theme,
+              inCountry,
+              inProvince,
+              sortedPhotos,
+            ),
           ),
           Positioned(
             top: 0,
@@ -140,22 +148,45 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
               },
             ),
           ),
+
+          // Custom Glassmorphic 'Add Photo' Button
+          if (!select.isSelectMode && (_inAlbumsTab && inProvince))
+            Positioned(
+              right: 28,
+              bottom: MediaQuery.paddingOf(context).bottom + 8,
+              child: GlassCard(
+                onTap: () => _pickImage(gallery.selectedProvince),
+                borderRadius: 100,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.add_a_photo_rounded,
+                      size: 20,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
-      floatingActionButton: select.isSelectMode
-          ? null
-          : (_inAlbumsTab && inProvince
-              ? FloatingActionButton.extended(
-                  onPressed: () => _pickImage(gallery.selectedProvince),
-                  icon: const Icon(Icons.add_a_photo_outlined),
-                  label: const Text('Add Photo'),
-                )
-              : null),
+      floatingActionButton: null,
     );
   }
 
-  Widget _buildBody(BuildContext context, GalleryState gallery, ThemeData theme,
-      bool inCountry, bool inProvince, List<PhotoItem> sortedPhotos) {
+  Widget _buildBody(
+    BuildContext context,
+    GalleryState gallery,
+    ThemeData theme,
+    bool inCountry,
+    bool inProvince,
+    List<PhotoItem> sortedPhotos,
+  ) {
     if (gallery.isLoading) {
       return Center(
         child: Column(
@@ -164,12 +195,17 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
             SizedBox(
               width: 48,
               height: 48,
-              child: CircularProgressIndicator(color: theme.colorScheme.primary),
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
             ),
             const Gap(16),
-            Text('Loading photos...',
-                style: theme.textTheme.bodyLarge
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(
+              'Loading photos...',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       );
@@ -182,17 +218,26 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline_rounded,
-                  size: 64, color: theme.colorScheme.error.withAlpha(128)),
+              Icon(
+                Icons.error_outline_rounded,
+                size: 64,
+                color: theme.colorScheme.error.withAlpha(128),
+              ),
               const Gap(16),
-              Text('Error',
-                  style: theme.textTheme.bodyLarge
-                      ?.copyWith(color: theme.colorScheme.error)),
+              Text(
+                'Error',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
               const Gap(8),
-              Text(gallery.error!,
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                  textAlign: TextAlign.center),
+              Text(
+                gallery.error!,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
         ),
@@ -237,17 +282,18 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
         mainAxisSize: MainAxisSize.min,
         children: [
           const AppSheetHandle(title: 'View Mode'),
-          ...ViewMode.values.map((m) => ListTile(
-                title: Text(m.label, style: GoogleFonts.poppins(fontSize: 14)),
-                trailing: _viewMode == m
-                    ? Icon(Icons.check_rounded,
-                        color: theme.colorScheme.primary)
-                    : null,
-                onTap: () {
-                  setState(() => _viewMode = m);
-                  Navigator.pop(context);
-                },
-              )),
+          ...ViewMode.values.map(
+            (m) => ListTile(
+              title: Text(m.label, style: GoogleFonts.poppins(fontSize: 14)),
+              trailing: _viewMode == m
+                  ? Icon(Icons.check_rounded, color: theme.colorScheme.primary)
+                  : null,
+              onTap: () {
+                setState(() => _viewMode = m);
+                Navigator.pop(context);
+              },
+            ),
+          ),
           const Gap(16),
         ],
       ),
@@ -262,7 +308,10 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
   }
 
   void _openViewer(
-      BuildContext context, List<PhotoItem> photos, int initialIndex) {
+    BuildContext context,
+    List<PhotoItem> photos,
+    int initialIndex,
+  ) {
     Navigator.of(context, rootNavigator: true).push(
       PageRouteBuilder<void>(
         opaque: false,
@@ -271,7 +320,10 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
         pageBuilder: (context, animation, secondaryAnimation) {
           return FadeTransition(
             opacity: animation,
-            child: PhotoViewerScreen(photos: photos, initialIndex: initialIndex),
+            child: PhotoViewerScreen(
+              photos: photos,
+              initialIndex: initialIndex,
+            ),
           );
         },
       ),
@@ -297,15 +349,18 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
             context: context,
             builder: (dlg) => AlertDialog(
               title: const Text('Delete Photo'),
-              content:
-                  const Text('Are you sure you want to delete this photo?'),
+              content: const Text(
+                'Are you sure you want to delete this photo?',
+              ),
               actions: [
                 TextButton(
-                    onPressed: () => Navigator.pop(dlg),
-                    child: const Text('Cancel')),
+                  onPressed: () => Navigator.pop(dlg),
+                  child: const Text('Cancel'),
+                ),
                 FilledButton(
                   style: FilledButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.error),
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                  ),
                   onPressed: () {
                     Navigator.pop(dlg);
                     ref

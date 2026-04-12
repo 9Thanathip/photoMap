@@ -101,7 +101,7 @@ class PhotosTab extends StatelessWidget {
 
   Widget _flatGrid(List<PhotoItem> items) {
     return GridView.builder(
-      padding: EdgeInsets.only(top: contentTopPad),
+      padding: EdgeInsets.only(top: contentTopPad, bottom: 120),
       gridDelegate: photoGridDelegate,
       itemCount: items.length,
       itemBuilder: (_, i) {
@@ -161,6 +161,7 @@ class PhotosTab extends StatelessWidget {
             ),
           ),
         ],
+        const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
       ],
     );
   }
