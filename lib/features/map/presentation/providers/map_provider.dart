@@ -131,8 +131,7 @@ class MapNotifier extends StateNotifier<MapState> {
         .where((k) => !state.provincePhotos.containsKey(k))
         .toList();
     for (var i = 0; i < newKeys.length; i++) {
-      newLoadTimes[newKeys[i]] =
-          now.add(Duration(milliseconds: i * staggerMs));
+      newLoadTimes[newKeys[i]] = now.add(Duration(milliseconds: i * staggerMs));
     }
 
     state = state.copyWith(

@@ -51,11 +51,14 @@ class ProvinceMapState {
   );
 }
 
-final provinceMapProvider = StateNotifierProvider.family<ProvinceMapNotifier, ProvinceMapState, String>((ref, provinceName) {
-  final notifier = ProvinceMapNotifier(ref, provinceName);
-  notifier.loadMap();
-  return notifier;
-});
+final provinceMapProvider =
+    StateNotifierProvider.family<ProvinceMapNotifier, ProvinceMapState, String>(
+      (ref, provinceName) {
+        final notifier = ProvinceMapNotifier(ref, provinceName);
+        notifier.loadMap();
+        return notifier;
+      },
+    );
 
 class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
   final Ref _ref;
@@ -83,7 +86,7 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final shapes = await _loadDistrictShapes(provinceName);
-      
+
       if (shapes.isEmpty) {
         throw Exception("No districts found for $provinceName");
       }
@@ -110,21 +113,25 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
   Future<List<DistrictShape>> _loadDistrictShapes(String province) async {
     // We use the full districts file and filter by province
     const path = 'assets/data/districts_full.geojson';
-    
+
     final String jsonString = await rootBundle.loadString(path);
     final data = json.decode(jsonString);
     final List<DistrictShape> shapes = [];
 
-    final normalizedProvince = province.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
+    final normalizedProvince = province
+        .replaceAll(RegExp(r'[\s-]'), '')
+        .toLowerCase();
 
     if (data['features'] != null) {
       for (var feature in data['features']) {
         final props = feature['properties'];
         final proEn = (props['pro_en'] ?? '').toString();
-        
+
         // Normalize for match
-        final normalizedProEn = proEn.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
-        
+        final normalizedProEn = proEn
+            .replaceAll(RegExp(r'[\s-]'), '')
+            .toLowerCase();
+
         if (normalizedProEn == normalizedProvince) {
           final ampEn = props['amp_en']?.toString() ?? 'Unknown';
           final geometry = feature['geometry'];
@@ -146,13 +153,9 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
     return shapes;
   }
 
-
   void _addPolygonToPath(ui.Path path, List coordinates) {
     if (coordinates.isEmpty) return;
-    path.moveTo(
-      coordinates[0][0].toDouble(),
-      -coordinates[0][1].toDouble(),
-    );
+    path.moveTo(coordinates[0][0].toDouble(), -coordinates[0][1].toDouble());
     for (var i = 1; i < coordinates.length; i++) {
       path.lineTo(coordinates[i][0].toDouble(), -coordinates[i][1].toDouble());
     }
@@ -164,8 +167,10 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
   Future<void> _updateDistrictPhotos() async {
     // 1. Get all photos that belong to this province from the global gallery state
     final allGalleryPhotos = _ref.read(galleryStateProvider).allPhotos;
-    final normalizedProvince = provinceName.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
-    
+    final normalizedProvince = provinceName
+        .replaceAll(RegExp(r'[\s-]'), '')
+        .toLowerCase();
+
     final provincePhotos = allGalleryPhotos.where((p) {
       final pProv = p.province.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
       return pProv == normalizedProvince;
@@ -182,7 +187,7 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
 
     for (final photo in provincePhotos) {
       String? matchedDistrict;
-      
+
       if (photo.hasLocation) {
         final point = ui.Offset(photo.lng, -photo.lat);
         for (final district in state.districts) {
@@ -192,13 +197,15 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
           }
         }
       }
-      
+
       // Fuzzy match fallback for photos without location or outside boundaries
       if (matchedDistrict == null && photo.district.isNotEmpty) {
-        final photoDistNormalized = photo.district.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
+        final photoDistNormalized = photo.district
+            .replaceAll(RegExp(r'[\s-]'), '')
+            .toLowerCase();
         for (final entry in normalizedToRealDistrict.entries) {
-          if (entry.key == photoDistNormalized || 
-              entry.key.contains(photoDistNormalized) || 
+          if (entry.key == photoDistNormalized ||
+              entry.key.contains(photoDistNormalized) ||
               photoDistNormalized.contains(entry.key)) {
             matchedDistrict = entry.value;
             break;
@@ -219,7 +226,7 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
       final districtName = entry.key;
       final photos = List<PhotoItem>.from(entry.value)
         ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-        
+
       if (districtName != 'Unknown' && photos.isNotEmpty) {
         final photo = photos.first;
         if (photo.assetEntity != null) {
@@ -255,8 +262,7 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
         .where((k) => !state.districtPhotos.containsKey(k))
         .toList();
     for (var i = 0; i < newKeys.length; i++) {
-      newLoadTimes[newKeys[i]] =
-          now.add(Duration(milliseconds: i * staggerMs));
+      newLoadTimes[newKeys[i]] = now.add(Duration(milliseconds: i * staggerMs));
     }
 
     state = state.copyWith(

@@ -301,9 +301,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       return;
     }
 
+    // Step 2: Immediate Offline Pass (GeoJSON matching for Thailand)
     final resolved = <String, ({String country, String province, String district})>{};
+    final List<String> needsOnline = [];
+
     for (final entry in pending.entries) {
-      // 1. Try Offline GeoJSON Lookup FIRST (Physical Boundary matching is 100% accurate)
       final geoProvince = _geoService.getProvince(entry.value.lat, entry.value.lng);
 
       if (geoProvince != null) {
@@ -314,37 +316,32 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
             break;
           }
         }
-
-        // Also try to get district via internet geocoding for Thai photos
-        String district = '';
-        try {
-          final placemarks = await placemarkFromCoordinates(
-            entry.value.lat,
-            entry.value.lng,
-          );
-          if (placemarks.isNotEmpty) {
-            final pm = placemarks.first;
-            district = _cleanDistrictName(pm.subAdministrativeArea ?? pm.locality ?? '');
-          }
-        } catch (_) {}
-
         resolved[entry.key] = (
           country: 'Thailand',
           province: provinceName,
-          district: district,
+          district: '', // District will be filled later online
         );
-        continue;
+        // Only need online geocoding if we really want the district name
+        needsOnline.add(entry.key);
+      } else {
+        needsOnline.add(entry.key);
       }
+    }
 
-      // 2. Fallback to Internet Geocoding for countries outside Thailand or missed boundaries
+    // Update state IMMEDIATELY after offline pass so Map can show photos
+    _applyResolved(resolved);
+
+    // Step 3: Lazy Background Online Pass (Internet geocoding with throttling prevention)
+    for (final key in needsOnline) {
+      if (!state.isGeocoding) break; // Allow cancellation if needed
+      
+      final coords = pending[key]!;
       try {
-        final placemarks = await placemarkFromCoordinates(
-          entry.value.lat,
-          entry.value.lng,
-        );
+        final placemarks = await placemarkFromCoordinates(coords.lat, coords.lng);
         if (placemarks.isNotEmpty) {
           final pm = placemarks.first;
-          // Try administrativeArea first, then subAdministrativeArea
+          
+          final country = pm.country ?? 'Unknown';
           String province = _cleanProvinceName(pm.administrativeArea ?? '');
           if (province.isEmpty || province == 'Unknown') {
             final subProvince = _cleanProvinceName(pm.subAdministrativeArea ?? '');
@@ -352,42 +349,44 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
           }
           final district = _cleanDistrictName(pm.subAdministrativeArea ?? pm.locality ?? '');
 
-          resolved[entry.key] = (
-            country: pm.country ?? 'Unknown',
-            province: province,
+          // Prefer offline province for Thailand, but use online for others
+          final existing = resolved[key];
+          resolved[key] = (
+            country: country,
+            province: (existing != null && country == 'Thailand') ? existing.province : province,
             district: district,
           );
+          
+          _applyResolved(resolved);
         }
-        await Future.delayed(const Duration(milliseconds: 200));
+        // Strict delay to stay under throttlers (max 50 per minute = 1.2s per request)
+        await Future.delayed(const Duration(milliseconds: 1500));
       } catch (_) {
-        resolved[entry.key] = (country: 'Unknown', province: '', district: '');
+        await Future.delayed(const Duration(milliseconds: 2000));
       }
     }
 
+    state = state.copyWith(isGeocoding: false);
+  }
+
+  void _applyResolved(Map<String, ({String country, String province, String district})> resolved) {
     final updated = state.allPhotos.map((photo) {
       if (!photo.hasLocation) {
-        return photo.country.isEmpty
-            ? photo.copyWith(country: 'Unknown')
-            : photo;
+        return photo.country.isEmpty ? photo.copyWith(country: 'Unknown') : photo;
       }
       
-      // If already geocoded, keep it
-      if (photo.province.isNotEmpty && photo.country.isNotEmpty) return photo;
-
-      final key =
-          '${photo.lat.toStringAsFixed(2)}_${photo.lng.toStringAsFixed(2)}';
+      final key = '${photo.lat.toStringAsFixed(2)}_${photo.lng.toStringAsFixed(2)}';
       final loc = resolved[key];
       if (loc == null) return photo;
       
-      // If photo has no province, use the resolved one
       return photo.copyWith(
-        country: photo.country.isEmpty ? loc.country : photo.country,
+        country: photo.country.isEmpty || photo.country == 'Unknown' ? loc.country : photo.country,
         province: photo.province.isEmpty ? loc.province : photo.province,
         district: photo.district.isEmpty ? loc.district : photo.district,
       );
     }).toList();
 
-    state = state.copyWith(allPhotos: updated, isGeocoding: false);
+    state = state.copyWith(allPhotos: updated);
   }
 
   static String _cleanDistrictName(String raw) {
