@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
+import 'package:photo_map/features/gallery/presentation/widgets/photo_tile.dart';
+import 'package:photo_map/features/gallery/presentation/widgets/photo_viewer_screen.dart';
+import 'package:photo_map/features/gallery/presentation/widgets/photos_tab.dart'
+    show photoGridDelegate;
 
 class DistrictPhotosGrid extends StatelessWidget {
   const DistrictPhotosGrid({
@@ -13,31 +15,36 @@ class DistrictPhotosGrid extends StatelessWidget {
   final List<PhotoItem> photos;
   final String districtName;
 
+  void _openViewer(BuildContext context, int index) {
+    Navigator.of(context, rootNavigator: true).push(
+      PageRouteBuilder<void>(
+        opaque: false,
+        transitionDuration: const Duration(milliseconds: 300),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (ctx, animation, _) => FadeTransition(
+          opacity: animation,
+          child: PhotoViewerScreen(photos: photos, initialIndex: index),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
       padding: EdgeInsets.fromLTRB(
-        8,
+        1.5,
         MediaQuery.paddingOf(context).top + 80,
-        8,
+        1.5,
         8,
       ),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 4,
-        crossAxisSpacing: 4,
-      ),
+      gridDelegate: photoGridDelegate,
       itemCount: photos.length,
-      itemBuilder: (context, index) {
-        final photo = photos[index];
-        if (photo.assetEntity == null) return const SizedBox();
-        return AssetEntityImage(
-          photo.assetEntity!,
-          isOriginal: false,
-          thumbnailSize: const ThumbnailSize(300, 300),
-          fit: BoxFit.cover,
-        );
-      },
+      itemBuilder: (context, index) => PhotoTile(
+        photo: photos[index],
+        onTap: () => _openViewer(context, index),
+        onLongPress: () {},
+      ),
     );
   }
 }
