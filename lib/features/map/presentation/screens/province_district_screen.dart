@@ -3,7 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
-import 'package:photo_map/features/map/presentation/widgets/province_district/district_photos_grid.dart';
+import 'district_gallery_screen.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/districts_grid.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/districts_map.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/province_header.dart';
@@ -24,8 +24,6 @@ class ProvinceDistrictScreen extends ConsumerStatefulWidget {
 class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
     with SingleTickerProviderStateMixin {
   ProvinceViewMode _viewMode = ProvinceViewMode.map;
-  String? _selectedDistrict;
-  bool _goingDeeper = false;
   final TransformationController _transformController =
       TransformationController();
 
@@ -93,6 +91,21 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
     );
   }
 
+  void _onSelectDistrict(String districtName, Map<String, List<PhotoItem>> byDistrict) {
+    final photos = List<PhotoItem>.from(byDistrict[districtName] ?? [])
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => DistrictGalleryScreen(
+          provinceName: widget.provinceName,
+          districtName: districtName,
+          photos: photos,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mapState = ref.watch(provinceMapProvider(widget.provinceName));
@@ -116,40 +129,23 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
           // Content Area
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            child: _selectedDistrict != null
-                ? Container(
-                    color: Colors.white,
-                    child: DistrictPhotosGrid(
-                      key: ValueKey(_selectedDistrict),
-                      photos: List<PhotoItem>.from(
-                        byDistrict[_selectedDistrict] ?? [],
-                      )..sort((a, b) => b.timestamp.compareTo(a.timestamp)),
-                      districtName: _selectedDistrict!,
-                    ),
+            child: _viewMode == ProvinceViewMode.map
+                ? DistrictsMap(
+                    provinceName: widget.provinceName,
+                    transformController: _transformController,
+                    baseColor: settings.provinceColor,
+                    canvasColor: settings.canvasColor,
+                    strokeColor: strokeColor,
+                    currentTime: _currentTime,
+                    openTime: _openTime,
+                    onSelectDistrict: (d) => _onSelectDistrict(d, byDistrict),
                   )
-                : (_viewMode == ProvinceViewMode.map
-                      ? DistrictsMap(
-                          provinceName: widget.provinceName,
-                          transformController: _transformController,
-                          baseColor: settings.provinceColor,
-                          canvasColor: settings.canvasColor,
-                          strokeColor: strokeColor,
-                          currentTime: _currentTime,
-                          openTime: _openTime,
-                          onSelectDistrict: (d) => setState(() {
-                            _goingDeeper = true;
-                            _selectedDistrict = d;
-                          }),
-                        )
-                      : DistrictsGrid(
-                          key: const ValueKey('districts'),
-                          byDistrict: byDistrict,
-                          provinceName: widget.provinceName,
-                          onSelectDistrict: (d) => setState(() {
-                            _goingDeeper = true;
-                            _selectedDistrict = d;
-                          }),
-                        )),
+                : DistrictsGrid(
+                    key: const ValueKey('districts'),
+                    byDistrict: byDistrict,
+                    provinceName: widget.provinceName,
+                    onSelectDistrict: (d) => _onSelectDistrict(d, byDistrict),
+                  ),
           ),
 
           // Breadcrumbs Header
@@ -158,19 +154,10 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
             left: 20,
             right: 20,
             child: ProvinceHeader(
-              title: _selectedDistrict ?? widget.provinceName,
+              title: widget.provinceName,
               viewMode: _viewMode,
-              isSelectingDistrict: _selectedDistrict != null,
-              onBack: () {
-                if (_selectedDistrict != null) {
-                  setState(() {
-                    _goingDeeper = false;
-                    _selectedDistrict = null;
-                  });
-                } else {
-                  Navigator.pop(context);
-                }
-              },
+              isSelectingDistrict: false,
+              onBack: () => Navigator.pop(context),
               onToggleMode: () => setState(() {
                 _viewMode = _viewMode == ProvinceViewMode.map
                     ? ProvinceViewMode.grid
@@ -180,9 +167,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
           ),
 
           // Action Controls (Only in Map View)
-          if (_selectedDistrict == null &&
-              _viewMode == ProvinceViewMode.map &&
-              mapState.error == null)
+          if (_viewMode == ProvinceViewMode.map && mapState.error == null)
             Positioned(
               right: 20,
               bottom: botPad + 24,
