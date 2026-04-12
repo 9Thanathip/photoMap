@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:photo_map/common_widgets/glass_card.dart';
 import '../providers/gallery_notifier.dart';
 import '../providers/gallery_select_provider.dart';
 import '../widgets/albums_tab.dart';
 import '../widgets/gallery_header.dart';
-import '../widgets/location_selector_sheet.dart';
 import '../widgets/photo_options_sheet.dart';
 import '../widgets/photo_viewer_screen.dart';
 import '../widgets/photos_tab.dart';
-import 'package:photo_map/common_widgets/app_sheet_handle.dart';
+import 'package:photo_map/common_widgets/view_mode_sheet.dart';
 
 class GalleryScreen extends ConsumerStatefulWidget {
   const GalleryScreen({super.key});
@@ -250,27 +247,10 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
   }
 
   void _showFilterSheet(BuildContext context, ThemeData theme) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (_) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const AppSheetHandle(title: 'View Mode'),
-          ...ViewMode.values.map(
-            (m) => ListTile(
-              title: Text(m.label, style: GoogleFonts.poppins(fontSize: 14)),
-              trailing: _viewMode == m
-                  ? Icon(Icons.check_rounded, color: theme.colorScheme.primary)
-                  : null,
-              onTap: () {
-                setState(() => _viewMode = m);
-                Navigator.pop(context);
-              },
-            ),
-          ),
-          const Gap(16),
-        ],
-      ),
+    showViewModeSheet(
+      context,
+      current: _viewMode,
+      onSelected: (v) => setState(() => _viewMode = v),
     );
   }
 

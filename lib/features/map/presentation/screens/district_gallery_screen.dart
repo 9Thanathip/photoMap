@@ -7,6 +7,7 @@ import 'package:photo_map/features/gallery/presentation/widgets/photo_viewer_scr
 import 'package:photo_map/features/gallery/presentation/widgets/photos_tab.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/province_header.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
+import 'package:photo_map/common_widgets/view_mode_sheet.dart';
 
 class DistrictGalleryScreen extends ConsumerStatefulWidget {
   final String provinceName;
@@ -69,41 +70,10 @@ class _DistrictGalleryScreenState extends ConsumerState<DistrictGalleryScreen> {
   }
 
   void _showFilterSheet() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        margin: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Text(
-                'View Mode',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-              ),
-            ),
-            ...ViewMode.values.map(
-              (v) => ListTile(
-                title: Text(v.label),
-                trailing: _viewMode == v
-                    ? const Icon(Icons.check_rounded, color: Colors.blue)
-                    : null,
-                onTap: () {
-                  setState(() => _viewMode = v);
-                  Navigator.pop(context);
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+    showViewModeSheet(
+      context,
+      current: _viewMode,
+      onSelected: (v) => setState(() => _viewMode = v),
     );
   }
 

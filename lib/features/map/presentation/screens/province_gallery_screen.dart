@@ -8,6 +8,7 @@ import '../../../gallery/presentation/widgets/photo_tile.dart';
 import '../../../gallery/presentation/widgets/photo_viewer_screen.dart';
 import '../../../gallery/presentation/widgets/photos_tab.dart';
 import '../widgets/province_district/province_header.dart';
+import 'package:photo_map/common_widgets/view_mode_sheet.dart';
 
 class ProvinceGalleryScreen extends ConsumerStatefulWidget {
   const ProvinceGalleryScreen({super.key, required this.provinceName});
@@ -63,44 +64,10 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
   }
 
   void _showFilterSheet() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        margin: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Text(
-                'View Mode',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-              ),
-            ),
-            ...ViewMode.values.map(
-              (v) => ListTile(
-                title: Text(v.label),
-                trailing: _viewMode == v
-                    ? Icon(
-                        Icons.check_rounded,
-                        color: Theme.of(context).colorScheme.primary,
-                      )
-                    : null,
-                onTap: () {
-                  setState(() => _viewMode = v);
-                  Navigator.pop(context);
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+    showViewModeSheet(
+      context,
+      current: _viewMode,
+      onSelected: (v) => setState(() => _viewMode = v),
     );
   }
 
@@ -115,7 +82,6 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
 
     final topPad = MediaQuery.paddingOf(context).top;
     final theme = Theme.of(context);
-    final headerHeight = topPad + 88.0;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
