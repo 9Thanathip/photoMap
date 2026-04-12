@@ -1,6 +1,9 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'district_gallery_screen.dart';
@@ -26,10 +29,12 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
   ProvinceViewMode _viewMode = ProvinceViewMode.map;
   final TransformationController _transformController =
       TransformationController();
+  final GlobalKey _repaintKey = GlobalKey();
 
   late final Ticker _ticker;
   DateTime _currentTime = DateTime.now();
   late final DateTime _openTime;
+  bool _downloading = false;
 
   @override
   void initState() {
@@ -49,6 +54,53 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
     _ticker.dispose();
     _transformController.dispose();
     super.dispose();
+  }
+
+  Future<void> _download() async {
+    if (_downloading) return;
+    setState(() => _downloading = true);
+
+    try {
+      final boundary = _repaintKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+      if (boundary == null) return;
+
+      final image = await boundary.toImage(pixelRatio: 2.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) return;
+
+      final bytes = byteData.buffer.asUint8List();
+      final filename = '${widget.provinceName}_map_${DateTime.now().millisecondsSinceEpoch}.png';
+
+      await PhotoManager.editor.saveImage(
+        bytes,
+        filename: filename,
+        title: filename,
+        desc: 'Exported ${widget.provinceName} from Photo Map',
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Saved to Photos'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Failed to save image'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
   }
 
   void _resetView() {
@@ -130,15 +182,18 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: _viewMode == ProvinceViewMode.map
-                ? DistrictsMap(
-                    provinceName: widget.provinceName,
-                    transformController: _transformController,
-                    baseColor: settings.provinceColor,
-                    canvasColor: settings.canvasColor,
-                    strokeColor: strokeColor,
-                    currentTime: _currentTime,
-                    openTime: _openTime,
-                    onSelectDistrict: (d) => _onSelectDistrict(d, byDistrict),
+                ? RepaintBoundary(
+                    key: _repaintKey,
+                    child: DistrictsMap(
+                      provinceName: widget.provinceName,
+                      transformController: _transformController,
+                      baseColor: settings.provinceColor,
+                      canvasColor: settings.canvasColor,
+                      strokeColor: strokeColor,
+                      currentTime: _currentTime,
+                      openTime: _openTime,
+                      onSelectDistrict: (d) => _onSelectDistrict(d, byDistrict),
+                    ),
                   )
                 : DistrictsGrid(
                     key: const ValueKey('districts'),
@@ -190,6 +245,18 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                       icon: Icons.center_focus_strong_outlined,
                       tooltip: 'Center',
                       onTap: _resetView,
+                    ),
+                    Divider(
+                      height: 1,
+                      thickness: 0.5,
+                      color: Colors.black.withOpacity(0.08),
+                    ),
+                    MapActionButton(
+                      icon: _downloading 
+                          ? Icons.hourglass_top_rounded 
+                          : Icons.download_rounded,
+                      tooltip: 'Save to Photos',
+                      onTap: _download,
                     ),
                   ],
                 ),
