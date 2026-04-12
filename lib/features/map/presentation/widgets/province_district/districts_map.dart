@@ -34,6 +34,9 @@ class _DistrictsMapState extends ConsumerState<DistrictsMap> {
   final GlobalKey _paintKey = GlobalKey();
   Offset? _tapDownPosition;
 
+  final Map<String, DateTime> _firstSeenTimes = {};
+  static const int _staggerMs = 80;
+
   void _handleTap(Offset globalPosition, List<DistrictShape> districts) {
     if (districts.isEmpty) return;
 
@@ -101,6 +104,18 @@ class _DistrictsMapState extends ConsumerState<DistrictsMap> {
       );
     }
 
+    // Register first-seen time at the exact frame each district image appears.
+    final newKeys = state.districtPhotos.keys
+        .where((k) => state.districtPhotos[k] != null && !_firstSeenTimes.containsKey(k))
+        .toList()
+      ..sort();
+    if (newKeys.isNotEmpty) {
+      final now = DateTime.now();
+      for (var i = 0; i < newKeys.length; i++) {
+        _firstSeenTimes[newKeys[i]] = now.add(Duration(milliseconds: i * _staggerMs));
+      }
+    }
+
     return Listener(
       onPointerDown: (e) => _tapDownPosition = e.position,
       onPointerUp: (e) {
@@ -123,7 +138,7 @@ class _DistrictsMapState extends ConsumerState<DistrictsMap> {
               districts: state.districts,
               combinedPath: state.combinedPath,
               districtPhotos: state.districtPhotos,
-              imageLoadTimes: state.imageLoadTimes,
+              imageLoadTimes: _firstSeenTimes,
               currentTime: widget.currentTime,
               openTime: widget.openTime,
               baseColor: widget.baseColor,

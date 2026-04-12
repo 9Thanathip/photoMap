@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../../province/data/province_data.dart';
-import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_actions.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_header.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/province_menu_sheet.dart';
@@ -32,6 +31,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   bool _downloading = false;
   Offset? _tapDownPosition;
+
+  // Local first-seen timestamps — set at the exact frame an image first renders,
+  // so opacity always starts at 0 regardless of when the provider decoded the image.
+  final Map<String, DateTime> _firstSeenTimes = {};
+  static const int _staggerMs = 80;
 
   @override
   void initState() {
@@ -205,6 +209,20 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final brightness = ThemeData.estimateBrightnessForColor(settings.provinceColor);
     final strokeColor = brightness == Brightness.dark ? Colors.white30 : Colors.white;
 
+    // Register first-seen time at the exact frame each province image appears.
+    // This guarantees opacity starts at 0 on the first render frame, regardless
+    // of when the provider finished decoding the image.
+    final newKeys = state.provincePhotos.keys
+        .where((k) => state.provincePhotos[k] != null && !_firstSeenTimes.containsKey(k))
+        .toList()
+      ..sort();
+    if (newKeys.isNotEmpty) {
+      final now = DateTime.now();
+      for (var i = 0; i < newKeys.length; i++) {
+        _firstSeenTimes[newKeys[i]] = now.add(Duration(milliseconds: i * _staggerMs));
+      }
+    }
+
     return Scaffold(
       backgroundColor: settings.canvasColor,
       body: Stack(
@@ -237,7 +255,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                         provinces: state.provinces,
                         combinedPath: state.combinedPath,
                         provincePhotos: state.provincePhotos,
-                        imageLoadTimes: state.imageLoadTimes,
+                        imageLoadTimes: _firstSeenTimes,
                         currentTime: _currentTime,
                         openTime: _openTime,
                         baseColor: settings.provinceColor,
