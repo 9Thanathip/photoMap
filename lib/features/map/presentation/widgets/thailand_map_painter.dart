@@ -99,9 +99,7 @@ class ThailandMapPainter extends CustomPainter {
       final isSelected = province.name == selectedProvince;
 
       // Always draw base fill so the province shape is visible during fade-in
-      fillPaint.color = isSelected
-          ? Colors.blue.withOpacity(0.3)
-          : baseColor;
+      fillPaint.color = isSelected ? Colors.blue.withOpacity(0.3) : baseColor;
       canvas.drawPath(province.path, fillPaint);
 
       if (image != null) {
@@ -150,9 +148,9 @@ class ThailandMapPainter extends CustomPainter {
 
     // Draw "T H A I L A N D" text at the bottom center
     // This is drawn AFTER canvas.restore so it stays fixed and centered on the final export
-    final isDarkBackground =
-        canvasColor != null &&
-        ThemeData.estimateBrightnessForColor(canvasColor!) == Brightness.dark;
+    // final isDarkBackground =
+    //     canvasColor != null &&
+    //     ThemeData.estimateBrightnessForColor(canvasColor!) == Brightness.dark;
 
     // final textPainter = TextPainter(
     //   text: TextSpan(

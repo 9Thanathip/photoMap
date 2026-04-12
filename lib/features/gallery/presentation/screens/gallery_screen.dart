@@ -254,6 +254,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
     );
   }
 
+  // ignore: unused_element
   Future<void> _pickImage(String province) async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (image != null) {

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/features/map/presentation/providers/map_settings_provider.dart';
@@ -207,9 +205,6 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
     super.initState();
     _selected = widget.current;
   }
-
-  bool get _isCustom =>
-      !widget.presets.any((p) => p.color.value == _selected.value);
 
   void _apply() {
     widget.onSelect(_selected);

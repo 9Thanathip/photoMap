@@ -20,9 +20,6 @@ class ViewModeSheet extends StatelessWidget {
     required ViewMode currentMode,
     required ValueChanged<ViewMode> onModeSelected,
   }) {
-    final botPad = MediaQuery.paddingOf(context).bottom;
-    final theme = Theme.of(context);
-
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,

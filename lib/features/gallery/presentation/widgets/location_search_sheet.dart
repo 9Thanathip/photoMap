@@ -58,11 +58,7 @@ Future<List<_Place>> _searchPlaces(String query) async {
 
 // ── Write GPS EXIF to photo file ──────────────────────────────────────────────
 
-Future<bool> _writeGpsToPhoto(
-  PhotoItem photo,
-  double lat,
-  double lng,
-) async {
+Future<bool> _writeGpsToPhoto(PhotoItem photo, double lat, double lng) async {
   final entity = photo.assetEntity;
   if (entity == null) return false;
 
@@ -91,6 +87,7 @@ Future<bool> _writeGpsToPhoto(
       tempFile.path,
       title: entity.title ?? 'photo',
     );
+    // ignore: unnecessary_null_comparison
     return saved != null;
   } finally {
     if (await tempFile.exists()) await tempFile.delete();
@@ -120,7 +117,9 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _focusNode.requestFocus());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _focusNode.requestFocus(),
+    );
   }
 
   @override
@@ -134,17 +133,27 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
   void _onChanged(String value) {
     _debounce?.cancel();
     if (value.trim().isEmpty) {
-      setState(() { _results = []; _error = null; });
+      setState(() {
+        _results = [];
+        _error = null;
+      });
       return;
     }
     _debounce = Timer(const Duration(milliseconds: 500), () => _search(value));
   }
 
   Future<void> _search(String query) async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final results = await _searchPlaces(query);
-      if (mounted) setState(() { _results = results; _loading = false; });
+      if (mounted)
+        setState(() {
+          _results = results;
+          _loading = false;
+        });
     } catch (_) {
       if (mounted) {
         setState(() {
@@ -159,7 +168,9 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
     _focusNode.unfocus();
 
     // Update in-app state immediately and close — EXIF write runs in background
-    ref.read(galleryStateProvider.notifier).updatePhotoLocation(
+    ref
+        .read(galleryStateProvider.notifier)
+        .updatePhotoLocation(
           widget.photo.path,
           widget.photo.country.isEmpty ? 'Unknown' : widget.photo.country,
           place.shortName,
@@ -189,8 +200,9 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
             content: const Text('Failed to write GPS to photo file'),
             behavior: SnackBarBehavior.floating,
             backgroundColor: errorColor,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -203,9 +215,7 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
 
     return Padding(
       // Push sheet up when keyboard appears
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.viewInsetsOf(context).bottom,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: DraggableScrollableSheet(
         initialChildSize: 0.92,
         minChildSize: 0.5,
@@ -232,8 +242,9 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
                   children: [
                     Text(
                       'Set Location',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const Spacer(),
                   ],
@@ -257,20 +268,22 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
                             icon: const Icon(Icons.clear_rounded),
                             onPressed: () {
                               _controller.clear();
-                              setState(() { _results = []; _error = null; });
+                              setState(() {
+                                _results = [];
+                                _error = null;
+                              });
                             },
                           )
                         : _loading
-                            ? const Padding(
-                                padding: EdgeInsets.all(12),
-                                child: SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2),
-                                ),
-                              )
-                            : null,
+                        ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : null,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide.none,
@@ -278,14 +291,17 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
                     filled: true,
                     fillColor: theme.colorScheme.surfaceContainerHighest,
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                   ),
                 ),
               ),
 
               Divider(
-                  height: 1,
-                  color: theme.colorScheme.outlineVariant.withAlpha(80)),
+                height: 1,
+                color: theme.colorScheme.outlineVariant.withAlpha(80),
+              ),
 
               // Results
               Expanded(
@@ -293,76 +309,83 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
                     ? Center(
                         child: Padding(
                           padding: const EdgeInsets.all(24),
-                          child: Text(_error!,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant),
-                              textAlign: TextAlign.center),
+                          child: Text(
+                            _error!,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       )
                     : _results.isEmpty && !_loading
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.location_on_outlined,
-                                    size: 48,
-                                    color: theme.colorScheme.onSurfaceVariant
-                                        .withAlpha(80)),
-                                const SizedBox(height: 12),
-                                Text(
-                                  _controller.text.isEmpty
-                                      ? 'Search for a place'
-                                      : 'No results found',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                      color:
-                                          theme.colorScheme.onSurfaceVariant),
-                                ),
-                              ],
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.location_on_outlined,
+                              size: 48,
+                              color: theme.colorScheme.onSurfaceVariant
+                                  .withAlpha(80),
                             ),
-                          )
-                        : ListView.separated(
-                            controller: scrollController,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            itemCount: _results.length,
-                            separatorBuilder: (context, i) => Divider(
-                              height: 1,
-                              indent: 56,
-                              color:
-                                  theme.colorScheme.outlineVariant.withAlpha(60),
+                            const SizedBox(height: 12),
+                            Text(
+                              _controller.text.isEmpty
+                                  ? 'Search for a place'
+                                  : 'No results found',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
-                            itemBuilder: (_, i) {
-                              final place = _results[i];
-                              return ListTile(
-                                leading: Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primaryContainer,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(Icons.location_on_rounded,
-                                      size: 18,
-                                      color: theme.colorScheme.primary),
-                                ),
-                                title: Text(
-                                  place.shortName,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w600),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                subtitle: Text(
-                                  place.displayName,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                onTap: () => _select(place),
-                              );
-                            },
-                          ),
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: _results.length,
+                        separatorBuilder: (context, i) => Divider(
+                          height: 1,
+                          indent: 56,
+                          color: theme.colorScheme.outlineVariant.withAlpha(60),
+                        ),
+                        itemBuilder: (_, i) {
+                          final place = _results[i];
+                          return ListTile(
+                            leading: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primaryContainer,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.location_on_rounded,
+                                size: 18,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                            title: Text(
+                              place.shortName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              place.displayName,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            onTap: () => _select(place),
+                          );
+                        },
+                      ),
               ),
             ],
           );

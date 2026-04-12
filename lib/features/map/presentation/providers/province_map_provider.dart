@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
-import 'package:photo_map/features/map/presentation/providers/map_provider.dart';
 import '../widgets/province_map_painter.dart';
 
 class ProvinceMapState {
