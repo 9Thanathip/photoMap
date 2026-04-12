@@ -21,16 +21,13 @@ class ProvinceHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurface;
     return Row(
       children: [
         GlassCard(
           onTap: onBack,
           padding: const EdgeInsets.all(10),
-          child: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 16,
-            color: Colors.black87,
-          ),
+          child: Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: color),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -42,17 +39,17 @@ class ProvinceHeader extends StatelessWidget {
                 Icon(
                   Icons.location_on_outlined,
                   size: 15,
-                  color: Colors.black.withOpacity(0.55),
+                  color: color.withValues(alpha: 0.55),
                 ),
                 const SizedBox(width: 8),
                 Flexible(
                   child: Text(
                     title,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: color,
                       letterSpacing: 0.1,
                     ),
                   ),
@@ -71,7 +68,7 @@ class ProvinceHeader extends StatelessWidget {
                   ? Icons.grid_view_rounded
                   : Icons.map_outlined,
               size: 18,
-              color: Colors.black87,
+              color: color,
             ),
           ),
         ],
