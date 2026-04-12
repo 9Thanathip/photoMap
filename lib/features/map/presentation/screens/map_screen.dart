@@ -6,15 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../../province/data/province_data.dart';
-import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
+import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_actions.dart';
+import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_header.dart';
+import 'package:photo_map/features/map/presentation/widgets/national_map/province_menu_sheet.dart';
 import '../providers/map_provider.dart';
 import '../providers/map_settings_provider.dart';
 import '../widgets/map_settings_widgets.dart';
-import '../widgets/map_ui_components.dart';
 import '../widgets/thailand_map_painter.dart';
-import 'province_district_screen.dart';
-import 'province_gallery_screen.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -38,8 +37,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
   void initState() {
     super.initState();
     _openTime = DateTime.now();
-    _ticker = createTicker((_) => setState(() => _currentTime = DateTime.now()))
-      ..start();
+    _ticker = createTicker((_) {
+      if (mounted) setState(() => _currentTime = DateTime.now());
+    })..start();
   }
 
   @override
@@ -166,45 +166,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   void _showProvinceMenu(BuildContext context, String provinceName) {
     showModalBottomSheet<void>(
       context: context,
-      builder: (ctx) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppSheetHandle(title: provinceName),
-            Divider(
-              height: 1,
-              color: Theme.of(context).colorScheme.outlineVariant.withAlpha(80),
-            ),
-            ListTile(
-              leading: const Icon(Icons.map_outlined),
-              title: const Text('View by Districts'),
-              subtitle: const Text('Browse photos by district'),
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.of(context, rootNavigator: true).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => ProvinceDistrictScreen(provinceName: provinceName),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('View Gallery'),
-              subtitle: const Text('All photos in this province'),
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.of(context, rootNavigator: true).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => ProvinceGalleryScreen(provinceName: provinceName),
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: MediaQuery.paddingOf(context).bottom + 8),
-          ],
-        );
-      },
+      builder: (_) => ProvinceMenuSheet(provinceName: provinceName),
     );
   }
 
@@ -288,68 +250,23 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 ),
               ),
             ),
+          
+          // Header Overlay
           Positioned(
             top: topPad + 12,
             left: 20,
-            child: GlassCard(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.map_outlined,
-                    size: 15,
-                    color: Colors.black.withOpacity(0.55),
-                  ),
-                  const SizedBox(width: 6),
-                  const Text(
-                    'Thailand',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            child: const NationalMapHeader(),
           ),
+
+          // Action Overlay
           Positioned(
             right: 20,
             bottom: botPad + 24,
-            child: GlassCard(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  MapActionButton(
-                    icon: Icons.palette_outlined,
-                    tooltip: 'Background',
-                    onTap: _showSettings,
-                  ),
-                  Divider(
-                    height: 1,
-                    thickness: 0.5,
-                    color: Colors.black.withOpacity(0.08),
-                  ),
-                  MapActionButton(
-                    icon: Icons.center_focus_strong_outlined,
-                    tooltip: 'Center Map',
-                    onTap: _resetView,
-                  ),
-                  Divider(
-                    height: 1,
-                    thickness: 0.5,
-                    color: Colors.black.withOpacity(0.08),
-                  ),
-                  MapActionButton(
-                    icon: _downloading ? Icons.hourglass_top_rounded : Icons.download_rounded,
-                    tooltip: 'Save to Photos',
-                    onTap: _download,
-                  ),
-                ],
-              ),
+            child: NationalMapActions(
+              isDownloading: _downloading,
+              onShowSettings: _showSettings,
+              onResetView: _resetView,
+              onDownload: _download,
             ),
           ),
         ],
