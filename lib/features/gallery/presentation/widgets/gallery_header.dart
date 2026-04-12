@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:photo_map/common_widgets/glass_card.dart';
 
 class GalleryHeader extends StatelessWidget {
   const GalleryHeader({
@@ -21,6 +22,7 @@ class GalleryHeader extends StatelessWidget {
     this.onEnterSelect,
     required this.onCancelSelect,
     required this.onSelectAll,
+    this.onAddTap,
   });
 
   final double topPad;
@@ -39,6 +41,7 @@ class GalleryHeader extends StatelessWidget {
   final VoidCallback? onEnterSelect;
   final VoidCallback onCancelSelect;
   final VoidCallback onSelectAll;
+  final VoidCallback? onAddTap;
 
   bool get _showBack => inAlbumsTab && inCountry;
 
@@ -54,8 +57,8 @@ class GalleryHeader extends StatelessWidget {
 
     if (isSelectMode) {
       return Padding(
-        padding: EdgeInsets.only(
-            top: topPad + 6, left: 8, right: 8, bottom: 6),
+        padding:
+            EdgeInsets.only(top: topPad + 6, left: 8, right: 8, bottom: 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -92,8 +95,7 @@ class GalleryHeader extends StatelessWidget {
     }
 
     return Padding(
-      padding:
-          EdgeInsets.only(top: topPad + 6, left: 16, right: 8, bottom: 6),
+      padding: EdgeInsets.only(top: topPad + 6, left: 16, right: 16, bottom: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -107,7 +109,7 @@ class GalleryHeader extends StatelessWidget {
                   child: Icon(Icons.arrow_back_ios_new_rounded,
                       size: 20, color: theme.colorScheme.primary),
                 ),
-                const Gap(6),
+                const Gap(8),
               ],
               Expanded(
                 child: AnimatedSwitcher(
@@ -116,7 +118,7 @@ class GalleryHeader extends StatelessWidget {
                   switchOutCurve: Curves.easeIn,
                   layoutBuilder: (current, previous) => Stack(
                     alignment: Alignment.centerLeft,
-                    children: [...previous, ?current],
+                    children: [...previous, if (current != null) current],
                   ),
                   transitionBuilder: (child, animation) => FadeTransition(
                     opacity: animation,
@@ -139,28 +141,54 @@ class GalleryHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              if (!_showBack)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.tune_rounded),
-                      color: theme.colorScheme.onSurface,
-                      onPressed: onFilterTap,
-                    ),
-                    if (onEnterSelect != null)
-                      TextButton(
-                        onPressed: onEnterSelect,
-                        child: const Text('Select'),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!inAlbumsTab) ...[
+                    GlassCard(
+                      onTap: onFilterTap,
+                      borderRadius: 100,
+                      padding: const EdgeInsets.all(10),
+                      child: Icon(
+                        Icons.filter_list_rounded,
+                        size: 20,
+                        color: theme.colorScheme.onSurface,
                       ),
+                    ),
+                    const Gap(8),
                   ],
-                )
-              else
-                IconButton(
-                  icon: const Icon(Icons.tune_rounded),
-                  color: theme.colorScheme.onSurface,
-                  onPressed: onFilterTap,
-                ),
+                  if (onAddTap != null) ...[
+                    GlassCard(
+                      onTap: onAddTap,
+                      borderRadius: 100,
+                      padding: const EdgeInsets.all(10),
+                      child: Icon(
+                        Icons.add_a_photo_rounded,
+                        size: 20,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const Gap(8),
+                  ],
+                  if (onEnterSelect != null)
+                    GlassCard(
+                      onTap: onEnterSelect,
+                      borderRadius: 12,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      child: Text(
+                        'Select',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
           Row(

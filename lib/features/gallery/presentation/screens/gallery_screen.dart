@@ -133,9 +133,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
               isSelectMode: select.isSelectMode,
               selectedCount: select.selectedCount,
               totalCount: sortedPhotos.length,
-              onEnterSelect: !_inAlbumsTab
-                  ? () => ref.read(gallerySelectProvider.notifier).enter()
-                  : null,
+              onEnterSelect: () => ref.read(gallerySelectProvider.notifier).enter(),
               onCancelSelect: () =>
                   ref.read(gallerySelectProvider.notifier).exit(),
               onSelectAll: () {
@@ -146,33 +144,11 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                   notifier.selectAll(sortedPhotos.map((p) => p.path));
                 }
               },
+              onAddTap: (_inAlbumsTab && inProvince)
+                  ? () => _pickImage(gallery.selectedProvince)
+                  : null,
             ),
           ),
-
-          // Custom Glassmorphic 'Add Photo' Button
-          if (!select.isSelectMode && (_inAlbumsTab && inProvince))
-            Positioned(
-              right: 28,
-              bottom: MediaQuery.paddingOf(context).bottom + 8,
-              child: GlassCard(
-                onTap: () => _pickImage(gallery.selectedProvince),
-                borderRadius: 100,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.add_a_photo_rounded,
-                      size: 20,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
       floatingActionButton: null,
