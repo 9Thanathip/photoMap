@@ -17,11 +17,14 @@ class ProvinceMapState {
   final bool isLoading;
   final String? error;
 
+  final Map<String, List<PhotoItem>> allPhotosByDistrict;
+
   ProvinceMapState({
     required this.provinceName,
     required this.districts,
     this.combinedPath,
     required this.districtPhotos,
+    required this.allPhotosByDistrict,
     required this.imageLoadTimes,
     required this.isLoading,
     this.error,
@@ -32,6 +35,7 @@ class ProvinceMapState {
     List<DistrictShape>? districts,
     ui.Path? combinedPath,
     Map<String, ui.Image?>? districtPhotos,
+    Map<String, List<PhotoItem>>? allPhotosByDistrict,
     Map<String, DateTime>? imageLoadTimes,
     bool? isLoading,
     String? error,
@@ -40,6 +44,7 @@ class ProvinceMapState {
     districts: districts ?? this.districts,
     combinedPath: combinedPath ?? this.combinedPath,
     districtPhotos: districtPhotos ?? this.districtPhotos,
+    allPhotosByDistrict: allPhotosByDistrict ?? this.allPhotosByDistrict,
     imageLoadTimes: imageLoadTimes ?? this.imageLoadTimes,
     isLoading: isLoading ?? this.isLoading,
     error: error,
@@ -62,6 +67,7 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
           provinceName: provinceName,
           districts: [],
           districtPhotos: {},
+          allPhotosByDistrict: {},
           imageLoadTimes: {},
           isLoading: true,
         ),
@@ -255,6 +261,7 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
 
     state = state.copyWith(
       districtPhotos: newPhotos,
+      allPhotosByDistrict: photosByDistrict,
       imageLoadTimes: newLoadTimes,
     );
   }

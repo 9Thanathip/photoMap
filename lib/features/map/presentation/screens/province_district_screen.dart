@@ -99,10 +99,9 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
 
   @override
   Widget build(BuildContext context) {
-    final gallery = ref.watch(galleryStateProvider);
-    final byDistrict = gallery.photosByDistrict(widget.provinceName);
-    final settings = ref.watch(mapSettingsProvider);
     final mapState = ref.watch(provinceMapProvider(widget.provinceName));
+    final byDistrict = mapState.allPhotosByDistrict;
+    final settings = ref.watch(mapSettingsProvider);
 
     final topPad = MediaQuery.paddingOf(context).top;
     final botPad = MediaQuery.paddingOf(context).bottom;
