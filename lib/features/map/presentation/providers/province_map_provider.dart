@@ -166,8 +166,14 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
     }).toList();
 
     final Map<String, List<PhotoItem>> photosByDistrict = {};
-    
-    // 2. Assign each photo to a district based on coordinates (Point-in-Polygon)
+
+    // 2. Assign each photo to a district
+    final Map<String, String> normalizedToRealDistrict = {};
+    for (final d in state.districts) {
+      final normalized = d.name.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
+      normalizedToRealDistrict[normalized] = d.name;
+    }
+
     for (final photo in provincePhotos) {
       String? matchedDistrict;
       
@@ -181,8 +187,20 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
         }
       }
       
-      // Fallback to existing district name if coordinates didn't match or no location
-      final districtKey = matchedDistrict ?? (photo.district.isEmpty ? 'Unknown' : photo.district);
+      // Fuzzy match fallback for photos without location or outside boundaries
+      if (matchedDistrict == null && photo.district.isNotEmpty) {
+        final photoDistNormalized = photo.district.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
+        for (final entry in normalizedToRealDistrict.entries) {
+          if (entry.key == photoDistNormalized || 
+              entry.key.contains(photoDistNormalized) || 
+              photoDistNormalized.contains(entry.key)) {
+            matchedDistrict = entry.value;
+            break;
+          }
+        }
+      }
+
+      final districtKey = matchedDistrict ?? 'Unknown';
       photosByDistrict.putIfAbsent(districtKey, () => []).add(photo);
     }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:photo_map/common_widgets/app_button.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
@@ -31,10 +32,19 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
   String? _selectedDistrict;
   bool _goingDeeper = false;
   final TransformationController _transformController = TransformationController();
+  
+  late final Ticker _ticker;
+  DateTime _currentTime = DateTime.now();
+  late final DateTime _openTime;
 
   @override
   void initState() {
     super.initState();
+    _openTime = DateTime.now();
+    _ticker = createTicker((_) {
+      if (mounted) setState(() => _currentTime = DateTime.now());
+    })..start();
+    
     Future.microtask(() {
       ref.read(provinceMapProvider(widget.provinceName).notifier).loadMap();
     });
@@ -42,6 +52,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
 
   @override
   void dispose() {
+    _ticker.dispose();
     _transformController.dispose();
     super.dispose();
   }
@@ -123,6 +134,8 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                         baseColor: settings.provinceColor,
                         canvasColor: settings.canvasColor,
                         strokeColor: strokeColor,
+                        currentTime: _currentTime,
+                        openTime: _openTime,
                         onSelectDistrict: (d) => setState(() {
                           _goingDeeper = true;
                           _selectedDistrict = d;
@@ -281,6 +294,8 @@ class _DistrictsMap extends ConsumerWidget {
     required this.baseColor,
     required this.canvasColor,
     required this.strokeColor,
+    required this.currentTime,
+    required this.openTime,
   });
 
   final String provinceName;
@@ -289,6 +304,8 @@ class _DistrictsMap extends ConsumerWidget {
   final Color baseColor;
   final Color canvasColor;
   final Color strokeColor;
+  final DateTime currentTime;
+  final DateTime openTime;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -361,8 +378,8 @@ class _DistrictsMap extends ConsumerWidget {
               combinedPath: state.combinedPath,
               districtPhotos: state.districtPhotos,
               imageLoadTimes: state.imageLoadTimes,
-              currentTime: DateTime.now(),
-              openTime: DateTime.now(),
+              currentTime: currentTime,
+              openTime: openTime,
               baseColor: baseColor,
               canvasColor: canvasColor,
               strokeColor: strokeColor,
