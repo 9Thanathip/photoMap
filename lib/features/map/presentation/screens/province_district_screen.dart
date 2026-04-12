@@ -76,7 +76,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
         bytes,
         filename: filename,
         title: filename,
-        desc: 'Exported ${widget.provinceName} from Photo Map',
+        desc: 'Exported ${widget.provinceName} from Jaruek',
       );
 
       if (mounted) {

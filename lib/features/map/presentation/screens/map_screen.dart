@@ -81,7 +81,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
         bytes,
         filename: filename,
         title: filename,
-        desc: 'Exported from Photo Map',
+        desc: 'Exported from Jaruek',
       );
 
       if (mounted) {

@@ -33,7 +33,7 @@ class SplashView extends StatelessWidget {
             ),
             const Gap(20),
             Text(
-              'Photo Map',
+              'Jaruek',
               style: GoogleFonts.poppins(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
@@ -47,15 +47,15 @@ class SplashView extends StatelessWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const Gap(56),
-            SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: theme.colorScheme.primary,
-              ),
-            ),
+            // const Gap(56),
+            // SizedBox(
+            //   width: 28,
+            //   height: 28,
+            //   child: CircularProgressIndicator(
+            //     strokeWidth: 2.5,
+            //     color: theme.colorScheme.primary,
+            //   ),
+            // ),
           ],
         ),
       ),
