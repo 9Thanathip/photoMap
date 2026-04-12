@@ -22,7 +22,6 @@ class GalleryHeader extends StatelessWidget {
     this.onEnterSelect,
     required this.onCancelSelect,
     required this.onSelectAll,
-    this.onAddTap,
   });
 
   final double topPad;
@@ -41,7 +40,6 @@ class GalleryHeader extends StatelessWidget {
   final VoidCallback? onEnterSelect;
   final VoidCallback onCancelSelect;
   final VoidCallback onSelectAll;
-  final VoidCallback? onAddTap;
 
   bool get _showBack => inAlbumsTab && inCountry;
 
@@ -57,8 +55,7 @@ class GalleryHeader extends StatelessWidget {
 
     if (isSelectMode) {
       return Padding(
-        padding:
-            EdgeInsets.only(top: topPad + 6, left: 8, right: 8, bottom: 6),
+        padding: EdgeInsets.only(top: topPad + 6, left: 8, right: 8, bottom: 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -80,7 +77,9 @@ class GalleryHeader extends StatelessWidget {
                         : '$selectedCount Selected',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
-                        fontSize: 16, fontWeight: FontWeight.w600),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 TextButton(
@@ -106,8 +105,11 @@ class GalleryHeader extends StatelessWidget {
               if (_showBack) ...[
                 GestureDetector(
                   onTap: onBack,
-                  child: Icon(Icons.arrow_back_ios_new_rounded,
-                      size: 20, color: theme.colorScheme.primary),
+                  child: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 20,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
                 const Gap(8),
               ],
@@ -157,19 +159,6 @@ class GalleryHeader extends StatelessWidget {
                     ),
                     const Gap(8),
                   ],
-                  if (onAddTap != null) ...[
-                    GlassCard(
-                      onTap: onAddTap,
-                      borderRadius: 100,
-                      padding: const EdgeInsets.all(10),
-                      child: Icon(
-                        Icons.add_a_photo_rounded,
-                        size: 20,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                    const Gap(8),
-                  ],
                   if (onEnterSelect != null)
                     GlassCard(
                       onTap: onEnterSelect,
@@ -195,10 +184,16 @@ class GalleryHeader extends StatelessWidget {
             children: [
               const SizedBox(width: 2),
               _TabToggle(
-                  label: 'Photos', selected: !inAlbumsTab, onTap: onPhotoTab),
+                label: 'Photos',
+                selected: !inAlbumsTab,
+                onTap: onPhotoTab,
+              ),
               const SizedBox(width: 18),
               _TabToggle(
-                  label: 'Albums', selected: inAlbumsTab, onTap: onAlbumTab),
+                label: 'Albums',
+                selected: inAlbumsTab,
+                onTap: onAlbumTab,
+              ),
             ],
           ),
         ],

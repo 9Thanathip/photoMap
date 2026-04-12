@@ -8,12 +8,10 @@ class PhotoOptionsSheet extends StatelessWidget {
   const PhotoOptionsSheet({
     super.key,
     required this.photo,
-    required this.onAddToAlbums,
     required this.onDelete,
   });
 
   final PhotoItem photo;
-  final VoidCallback onAddToAlbums;
   final VoidCallback onDelete;
 
   @override
@@ -48,16 +46,6 @@ class PhotoOptionsSheet extends StatelessWidget {
           ),
 
         // Menu items
-        _OptionTile(
-          icon: Icons.photo_album_outlined,
-          label: 'Add to Albums',
-          onTap: onAddToAlbums,
-        ),
-        Divider(
-          height: 1,
-          indent: 56,
-          color: theme.colorScheme.outlineVariant.withAlpha(80),
-        ),
         _OptionTile(
           icon: Icons.delete_outline_rounded,
           label: 'Remove',

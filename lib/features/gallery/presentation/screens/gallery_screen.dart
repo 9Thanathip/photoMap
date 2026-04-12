@@ -133,7 +133,8 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
               isSelectMode: select.isSelectMode,
               selectedCount: select.selectedCount,
               totalCount: sortedPhotos.length,
-              onEnterSelect: () => ref.read(gallerySelectProvider.notifier).enter(),
+              onEnterSelect: () =>
+                  ref.read(gallerySelectProvider.notifier).enter(),
               onCancelSelect: () =>
                   ref.read(gallerySelectProvider.notifier).exit(),
               onSelectAll: () {
@@ -144,9 +145,6 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                   notifier.selectAll(sortedPhotos.map((p) => p.path));
                 }
               },
-              onAddTap: (_inAlbumsTab && inProvince)
-                  ? () => _pickImage(gallery.selectedProvince)
-                  : null,
             ),
           ),
         ],
@@ -311,14 +309,6 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
       context: context,
       builder: (ctx) => PhotoOptionsSheet(
         photo: photo,
-        onAddToAlbums: () {
-          Navigator.pop(ctx);
-          showModalBottomSheet<void>(
-            context: context,
-            isScrollControlled: true,
-            builder: (_) => LocationSelectorSheet(photo: photo),
-          );
-        },
         onDelete: () {
           Navigator.pop(ctx);
           showDialog<void>(
