@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import '../providers/gallery_notifier.dart';
@@ -23,16 +24,7 @@ class PhotoOptionsSheet extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Drag handle
-        Container(
-          margin: const EdgeInsets.only(top: 12, bottom: 16),
-          width: 36,
-          height: 4,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.onSurfaceVariant.withAlpha(60),
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
+        const AppSheetHandle(),
 
         // Thumbnail preview
         if (asset != null)

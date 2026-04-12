@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_map/common_widgets/app_empty_state.dart';
 import '../../../gallery/presentation/providers/gallery_notifier.dart';
 import '../../../gallery/presentation/widgets/photo_tile.dart';
 import '../../../gallery/presentation/widgets/photo_viewer_screen.dart';
@@ -24,24 +25,10 @@ class ProvinceGalleryScreen extends ConsumerWidget {
         centerTitle: true,
       ),
       body: photos.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.photo_library_outlined,
-                      size: 64,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withAlpha(60)),
-                  const SizedBox(height: 12),
-                  Text('No photos in $provinceName',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant)),
-                ],
-              ),
+          ? AppEmptyState(
+              icon: Icons.photo_library_outlined,
+              title: 'No photos in $provinceName',
+              subtitle: 'Photos you take in this province will appear here.',
             )
           : GridView.builder(
               padding: const EdgeInsets.all(1.5),

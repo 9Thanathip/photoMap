@@ -1,14 +1,18 @@
 import 'dart:async';
 import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
+import 'package:photo_map/common_widgets/app_button.dart';
+import 'package:photo_map/common_widgets/app_sheet_handle.dart';
+import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import '../providers/map_settings_provider.dart';
 import '../providers/province_map_provider.dart';
 import '../widgets/map_settings_widgets.dart';
+import '../widgets/map_ui_components.dart';
 import '../widgets/province_map_painter.dart';
 
 enum _ViewMode { map, grid }
@@ -18,22 +22,19 @@ class ProvinceDistrictScreen extends ConsumerStatefulWidget {
   const ProvinceDistrictScreen({super.key, required this.provinceName});
 
   @override
-  ConsumerState<ProvinceDistrictScreen> createState() =>
-      _ProvinceDistrictScreenState();
+  ConsumerState<ProvinceDistrictScreen> createState() => _ProvinceDistrictScreenState();
 }
 
-class _ProvinceDistrictScreenState
-    extends ConsumerState<ProvinceDistrictScreen> with SingleTickerProviderStateMixin {
+class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
+    with SingleTickerProviderStateMixin {
   _ViewMode _viewMode = _ViewMode.map;
   String? _selectedDistrict;
   bool _goingDeeper = false;
-  final TransformationController _transformController =
-      TransformationController();
+  final TransformationController _transformController = TransformationController();
 
   @override
   void initState() {
     super.initState();
-    // Use microtask to ensure provider is ready
     Future.microtask(() {
       ref.read(provinceMapProvider(widget.provinceName).notifier).loadMap();
     });
@@ -69,42 +70,40 @@ class _ProvinceDistrictScreenState
     animation.forward().then((_) => animation.dispose());
   }
 
+  void _showSettings() {
+    final settings = ref.read(mapSettingsProvider);
+    final notifier = ref.read(mapSettingsProvider.notifier);
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => SettingsSheet(
+        currentProvince: settings.provinceColor,
+        currentCanvas: settings.canvasColor,
+        onProvinceSelect: notifier.updateProvinceColor,
+        onCanvasSelect: notifier.updateCanvasColor,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final gallery = ref.watch(galleryStateProvider);
     final byDistrict = gallery.photosByDistrict(widget.provinceName);
     final settings = ref.watch(mapSettingsProvider);
-    final settingsNotifier = ref.read(mapSettingsProvider.notifier);
+    final mapState = ref.watch(provinceMapProvider(widget.provinceName));
 
     final topPad = MediaQuery.paddingOf(context).top;
     final botPad = MediaQuery.paddingOf(context).bottom;
 
-    final mapState = ref.watch(provinceMapProvider(widget.provinceName));
-
-    final brightness = ThemeData.estimateBrightnessForColor(
-      settings.provinceColor,
-    );
-    final strokeColor = brightness == Brightness.dark
-        ? Colors.white30
-        : Colors.white;
-
-    void showSettings() {
-      showModalBottomSheet<void>(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (_) => SettingsSheet(
-          currentProvince: settings.provinceColor,
-          currentCanvas: settings.canvasColor,
-          onProvinceSelect: settingsNotifier.updateProvinceColor,
-          onCanvasSelect: settingsNotifier.updateCanvasColor,
-        ),
-      );
-    }
+    final brightness = ThemeData.estimateBrightnessForColor(settings.provinceColor);
+    final strokeColor = brightness == Brightness.dark ? Colors.white30 : Colors.white;
 
     return Scaffold(
       backgroundColor: settings.canvasColor,
       body: Stack(
         children: [
+          // Content Area
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: _selectedDistrict != null
@@ -112,145 +111,83 @@ class _ProvinceDistrictScreenState
                     color: Colors.white,
                     child: _DistrictPhotosGrid(
                       key: ValueKey(_selectedDistrict),
-                      photos: List<PhotoItem>.from(
-                        byDistrict[_selectedDistrict] ?? [],
-                      )..sort((a, b) => b.timestamp.compareTo(a.timestamp)),
+                      photos: List<PhotoItem>.from(byDistrict[_selectedDistrict] ?? [])
+                        ..sort((a, b) => b.timestamp.compareTo(a.timestamp)),
                       districtName: _selectedDistrict!,
                     ),
                   )
                 : (_viewMode == _ViewMode.map
-                      ? _DistrictsMap(
-                          provinceName: widget.provinceName,
-                          transformController: _transformController,
-                          baseColor: settings.provinceColor,
-                          canvasColor: settings.canvasColor,
-                          strokeColor: strokeColor,
-                          onSelectDistrict: (d) => setState(() {
-                            _goingDeeper = true;
-                            _selectedDistrict = d;
-                          }),
-                        )
-                      : _DistrictsGrid(
-                          key: const ValueKey('districts'),
-                          byDistrict: byDistrict,
-                          provinceName: widget.provinceName,
-                          onSelectDistrict: (d) => setState(() {
-                            _goingDeeper = true;
-                            _selectedDistrict = d;
-                          }),
-                        )),
+                    ? _DistrictsMap(
+                        provinceName: widget.provinceName,
+                        transformController: _transformController,
+                        baseColor: settings.provinceColor,
+                        canvasColor: settings.canvasColor,
+                        strokeColor: strokeColor,
+                        onSelectDistrict: (d) => setState(() {
+                          _goingDeeper = true;
+                          _selectedDistrict = d;
+                        }),
+                      )
+                    : _DistrictsGrid(
+                        key: const ValueKey('districts'),
+                        byDistrict: byDistrict,
+                        provinceName: widget.provinceName,
+                        onSelectDistrict: (d) => setState(() {
+                          _goingDeeper = true;
+                          _selectedDistrict = d;
+                        }),
+                      )),
           ),
 
-          // ── Top breadcrumbs ────────────────────────────────────────────────
+          // Breadcrumbs Header
           Positioned(
             top: topPad + 12,
             left: 20,
             right: 20,
-            child: Row(
-              children: [
-                _GlassCard(
-                  onTap: () {
-                    if (_selectedDistrict != null) {
-                      setState(() {
-                        _goingDeeper = false;
-                        _selectedDistrict = null;
-                      });
-                    } else {
-                      Navigator.pop(context);
-                    }
-                  },
-                  padding: const EdgeInsets.all(10),
-                  child: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 16,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _GlassCard(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 9,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.location_on_outlined,
-                          size: 15,
-                          color: Colors.black.withOpacity(0.55),
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            _selectedDistrict ?? widget.provinceName,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                              letterSpacing: 0.1,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                if (_selectedDistrict == null)
-                  _GlassCard(
-                    onTap: () => setState(() {
-                      _viewMode = _viewMode == _ViewMode.map
-                          ? _ViewMode.grid
-                          : _ViewMode.map;
-                    }),
-                    padding: const EdgeInsets.all(10),
-                    child: Icon(
-                      _viewMode == _ViewMode.map
-                          ? Icons.grid_view_rounded
-                          : Icons.map_outlined,
-                      size: 18,
-                      color: Colors.black87,
-                    ),
-                  ),
-              ],
+            child: _ProvinceHeader(
+              title: _selectedDistrict ?? widget.provinceName,
+              viewMode: _viewMode,
+              isSelectingDistrict: _selectedDistrict != null,
+              onBack: () {
+                if (_selectedDistrict != null) {
+                  setState(() {
+                    _goingDeeper = false;
+                    _selectedDistrict = null;
+                  });
+                } else {
+                  Navigator.pop(context);
+                }
+              },
+              onToggleMode: () => setState(() {
+                _viewMode = _viewMode == _ViewMode.map ? _ViewMode.grid : _ViewMode.map;
+              }),
             ),
           ),
 
-          // ── Action buttons ─────────────────────────────────────────────
-          if (_selectedDistrict == null &&
-              _viewMode == _ViewMode.map &&
-              mapState.error == null)
+          // Action Controls (Only in Map View)
+          if (_selectedDistrict == null && _viewMode == _ViewMode.map && mapState.error == null)
             Positioned(
               right: 20,
               bottom: botPad + 24,
-              child: _GlassCard(
+              child: GlassCard(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.palette_outlined,
-                        size: 20,
-                        color: Colors.black87,
-                      ),
-                      onPressed: showSettings,
+                    MapActionButton(
+                      icon: Icons.palette_outlined,
+                      tooltip: 'Colors',
+                      onTap: _showSettings,
                     ),
                     Divider(
                       height: 1,
                       thickness: 0.5,
                       color: Colors.black.withOpacity(0.08),
                     ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.center_focus_strong_outlined,
-                        size: 20,
-                        color: Colors.black87,
-                      ),
-                      onPressed: _resetView,
+                    MapActionButton(
+                      icon: Icons.center_focus_strong_outlined,
+                      tooltip: 'Center',
+                      onTap: _resetView,
                     ),
                   ],
                 ),
@@ -262,46 +199,76 @@ class _ProvinceDistrictScreenState
   }
 }
 
-class _GlassCard extends StatelessWidget {
-  const _GlassCard({
-    required this.child,
-    this.padding = EdgeInsets.zero,
-    this.onTap,
+class _ProvinceHeader extends StatelessWidget {
+  const _ProvinceHeader({
+    required this.title,
+    required this.viewMode,
+    required this.isSelectingDistrict,
+    required this.onBack,
+    required this.onToggleMode,
   });
 
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final VoidCallback? onTap;
+  final String title;
+  final _ViewMode viewMode;
+  final bool isSelectingDistrict;
+  final VoidCallback onBack;
+  final VoidCallback onToggleMode;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.75),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.4),
-                width: 0.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+    return Row(
+      children: [
+        GlassCard(
+          onTap: onBack,
+          padding: const EdgeInsets.all(10),
+          child: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 16,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: GlassCard(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  size: 15,
+                  color: Colors.black.withOpacity(0.55),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    title,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                      letterSpacing: 0.1,
+                    ),
+                  ),
                 ),
               ],
             ),
-            child: child,
           ),
         ),
-      ),
+        if (!isSelectingDistrict) ...[
+          const SizedBox(width: 10),
+          GlassCard(
+            onTap: onToggleMode,
+            padding: const EdgeInsets.all(10),
+            child: Icon(
+              viewMode == _ViewMode.map ? Icons.grid_view_rounded : Icons.map_outlined,
+              size: 18,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -340,11 +307,10 @@ class _DistrictsMap extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(state.error!),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => ref
-                  .read(provinceMapProvider(provinceName).notifier)
-                  .loadMap(),
-              child: const Text('Retry'),
+            AppButton(
+              label: 'Retry',
+              onPressed: () =>
+                  ref.read(provinceMapProvider(provinceName).notifier).loadMap(),
             ),
           ],
         ),
@@ -367,11 +333,9 @@ class _DistrictsMap extends ConsumerWidget {
         final scale = (scaleX < scaleY ? scaleX : scaleY) * 0.85;
 
         final offsetX =
-            (renderBox.size.width - totalBounds.width * scale) / 2 -
-            totalBounds.left * scale;
+            (renderBox.size.width - totalBounds.width * scale) / 2 - totalBounds.left * scale;
         final offsetY =
-            (renderBox.size.height - totalBounds.height * scale) / 2 -
-            totalBounds.top * scale;
+            (renderBox.size.height - totalBounds.height * scale) / 2 - totalBounds.top * scale;
 
         final px = (localPos.dx - offsetX) / scale;
         final py = (localPos.dy - offsetY) / scale;
@@ -411,10 +375,6 @@ class _DistrictsMap extends ConsumerWidget {
 }
 
 class _DistrictsGrid extends StatelessWidget {
-  final Map<String, List<PhotoItem>> byDistrict;
-  final String provinceName;
-  final ValueChanged<String> onSelectDistrict;
-
   const _DistrictsGrid({
     super.key,
     required this.byDistrict,
@@ -422,10 +382,13 @@ class _DistrictsGrid extends StatelessWidget {
     required this.onSelectDistrict,
   });
 
+  final Map<String, List<PhotoItem>> byDistrict;
+  final String provinceName;
+  final ValueChanged<String> onSelectDistrict;
+
   @override
   Widget build(BuildContext context) {
-    final districts = byDistrict.keys.where((d) => d != 'Unknown').toList()
-      ..sort();
+    final districts = byDistrict.keys.where((d) => d != 'Unknown').toList()..sort();
 
     if (districts.isEmpty) {
       return const Center(child: Text('No photos categorized by district'));
@@ -510,33 +473,29 @@ class _DistrictsGrid extends StatelessWidget {
 }
 
 class _DistrictThumbnail extends StatelessWidget {
-  final AssetEntity entity;
   const _DistrictThumbnail({required this.entity});
+  final AssetEntity entity;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<ui.Image?>(
-      future: null, // Just for UI structure, ideally use a thumbnail widget
-      builder: (context, snapshot) {
-        return AssetEntityImage(
-          entity,
-          isOriginal: false,
-          thumbnailSize: const ThumbnailSize(400, 400),
-          fit: BoxFit.cover,
-        );
-      },
+    return AssetEntityImage(
+      entity,
+      isOriginal: false,
+      thumbnailSize: const ThumbnailSize(400, 400),
+      fit: BoxFit.cover,
     );
   }
 }
 
 class _DistrictPhotosGrid extends StatelessWidget {
-  final List<PhotoItem> photos;
-  final String districtName;
   const _DistrictPhotosGrid({
     super.key,
     required this.photos,
     required this.districtName,
   });
+
+  final List<PhotoItem> photos;
+  final String districtName;
 
   @override
   Widget build(BuildContext context) {

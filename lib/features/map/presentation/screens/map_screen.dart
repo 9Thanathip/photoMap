@@ -4,10 +4,14 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
+
 import '../../../province/data/province_data.dart';
+import 'package:photo_map/common_widgets/app_sheet_handle.dart';
+import 'package:photo_map/common_widgets/glass_card.dart';
 import '../providers/map_provider.dart';
 import '../providers/map_settings_provider.dart';
 import '../widgets/map_settings_widgets.dart';
+import '../widgets/map_ui_components.dart';
 import '../widgets/thailand_map_painter.dart';
 import 'province_district_screen.dart';
 import 'province_gallery_screen.dart';
@@ -24,8 +28,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   late final Ticker _ticker;
   DateTime _currentTime = DateTime.now();
   late final DateTime _openTime;
-  final TransformationController _transformController =
-      TransformationController();
+  final TransformationController _transformController = TransformationController();
   final GlobalKey _repaintKey = GlobalKey();
 
   bool _downloading = false;
@@ -49,6 +52,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   void _showSettings() {
     final settings = ref.read(mapSettingsProvider);
     final notifier = ref.read(mapSettingsProvider.notifier);
+
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -66,9 +70,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
     setState(() => _downloading = true);
 
     try {
-      final boundary =
-          _repaintKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
+      final boundary = _repaintKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
       if (boundary == null) return;
 
       final image = await boundary.toImage(pixelRatio: 2.0);
@@ -76,8 +79,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
       if (byteData == null) return;
 
       final bytes = byteData.buffer.asUint8List();
-      final filename =
-          'thailand_map_${DateTime.now().millisecondsSinceEpoch}.png';
+      final filename = 'thailand_map_${DateTime.now().millisecondsSinceEpoch}.png';
+
       await PhotoManager.editor.saveImage(
         bytes,
         filename: filename,
@@ -90,9 +93,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
           SnackBar(
             content: const Text('Saved to Photos'),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -102,9 +103,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
           SnackBar(
             content: const Text('Failed to save image'),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -120,9 +119,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
   ) {
     if (provinces.isEmpty) return;
 
-    final renderBox =
-        _repaintKey.currentContext?.findRenderObject() as RenderBox?;
+    final renderBox = _repaintKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
+
     final canvasPos = renderBox.globalToLocal(globalPosition);
     final canvasSize = renderBox.size;
 
@@ -130,15 +129,15 @@ class _MapScreenState extends ConsumerState<MapScreen>
     for (final p in provinces.skip(1)) {
       totalBounds = totalBounds.expandToInclude(p.bounds);
     }
+
     final scaleX = canvasSize.width / totalBounds.width;
     final scaleY = canvasSize.height / totalBounds.height;
     final scale = (scaleX < scaleY ? scaleX : scaleY) * 0.80;
+
     final offsetX =
-        (canvasSize.width - totalBounds.width * scale) / 2 -
-        totalBounds.left * scale;
+        (canvasSize.width - totalBounds.width * scale) / 2 - totalBounds.left * scale;
     final offsetY =
-        (canvasSize.height - totalBounds.height * scale) / 2 -
-        totalBounds.top * scale;
+        (canvasSize.height - totalBounds.height * scale) / 2 - totalBounds.top * scale;
 
     final px = (canvasPos.dx - offsetX) / scale;
     final py = (canvasPos.dy - offsetY) / scale;
@@ -155,8 +154,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   String _prettyProvinceName(String normalizedName) {
     for (final p in thaiProvinces) {
-      if (p.name.replaceAll(RegExp(r'[\s-]'), '').toLowerCase() ==
-          normalizedName) {
+      if (p.name.replaceAll(RegExp(r'[\s-]'), '').toLowerCase() == normalizedName) {
         return p.name;
       }
     }
@@ -169,34 +167,13 @@ class _MapScreenState extends ConsumerState<MapScreen>
     showModalBottomSheet<void>(
       context: context,
       builder: (ctx) {
-        final theme = Theme.of(context);
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 4),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onSurfaceVariant.withAlpha(60),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  provinceName,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
+            AppSheetHandle(title: provinceName),
             Divider(
               height: 1,
-              color: theme.colorScheme.outlineVariant.withAlpha(80),
+              color: Theme.of(context).colorScheme.outlineVariant.withAlpha(80),
             ),
             ListTile(
               leading: const Icon(Icons.map_outlined),
@@ -206,8 +183,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 Navigator.pop(ctx);
                 Navigator.of(context, rootNavigator: true).push(
                   MaterialPageRoute<void>(
-                    builder: (_) =>
-                        ProvinceDistrictScreen(provinceName: provinceName),
+                    builder: (_) => ProvinceDistrictScreen(provinceName: provinceName),
                   ),
                 );
               },
@@ -220,8 +196,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 Navigator.pop(ctx);
                 Navigator.of(context, rootNavigator: true).push(
                   MaterialPageRoute<void>(
-                    builder: (_) =>
-                        ProvinceGalleryScreen(provinceName: provinceName),
+                    builder: (_) => ProvinceGalleryScreen(provinceName: provinceName),
                   ),
                 );
               },
@@ -265,12 +240,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final topPad = MediaQuery.paddingOf(context).top;
     final botPad = MediaQuery.paddingOf(context).bottom;
 
-    final brightness = ThemeData.estimateBrightnessForColor(
-      settings.provinceColor,
-    );
-    final strokeColor = brightness == Brightness.dark
-        ? Colors.white30
-        : Colors.white;
+    final brightness = ThemeData.estimateBrightnessForColor(settings.provinceColor);
+    final strokeColor = brightness == Brightness.dark ? Colors.white30 : Colors.white;
 
     return Scaffold(
       backgroundColor: settings.canvasColor,
@@ -317,11 +288,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 ),
               ),
             ),
-
           Positioned(
             top: topPad + 12,
             left: 20,
-            child: _GlassCard(
+            child: GlassCard(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -345,16 +315,15 @@ class _MapScreenState extends ConsumerState<MapScreen>
               ),
             ),
           ),
-
           Positioned(
             right: 20,
             bottom: botPad + 24,
-            child: _GlassCard(
+            child: GlassCard(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _ActionButton(
+                  MapActionButton(
                     icon: Icons.palette_outlined,
                     tooltip: 'Background',
                     onTap: _showSettings,
@@ -364,7 +333,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     thickness: 0.5,
                     color: Colors.black.withOpacity(0.08),
                   ),
-                  _ActionButton(
+                  MapActionButton(
                     icon: Icons.center_focus_strong_outlined,
                     tooltip: 'Center Map',
                     onTap: _resetView,
@@ -374,10 +343,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     thickness: 0.5,
                     color: Colors.black.withOpacity(0.08),
                   ),
-                  _ActionButton(
-                    icon: _downloading
-                        ? Icons.hourglass_top_rounded
-                        : Icons.download_rounded,
+                  MapActionButton(
+                    icon: _downloading ? Icons.hourglass_top_rounded : Icons.download_rounded,
                     tooltip: 'Save to Photos',
                     onTap: _download,
                   ),
@@ -387,51 +354,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
           ),
         ],
       ),
-    );
-  }
-}
-
-class _GlassCard extends StatelessWidget {
-  const _GlassCard({required this.child, this.padding = EdgeInsets.zero});
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.3)),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(icon, size: 20, color: Colors.black87),
-      onPressed: onTap,
-      tooltip: tooltip,
     );
   }
 }

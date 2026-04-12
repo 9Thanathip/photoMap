@@ -11,7 +11,7 @@ import '../widgets/location_selector_sheet.dart';
 import '../widgets/photo_options_sheet.dart';
 import '../widgets/photo_viewer_screen.dart';
 import '../widgets/photos_tab.dart';
-import '../widgets/sheet_handle.dart';
+import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 
 class GalleryScreen extends ConsumerStatefulWidget {
   const GalleryScreen({super.key});
@@ -236,7 +236,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
       builder: (_) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SheetHandle(title: 'View Mode'),
+          const AppSheetHandle(title: 'View Mode'),
           ...ViewMode.values.map((m) => ListTile(
                 title: Text(m.label, style: GoogleFonts.poppins(fontSize: 14)),
                 trailing: _viewMode == m

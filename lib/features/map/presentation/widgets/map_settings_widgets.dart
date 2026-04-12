@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 
 class ColorPreset {
   const ColorPreset(this.label, this.color);
@@ -74,17 +75,7 @@ class SettingsSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 20),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
+          const AppSheetHandle(),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: Row(
@@ -238,17 +229,7 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
+          const AppSheetHandle(),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
             child: Row(

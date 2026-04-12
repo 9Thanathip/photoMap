@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_map/common_widgets/app_empty_state.dart';
 import '../providers/gallery_notifier.dart';
 import 'album_card.dart';
-import 'empty_view.dart';
 import 'photo_tile.dart';
 import 'photos_tab.dart' show photoGridDelegate;
 
@@ -162,13 +162,14 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   Widget _countriesGrid() {
     final byCountry = widget.gallery.photosByCountry;
     if (byCountry.isEmpty) {
-      return EmptyView(
-        message: widget.gallery.isGeocoding
+      return AppEmptyState(
+        icon: Icons.photo_library_outlined,
+        title: widget.gallery.isGeocoding
             ? 'Detecting locations...'
             : 'No photos found',
-        sub:
+        subtitle:
             widget.gallery.isGeocoding ? 'Your photos will appear shortly' : '',
-        showSpinner: widget.gallery.isGeocoding,
+        showLoader: widget.gallery.isGeocoding,
       );
     }
     final names = byCountry.keys.where((k) => k != 'Unknown').toList()..sort();
@@ -194,8 +195,10 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     final byProvince =
         widget.gallery.photosByProvince(widget.gallery.selectedCountry);
     if (byProvince.isEmpty) {
-      return EmptyView(
-          message: 'No photos in ${widget.gallery.selectedCountry}', sub: '');
+      return AppEmptyState(
+          icon: Icons.photo_library_outlined,
+          title: 'No photos in ${widget.gallery.selectedCountry}',
+          subtitle: '');
     }
     final names = byProvince.keys.toList()..sort();
     return GridView.builder(
@@ -219,9 +222,10 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   Widget _provincePhotos() {
     final photos = widget.gallery.filteredPhotos;
     if (photos.isEmpty) {
-      return const EmptyView(
-          message: 'No photos here',
-          sub: 'Tap the button below to add photos');
+      return const AppEmptyState(
+          icon: Icons.photo_library_outlined,
+          title: 'No photos here',
+          subtitle: 'Tap the button below to add photos');
     }
     return GridView.builder(
       key: PageStorageKey(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:photo_map/common_widgets/app_empty_state.dart';
 import '../providers/gallery_notifier.dart';
-import 'empty_view.dart';
 import 'photo_tile.dart';
 
 enum ViewMode { all, year, month, day }
@@ -53,8 +53,10 @@ class PhotosTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isEmpty) {
-      return const EmptyView(
-          message: 'No photos found', sub: 'Your photo library is empty');
+      return const AppEmptyState(
+          icon: Icons.photo_library_outlined,
+          title: 'No photos found',
+          subtitle: 'Your photo library is empty');
     }
     return switch (viewMode) {
       ViewMode.all => _flatGrid(photos),
