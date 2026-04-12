@@ -261,6 +261,28 @@ class _MapScreenState extends ConsumerState<MapScreen>
               ),
             ),
           
+          // Top Background Scrim Overlay (For Status Bar readability)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: topPad + 40, // Shorter, focused on status bar area
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.25),
+                      Colors.black.withOpacity(0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          
           // Header Overlay
           Positioned(
             top: topPad + 12,

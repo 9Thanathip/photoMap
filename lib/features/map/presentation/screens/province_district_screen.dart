@@ -195,6 +195,28 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                   ),
           ),
 
+          // Top Background Scrim Overlay (For Status Bar readability)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: topPad + 40,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.25),
+                      Colors.black.withOpacity(0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           // Breadcrumbs Header
           Positioned(
             top: topPad + 12,
