@@ -128,18 +128,10 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
   }
 
   void _showSettings() {
-    final settings = ref.read(mapSettingsProvider);
-    final notifier = ref.read(mapSettingsProvider.notifier);
-
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => SettingsSheet(
-        currentProvince: settings.provinceColor,
-        currentCanvas: settings.canvasColor,
-        onProvinceSelect: notifier.updateProvinceColor,
-        onCanvasSelect: notifier.updateCanvasColor,
-      ),
+      builder: (_) => const SettingsSheet(),
     );
   }
 

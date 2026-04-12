@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_map/features/map/presentation/providers/map_settings_provider.dart';
 
 class ColorPreset {
   const ColorPreset(this.label, this.color);
@@ -29,19 +31,8 @@ const kCanvasPresets = [
   ColorPreset('Midnight', Color(0xFF0D1B2A)),
 ];
 
-class SettingsSheet extends StatelessWidget {
-  const SettingsSheet({
-    super.key,
-    required this.currentProvince,
-    required this.currentCanvas,
-    required this.onProvinceSelect,
-    required this.onCanvasSelect,
-  });
-
-  final Color currentProvince;
-  final Color currentCanvas;
-  final ValueChanged<Color> onProvinceSelect;
-  final ValueChanged<Color> onCanvasSelect;
+class SettingsSheet extends ConsumerWidget {
+  const SettingsSheet({super.key});
 
   void _openColorPicker(
     BuildContext context, {
@@ -64,8 +55,11 @@ class SettingsSheet extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(mapSettingsProvider);
+    final notifier = ref.read(mapSettingsProvider.notifier);
     final botPad = MediaQuery.paddingOf(context).bottom;
+
     return Container(
       margin: EdgeInsets.fromLTRB(16, 0, 16, botPad + 16),
       decoration: BoxDecoration(
@@ -83,13 +77,13 @@ class SettingsSheet extends StatelessWidget {
                 Expanded(
                   child: ColorCard(
                     label: 'Province',
-                    color: currentProvince,
+                    color: settings.provinceColor,
                     onTap: () => _openColorPicker(
                       context,
                       title: 'Province Color',
-                      current: currentProvince,
+                      current: settings.provinceColor,
                       presets: kProvincePresets,
-                      onSelect: onProvinceSelect,
+                      onSelect: notifier.updateProvinceColor,
                     ),
                   ),
                 ),
@@ -97,13 +91,13 @@ class SettingsSheet extends StatelessWidget {
                 Expanded(
                   child: ColorCard(
                     label: 'Background',
-                    color: currentCanvas,
+                    color: settings.canvasColor,
                     onTap: () => _openColorPicker(
                       context,
                       title: 'Background Color',
-                      current: currentCanvas,
+                      current: settings.canvasColor,
                       presets: kCanvasPresets,
-                      onSelect: onCanvasSelect,
+                      onSelect: notifier.updateCanvasColor,
                     ),
                   ),
                 ),
@@ -130,7 +124,8 @@ class ColorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = ThemeData.estimateBrightnessForColor(color) == Brightness.dark;
+    final isDark =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark;
     final textColor = isDark ? Colors.white.withOpacity(0.9) : Colors.black54;
 
     return GestureDetector(
@@ -170,7 +165,9 @@ class ColorCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(0.12),
+                  color: (isDark ? Colors.white : Colors.black).withOpacity(
+                    0.12,
+                  ),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(Icons.colorize_rounded, size: 14, color: textColor),
@@ -211,7 +208,8 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
     _selected = widget.current;
   }
 
-  bool get _isCustom => !widget.presets.any((p) => p.color.value == _selected.value);
+  bool get _isCustom =>
+      !widget.presets.any((p) => p.color.value == _selected.value);
 
   void _apply() {
     widget.onSelect(_selected);
@@ -221,7 +219,12 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.fromLTRB(16, 0, 16, MediaQuery.paddingOf(context).bottom + 16),
+      margin: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        MediaQuery.paddingOf(context).bottom + 16,
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
@@ -234,7 +237,13 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
             padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
             child: Row(
               children: [
-                Text(widget.title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                Text(
+                  widget.title,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const Spacer(),
                 Container(
                   width: 52,
@@ -249,7 +258,9 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
           ),
           AnimatedCrossFade(
             duration: const Duration(milliseconds: 220),
-            crossFadeState: _showHuePicker ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            crossFadeState: _showHuePicker
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
             firstChild: _buildGrid(),
             secondChild: _buildHuePicker(),
           ),
@@ -261,10 +272,15 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
                 onPressed: _apply,
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFFD5D5D5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text('Apply', style: TextStyle(color: Colors.black87)),
+                child: const Text(
+                  'Apply',
+                  style: TextStyle(color: Colors.black87),
+                ),
               ),
             ),
           ),
@@ -291,7 +307,15 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                gradient: const SweepGradient(colors: [Colors.red, Colors.yellow, Colors.green, Colors.blue, Colors.red]),
+                gradient: const SweepGradient(
+                  colors: [
+                    Colors.red,
+                    Colors.yellow,
+                    Colors.green,
+                    Colors.blue,
+                    Colors.red,
+                  ],
+                ),
               ),
               child: const Icon(Icons.add, color: Colors.white),
             ),
