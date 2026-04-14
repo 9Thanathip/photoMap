@@ -7,7 +7,7 @@ import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/gallery/presentation/screens/gallery_screen.dart';
 import '../../features/map/presentation/screens/map_screen.dart';
-import '../../features/province/presentation/screens/province_screen.dart';
+import '../../features/province/presentation/screens/achievements_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/shell/shell_screen.dart';
 import '../../features/splash/view/splash_view.dart';
