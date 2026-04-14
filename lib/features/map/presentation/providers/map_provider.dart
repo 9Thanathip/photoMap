@@ -88,7 +88,7 @@ class MapNotifier extends StateNotifier<MapState> {
     // Group photos by province
     final Map<String, AssetEntity> provinceSelectedPhotos = {};
     for (var photo in photosByProvince) {
-      if (photo.province.isNotEmpty && photo.assetEntity != null) {
+      if (photo.country == 'Thailand' && photo.province.isNotEmpty && photo.assetEntity != null) {
         final normalizedProvince = photo.province
             .replaceAll(RegExp(r'[\s-]'), '')
             .toLowerCase();

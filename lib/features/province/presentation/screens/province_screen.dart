@@ -189,7 +189,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen>
     final shapesAsync = ref.watch(_provinceShapesProvider);
 
     final visitedSet = gallery.allPhotos
-        .where((p) => p.province.isNotEmpty && p.province != 'Unknown')
+        .where((p) => p.country == 'Thailand' && p.province.isNotEmpty && p.province != 'Unknown')
         .map((p) => p.province)
         .toSet();
     final total = _kDistrictCount.length;
