@@ -4,6 +4,8 @@ import 'package:native_exif/native_exif.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/features/province/data/province_data.dart';
 import 'package:photo_map/core/services/geo_service.dart';
+import 'package:photo_map/core/services/cache_service.dart';
+import 'dart:math' as math;
 
 class PhotoItem {
   const PhotoItem({
@@ -45,6 +47,39 @@ class PhotoItem {
         lat: lat ?? this.lat,
         lng: lng ?? this.lng,
         assetEntity: assetEntity,
+      );
+
+  PhotoItem copyWithAsset(AssetEntity asset) => PhotoItem(
+        path: path,
+        country: country,
+        province: province,
+        district: district,
+        timestamp: timestamp,
+        lat: lat,
+        lng: lng,
+        assetEntity: asset,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': path,
+        'country': country,
+        'province': province,
+        'district': district,
+        'timestamp': timestamp.toIso8601String(),
+        'lat': lat,
+        'lng': lng,
+      };
+
+  factory PhotoItem.fromJson(Map<String, dynamic> json, [AssetEntity? asset]) =>
+      PhotoItem(
+        path: json['id'] as String,
+        country: json['country'] as String,
+        province: json['province'] as String,
+        district: (json['district'] as String?) ?? '',
+        timestamp: DateTime.parse(json['timestamp'] as String),
+        lat: (json['lat'] as num).toDouble(),
+        lng: (json['lng'] as num).toDouble(),
+        assetEntity: asset,
       );
 }
 
@@ -160,6 +195,8 @@ final galleryStateProvider =
 
 class GalleryNotifier extends StateNotifier<GalleryState> {
   final GeoService _geoService = GeoService();
+  final CacheService _cacheService = CacheService();
+  final Map<String, ({String country, String province, String district})> _geocodingCache = {};
 
   GalleryNotifier()
       : super(const GalleryState(
@@ -172,14 +209,22 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         )) {
     _initAndLoad();
   }
-
   Future<void> _initAndLoad() async {
     await _geoService.initialize();
 
-    // Request permission before loading — critical on first install.
-    // On Android 10+, mediaLocation:true is required to read GPS EXIF data.
-    // The ACCESS_MEDIA_LOCATION permission must also be declared in AndroidManifest.xml.
-    // requestOption is ignored on iOS so this is Android-only behaviour.
+    // Load Geocoding Cache from disk
+    final savedGeo = await _cacheService.loadGeoCache();
+    if (savedGeo != null) {
+      savedGeo.forEach((key, val) {
+        final data = val as Map<String, dynamic>;
+        _geocodingCache[key] = (
+          country: data['country'] as String,
+          province: data['province'] as String,
+          district: (data['district'] as String?) ?? '',
+        );
+      });
+    }
+
     final permission = await PhotoManager.requestPermissionExtend(
       requestOption: const PermissionRequestOption(
         androidPermission: AndroidPermission(
@@ -188,6 +233,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         ),
       ),
     );
+
     if (!permission.hasAccess) {
       state = state.copyWith(
         isLoading: false,
@@ -196,11 +242,24 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       return;
     }
 
-    await _loadAll();
+    // Attempt to load from local metadata cache first for instant UI
+    final cachedData = await _cacheService.loadPhotoMetadata();
+    if (cachedData != null && cachedData.isNotEmpty) {
+      // Background full scan, but show cache now
+      await _loadFromCache(cachedData); 
+      _loadAll(isSilent: true); // background refresh
+    } else {
+      await _loadAll(); // first time or no cache
+    }
   }
 
-  Future<void> _loadAll() async {
-    state = state.copyWith(isLoading: true, error: null);
+  Future<void> _loadFromCache(List<Map<String, dynamic>> cachedData) async {
+    final cachedItems = cachedData.map((j) => PhotoItem.fromJson(j)).toList();
+    state = state.copyWith(allPhotos: cachedItems);
+  }
+
+  Future<void> _loadAll({bool isSilent = false}) async {
+    if (!isSilent) state = state.copyWith(isLoading: true, error: null);
     try {
       // Retry up to 3 times with delay — iOS may not expose photos immediately
       // after the permission dialog is dismissed for the first time.
@@ -218,7 +277,10 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       final album = albums.first;
       final total = await album.assetCountAsync;
       final assets = await album.getAssetListRange(start: 0, end: total);
-      final photos = _buildPhotoItems(assets);
+      
+      final currentMap = {for(final p in state.allPhotos) p.path: p};
+      final photos = _buildPhotoItems(assets, currentMap);
+      
       state = state.copyWith(allPhotos: photos, isLoading: false);
       _geocodePhotos(photos);
     } catch (e) {
@@ -229,10 +291,17 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     }
   }
 
-  List<PhotoItem> _buildPhotoItems(List<AssetEntity> assets) {
+  List<PhotoItem> _buildPhotoItems(List<AssetEntity> assets, [Map<String, PhotoItem>? currentMap]) {
     final items = <PhotoItem>[];
     for (final asset in assets) {
       if (asset.type == AssetType.image || asset.type == AssetType.video) {
+        // Reuse cached item if exists to preserve geocoding results
+        final existing = currentMap?[asset.id];
+        if (existing != null) {
+          items.add(existing.copyWithAsset(asset));
+          continue;
+        }
+
         items.add(PhotoItem(
           path: asset.id,
           country: '',
@@ -374,10 +443,15 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
           final existing = resolved[key];
           resolved[key] = (
             country: country,
-            province: (existing != null && country == 'Thailand') ? existing.province : province,
+            province: (existing != null && country == 'Thailand')
+                ? existing.province
+                : province,
             district: district,
           );
-          
+
+          // Update general geocoding cache used for future runs
+          _geocodingCache[key] = resolved[key]!;
+
           _applyResolved(resolved);
         }
         // Strict delay to stay under throttlers (max 50 per minute = 1.2s per request)
@@ -387,7 +461,22 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       }
     }
 
+    _persistAll();
     state = state.copyWith(isGeocoding: false);
+  }
+
+  Future<void> _persistAll() async {
+    // 1. Photo metadata
+    final photoJson = state.allPhotos.map((p) => p.toJson()).toList();
+    _cacheService.savePhotoMetadata(photoJson);
+
+    // 2. Geocoding results
+    final geoJson = _geocodingCache.map((key, val) => MapEntry(key, {
+          'country': val.country,
+          'province': val.province,
+          'district': val.district,
+        }));
+    _cacheService.saveGeoCache(geoJson);
   }
 
   void _applyResolved(Map<String, ({String country, String province, String district})> resolved) {
@@ -408,6 +497,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     }).toList();
 
     state = state.copyWith(allPhotos: updated);
+    _persistAll(); // Save incrementally
   }
 
   static String _cleanDistrictName(String raw) {

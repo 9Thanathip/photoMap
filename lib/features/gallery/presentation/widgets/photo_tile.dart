@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:shimmer/shimmer.dart';
 import '../providers/gallery_notifier.dart';
 
 class PhotoTile extends StatefulWidget {
@@ -49,18 +50,13 @@ class _PhotoTileState extends State<PhotoTile> {
             fit: BoxFit.cover,
             frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
               if (wasSynchronouslyLoaded) return child;
-              return AnimatedOpacity(
-                opacity: frame == null ? 0.0 : 1.0,
-                duration: const Duration(milliseconds: 150),
-                curve: Curves.easeIn,
-                child: child,
-              );
+              if (frame == null) {
+                return const ShimmerThumbnail();
+              }
+              return child;
             },
           )
-        : Container(
-            color: Colors.grey[300],
-            child: const Icon(Icons.broken_image),
-          );
+        : const ShimmerThumbnail();
 
     // Overlay play icon + duration for videos
     Widget image = isVideo
@@ -140,6 +136,20 @@ class _PhotoTileState extends State<PhotoTile> {
           child: content,
         ),
       ),
+    );
+  }
+}
+
+class ShimmerThumbnail extends StatelessWidget {
+  const ShimmerThumbnail({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Shimmer.fromColors(
+      baseColor: isDark ? Colors.white.withAlpha(10) : Colors.grey[200]!,
+      highlightColor: isDark ? Colors.white.withAlpha(25) : Colors.grey[100]!,
+      child: Container(color: Colors.white),
     );
   }
 }

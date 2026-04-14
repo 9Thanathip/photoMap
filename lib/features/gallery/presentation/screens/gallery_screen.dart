@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shimmer/shimmer.dart';
 import '../providers/gallery_notifier.dart';
 import '../providers/gallery_select_provider.dart';
 import '../widgets/albums_tab.dart';
@@ -159,26 +160,16 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
     List<PhotoItem> sortedPhotos,
   ) {
     if (gallery.isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 48,
-              height: 48,
-              child: CircularProgressIndicator(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const Gap(16),
-            Text(
-              'Loading photos...',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+      return GridView.builder(
+        padding: EdgeInsets.only(top: _contentTopPad, left: 2, right: 2, bottom: 120),
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 2,
+          mainAxisSpacing: 2,
         ),
+        itemCount: 18,
+        itemBuilder: (_, __) => const ShimmerPlaceholder(),
       );
     }
 
@@ -320,6 +311,22 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class ShimmerPlaceholder extends StatelessWidget {
+  const ShimmerPlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Shimmer.fromColors(
+      baseColor: isDark ? Colors.white.withAlpha(15) : Colors.grey[200]!,
+      highlightColor: isDark ? Colors.white.withAlpha(30) : Colors.grey[50]!,
+      child: Container(
+        color: Colors.white,
       ),
     );
   }
