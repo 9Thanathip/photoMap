@@ -63,25 +63,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/gallery',
-              builder: (_, _) => const GalleryScreen(),
+              pageBuilder: (_, state) => _fade(state, const GalleryScreen()),
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/map',
-              builder: (_, _) => const MapScreen(),
+              pageBuilder: (_, state) => _fade(state, const MapScreen()),
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/province',
-              builder: (_, _) => const ProvinceScreen(),
+              pageBuilder: (_, state) => _fade(state, const ProvinceScreen()),
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/settings',
-              builder: (_, _) => const SettingsScreen(),
+              pageBuilder: (_, state) => _fade(state, const SettingsScreen()),
             ),
           ]),
         ],
@@ -96,6 +96,6 @@ CustomTransitionPage<void> _fade(GoRouterState state, Widget child) {
     child: child,
     transitionsBuilder: (_, animation, _, child) =>
         FadeTransition(opacity: animation, child: child),
-    transitionDuration: const Duration(milliseconds: 300),
+    transitionDuration: const Duration(milliseconds: 800),
   );
 }
