@@ -99,52 +99,53 @@ class MapNotifier extends StateNotifier<MapState> {
       }
     }
 
-    // Load images for each province IN PARALLEL
-    final List<Future<void>> futures = [];
+    // Load images for each province - UPDATE INCREMENTALLY for immediate visual feedback
     for (var entry in provinceSelectedPhotos.entries) {
-      futures.add(() async {
-        final provinceName = entry.key;
-        final entity = entry.value;
+      final provinceName = entry.key;
+      final entity = entry.value;
 
-        // Cache hit
-        if (_imageCache.containsKey(entity.id)) {
-          newPhotos[provinceName] = _imageCache[entity.id];
-          return;
-        }
+      // Memory cache hit: Apply immediately if we already have it
+      if (_imageCache.containsKey(entity.id)) {
+        newPhotos[provinceName] = _imageCache[entity.id];
+        continue;
+      }
 
-        final img = await _loadUiImage(entity);
-        if (img != null) {
-          _imageCache[entity.id] = img;
-          newPhotos[provinceName] = img;
-        }
-      }());
+      // Load in the background and update state as each one finishes
+      _loadAndApplySingle(provinceName, entity);
     }
 
-    await Future.wait(futures);
-
-    // Stagger fade-in timestamps so provinces appear sequentially rather than
-    // all at once. 40 ms offset per province — fast enough to look fluid but
-    // distinct enough to be visible as a wave effect.
-    const staggerMs = 80;
-    final now = DateTime.now();
-    final newKeys = newPhotos.keys
-        .where((k) => !state.provincePhotos.containsKey(k))
-        .toList();
-    for (var i = 0; i < newKeys.length; i++) {
-      newLoadTimes[newKeys[i]] = now.add(Duration(milliseconds: i * staggerMs));
-    }
-
+    // Initial state update with cached images (or empty if first load)
     state = state.copyWith(
-      provincePhotos: newPhotos,
-      imageLoadTimes: newLoadTimes,
+      provincePhotos: Map.from(newPhotos), // Clone to ensure StateNotifier detection
     );
   }
 
+  Future<void> _loadAndApplySingle(String provinceName, AssetEntity entity) async {
+    final img = await _loadUiImage(entity);
+    if (img != null) {
+      _imageCache[entity.id] = img;
+      
+      // Update state incrementally
+      final updatedPhotos = Map<String, ui.Image?>.from(state.provincePhotos);
+      updatedPhotos[provinceName] = img;
+      
+      final updatedLoadTimes = Map<String, DateTime>.from(state.imageLoadTimes);
+      if (!updatedLoadTimes.containsKey(provinceName)) {
+        updatedLoadTimes[provinceName] = DateTime.now();
+      }
+
+      state = state.copyWith(
+        provincePhotos: updatedPhotos,
+        imageLoadTimes: updatedLoadTimes,
+      );
+    }
+  }
+
   Future<ui.Image?> _loadUiImage(AssetEntity entity) async {
-    // 400x400 is the safest point for stability on Android.
-    // 768x768 uses ~180MB for 77 images, which exceeds many device limits when zooming.
+    // Optimized to 250x250 for the map view. 
+    // This is significantly faster to decode than 400x400 and uses much less RAM.
     final byteData = await entity.thumbnailDataWithSize(
-      const ThumbnailSize(400, 400),
+      const ThumbnailSize(250, 250),
     );
     if (byteData == null) return null;
 

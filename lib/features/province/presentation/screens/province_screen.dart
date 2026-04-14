@@ -9,72 +9,179 @@ import 'package:photo_map/features/gallery/presentation/providers/gallery_notifi
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const Map<String, int> _kDistrictCount = {
-  'Amnat Charoen': 7, 'Ang Thong': 7, 'Bangkok': 50, 'Bueng Kan': 8,
-  'Buriram': 23, 'Chachoengsao': 11, 'Chainat': 8, 'Chaiyaphum': 16,
-  'Chanthaburi': 10, 'Chiang Mai': 25, 'Chiang Rai': 18, 'Chonburi': 11,
-  'Chumphon': 8, 'Kalasin': 18, 'Kamphaeng Phet': 11, 'Kanchanaburi': 13,
-  'Khon Kaen': 26, 'Krabi': 8, 'Lampang': 13, 'Lamphun': 8, 'Loei': 14,
-  'Lopburi': 11, 'Mae Hong Son': 7, 'Maha Sarakham': 13, 'Mukdahan': 7,
-  'Nakhon Nayok': 4, 'Nakhon Pathom': 7, 'Nakhon Phanom': 12,
-  'Nakhon Ratchasima': 32, 'Nakhon Sawan': 15, 'Nakhon Si Thammarat': 23,
-  'Nan': 15, 'Narathiwat': 13, 'Nong Bua Lamphu': 6, 'Nong Khai': 9,
-  'Nonthaburi': 6, 'Pathum Thani': 7, 'Pattani': 12, 'Phang Nga': 8,
-  'Phatthalung': 11, 'Phayao': 9, 'Phetchabun': 11, 'Phetchaburi': 8,
-  'Phichit': 12, 'Phitsanulok': 9, 'Phra Nakhon Si Ayutthaya': 16,
-  'Phrae': 8, 'Phuket': 3, 'Prachin Buri': 7, 'Prachuap Khiri Khan': 8,
-  'Ranong': 5, 'Ratchaburi': 10, 'Rayong': 8, 'Roi Et': 20, 'Sa Kaeo': 9,
-  'Sakon Nakhon': 18, 'Samut Prakan': 6, 'Samut Sakhon': 3,
-  'Samut Songkhram': 3, 'Saraburi': 13, 'Satun': 7, 'Sing Buri': 6,
-  'Sisaket': 22, 'Songkhla': 16, 'Sukhothai': 9, 'Suphan Buri': 10,
-  'Surat Thani': 19, 'Surin': 17, 'Tak': 9, 'Trang': 10, 'Trat': 7,
-  'Ubon Ratchathani': 25, 'Udon Thani': 20, 'Uthai Thani': 8,
-  'Uttaradit': 9, 'Yala': 8, 'Yasothon': 9,
+  'Amnat Charoen': 7,
+  'Ang Thong': 7,
+  'Bangkok': 50,
+  'Bueng Kan': 8,
+  'Buriram': 23,
+  'Chachoengsao': 11,
+  'Chainat': 8,
+  'Chaiyaphum': 16,
+  'Chanthaburi': 10,
+  'Chiang Mai': 25,
+  'Chiang Rai': 18,
+  'Chonburi': 11,
+  'Chumphon': 8,
+  'Kalasin': 18,
+  'Kamphaeng Phet': 11,
+  'Kanchanaburi': 13,
+  'Khon Kaen': 26,
+  'Krabi': 8,
+  'Lampang': 13,
+  'Lamphun': 8,
+  'Loei': 14,
+  'Lopburi': 11,
+  'Mae Hong Son': 7,
+  'Maha Sarakham': 13,
+  'Mukdahan': 7,
+  'Nakhon Nayok': 4,
+  'Nakhon Pathom': 7,
+  'Nakhon Phanom': 12,
+  'Nakhon Ratchasima': 32,
+  'Nakhon Sawan': 15,
+  'Nakhon Si Thammarat': 23,
+  'Nan': 15,
+  'Narathiwat': 13,
+  'Nong Bua Lamphu': 6,
+  'Nong Khai': 9,
+  'Nonthaburi': 6,
+  'Pathum Thani': 7,
+  'Pattani': 12,
+  'Phang Nga': 8,
+  'Phatthalung': 11,
+  'Phayao': 9,
+  'Phetchabun': 11,
+  'Phetchaburi': 8,
+  'Phichit': 12,
+  'Phitsanulok': 9,
+  'Phra Nakhon Si Ayutthaya': 16,
+  'Phrae': 8,
+  'Phuket': 3,
+  'Prachin Buri': 7,
+  'Prachuap Khiri Khan': 8,
+  'Ranong': 5,
+  'Ratchaburi': 10,
+  'Rayong': 8,
+  'Roi Et': 20,
+  'Sa Kaeo': 9,
+  'Sakon Nakhon': 18,
+  'Samut Prakan': 6,
+  'Samut Sakhon': 3,
+  'Samut Songkhram': 3,
+  'Saraburi': 13,
+  'Satun': 7,
+  'Sing Buri': 6,
+  'Sisaket': 22,
+  'Songkhla': 16,
+  'Sukhothai': 9,
+  'Suphan Buri': 10,
+  'Surat Thani': 19,
+  'Surin': 17,
+  'Tak': 9,
+  'Trang': 10,
+  'Trat': 7,
+  'Ubon Ratchathani': 25,
+  'Udon Thani': 20,
+  'Uthai Thani': 8,
+  'Uttaradit': 9,
+  'Yala': 8,
+  'Yasothon': 9,
 };
 
 // CHA_NE key in thailand.json → display name mapping
 const _kNameMap = <String, String>{
-  'AmnatCharoen': 'Amnat Charoen', 'AngThong': 'Ang Thong',
-  'Bangkok': 'Bangkok', 'BuriRam': 'Buriram',
-  'Chachoengsao': 'Chachoengsao', 'ChaiNat': 'Chainat',
-  'Chaiyaphum': 'Chaiyaphum', 'Chanthaburi': 'Chanthaburi',
-  'ChiangMai': 'Chiang Mai', 'ChiangRai': 'Chiang Rai',
-  'ChonBuri': 'Chonburi', 'Chumphon': 'Chumphon',
-  'Kalasin': 'Kalasin', 'KamphaengPhet': 'Kamphaeng Phet',
-  'Kanchanaburi': 'Kanchanaburi', 'KhonKaen': 'Khon Kaen',
-  'Krabi': 'Krabi', 'Lampang': 'Lampang', 'Lamphun': 'Lamphun',
-  'Loei': 'Loei', 'LopBuri': 'Lopburi', 'MaeHongSon': 'Mae Hong Son',
-  'MahaSarakham': 'Maha Sarakham', 'Mukdahan': 'Mukdahan',
-  'NakhonNayok': 'Nakhon Nayok', 'NakhonPathom': 'Nakhon Pathom',
-  'NakhonPhanom': 'Nakhon Phanom', 'NakhonRatchasima': 'Nakhon Ratchasima',
-  'NakhonSawan': 'Nakhon Sawan', 'NakhonSiThammarat': 'Nakhon Si Thammarat',
-  'Nan': 'Nan', 'Narathiwat': 'Narathiwat', 'NongBuaLamPhu': 'Nong Bua Lamphu',
-  'NongKhai': 'Nong Khai', 'Nonthaburi': 'Nonthaburi',
-  'PathumThani': 'Pathum Thani', 'Pattani': 'Pattani',
-  'Phang-nga': 'Phang Nga', 'Phatthalung': 'Phatthalung',
-  'Phayao': 'Phayao', 'Phetchabun': 'Phetchabun',
-  'Phetchaburi': 'Phetchaburi', 'Phichit': 'Phichit',
+  'AmnatCharoen': 'Amnat Charoen',
+  'AngThong': 'Ang Thong',
+  'Bangkok': 'Bangkok',
+  'BuriRam': 'Buriram',
+  'Chachoengsao': 'Chachoengsao',
+  'ChaiNat': 'Chainat',
+  'Chaiyaphum': 'Chaiyaphum',
+  'Chanthaburi': 'Chanthaburi',
+  'ChiangMai': 'Chiang Mai',
+  'ChiangRai': 'Chiang Rai',
+  'ChonBuri': 'Chonburi',
+  'Chumphon': 'Chumphon',
+  'Kalasin': 'Kalasin',
+  'KamphaengPhet': 'Kamphaeng Phet',
+  'Kanchanaburi': 'Kanchanaburi',
+  'KhonKaen': 'Khon Kaen',
+  'Krabi': 'Krabi',
+  'Lampang': 'Lampang',
+  'Lamphun': 'Lamphun',
+  'Loei': 'Loei',
+  'LopBuri': 'Lopburi',
+  'MaeHongSon': 'Mae Hong Son',
+  'MahaSarakham': 'Maha Sarakham',
+  'Mukdahan': 'Mukdahan',
+  'NakhonNayok': 'Nakhon Nayok',
+  'NakhonPathom': 'Nakhon Pathom',
+  'NakhonPhanom': 'Nakhon Phanom',
+  'NakhonRatchasima': 'Nakhon Ratchasima',
+  'NakhonSawan': 'Nakhon Sawan',
+  'NakhonSiThammarat': 'Nakhon Si Thammarat',
+  'Nan': 'Nan',
+  'Narathiwat': 'Narathiwat',
+  'NongBuaLamPhu': 'Nong Bua Lamphu',
+  'NongKhai': 'Nong Khai',
+  'Nonthaburi': 'Nonthaburi',
+  'PathumThani': 'Pathum Thani',
+  'Pattani': 'Pattani',
+  'Phang-nga': 'Phang Nga',
+  'Phatthalung': 'Phatthalung',
+  'Phayao': 'Phayao',
+  'Phetchabun': 'Phetchabun',
+  'Phetchaburi': 'Phetchaburi',
+  'Phichit': 'Phichit',
   'Phitsanulok': 'Phitsanulok',
   'PhraNakhonSiAyutthaya': 'Phra Nakhon Si Ayutthaya',
-  'Phrae': 'Phrae', 'Phuket': 'Phuket', 'PrachinBuri': 'Prachin Buri',
-  'PrachuapKhiriKhan': 'Prachuap Khiri Khan', 'Ranong': 'Ranong',
-  'Ratchaburi': 'Ratchaburi', 'Rayong': 'Rayong', 'RoiEt': 'Roi Et',
-  'SaKaeo': 'Sa Kaeo', 'SakonNakhon': 'Sakon Nakhon',
-  'SamutPrakan': 'Samut Prakan', 'SamutSakhon': 'Samut Sakhon',
-  'SamutSongkhram': 'Samut Songkhram', 'Saraburi': 'Saraburi',
-  'Satun': 'Satun', 'SingBuri': 'Sing Buri', 'SiSaKet': 'Sisaket',
-  'Songkhla': 'Songkhla', 'Sukhothai': 'Sukhothai',
-  'SuphanBuri': 'Suphan Buri', 'SuratThani': 'Surat Thani',
-  'Surin': 'Surin', 'Tak': 'Tak', 'Trang': 'Trang', 'Trat': 'Trat',
-  'UbonRatchathani': 'Ubon Ratchathani', 'UdonThani': 'Udon Thani',
-  'UthaiThani': 'Uthai Thani', 'Uttaradit': 'Uttaradit',
-  'Yala': 'Yala', 'Yasothon': 'Yasothon',
+  'Phrae': 'Phrae',
+  'Phuket': 'Phuket',
+  'PrachinBuri': 'Prachin Buri',
+  'PrachuapKhiriKhan': 'Prachuap Khiri Khan',
+  'Ranong': 'Ranong',
+  'Ratchaburi': 'Ratchaburi',
+  'Rayong': 'Rayong',
+  'RoiEt': 'Roi Et',
+  'SaKaeo': 'Sa Kaeo',
+  'SakonNakhon': 'Sakon Nakhon',
+  'SamutPrakan': 'Samut Prakan',
+  'SamutSakhon': 'Samut Sakhon',
+  'SamutSongkhram': 'Samut Songkhram',
+  'Saraburi': 'Saraburi',
+  'Satun': 'Satun',
+  'SingBuri': 'Sing Buri',
+  'SiSaKet': 'Sisaket',
+  'Songkhla': 'Songkhla',
+  'Sukhothai': 'Sukhothai',
+  'SuphanBuri': 'Suphan Buri',
+  'SuratThani': 'Surat Thani',
+  'Surin': 'Surin',
+  'Tak': 'Tak',
+  'Trang': 'Trang',
+  'Trat': 'Trat',
+  'UbonRatchathani': 'Ubon Ratchathani',
+  'UdonThani': 'Udon Thani',
+  'UthaiThani': 'Uthai Thani',
+  'Uttaradit': 'Uttaradit',
+  'Yala': 'Yala',
+  'Yasothon': 'Yasothon',
 };
 
 const _kFlags = <String, String>{
-  'Thailand': '🇹🇭', 'Japan': '🇯🇵', 'South Korea': '🇰🇷',
-  'Singapore': '🇸🇬', 'Vietnam': '🇻🇳', 'Indonesia': '🇮🇩',
-  'Malaysia': '🇲🇾', 'USA': '🇺🇸', 'UK': '🇬🇧', 'France': '🇫🇷',
-  'Germany': '🇩🇪', 'Italy': '🇮🇹', 'Australia': '🇦🇺',
+  'Thailand': '🇹🇭',
+  'Japan': '🇯🇵',
+  'South Korea': '🇰🇷',
+  'Singapore': '🇸🇬',
+  'Vietnam': '🇻🇳',
+  'Indonesia': '🇮🇩',
+  'Malaysia': '🇲🇾',
+  'USA': '🇺🇸',
+  'UK': '🇬🇧',
+  'France': '🇫🇷',
+  'Germany': '🇩🇪',
+  'Italy': '🇮🇹',
+  'Australia': '🇦🇺',
 };
 
 // ── Province shape provider ───────────────────────────────────────────────────
@@ -99,12 +206,20 @@ final _provinceShapesProvider = FutureProvider<Map<String, Path>>((ref) async {
     final rings = <List<List<double>>>[];
     if (type == 'Polygon') {
       for (final ring in coordinates) {
-        rings.add((ring as List).map((p) => [(p as List)[0] as double, p[1] as double]).toList());
+        rings.add(
+          (ring as List)
+              .map((p) => [(p as List)[0] as double, p[1] as double])
+              .toList(),
+        );
       }
     } else if (type == 'MultiPolygon') {
       for (final poly in coordinates) {
         for (final ring in poly as List) {
-          rings.add((ring as List).map((p) => [(p as List)[0] as double, p[1] as double]).toList());
+          rings.add(
+            (ring as List)
+                .map((p) => [(p as List)[0] as double, p[1] as double])
+                .toList(),
+          );
         }
       }
     }
@@ -189,7 +304,12 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen>
     final shapesAsync = ref.watch(_provinceShapesProvider);
 
     final visitedSet = gallery.allPhotos
-        .where((p) => p.country == 'Thailand' && p.province.isNotEmpty && p.province != 'Unknown')
+        .where(
+          (p) =>
+              p.country == 'Thailand' &&
+              p.province.isNotEmpty &&
+              p.province != 'Unknown',
+        )
         .map((p) => p.province)
         .toSet();
     final total = _kDistrictCount.length;
@@ -353,7 +473,11 @@ class _GlobalProgress extends StatelessWidget {
 }
 
 class _HeaderStat extends StatelessWidget {
-  const _HeaderStat({required this.value, required this.label, required this.isActive});
+  const _HeaderStat({
+    required this.value,
+    required this.label,
+    required this.isActive,
+  });
   final String value;
   final String label;
   final bool isActive;
@@ -364,14 +488,14 @@ class _HeaderStat extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: isActive 
-          ? theme.colorScheme.primary.withAlpha(8)
-          : theme.colorScheme.surfaceContainerHighest.withAlpha(40),
+        color: isActive
+            ? theme.colorScheme.primary.withAlpha(8)
+            : theme.colorScheme.surfaceContainerHighest.withAlpha(40),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isActive 
-            ? theme.colorScheme.primary.withAlpha(20)
-            : theme.colorScheme.outlineVariant.withAlpha(40),
+          color: isActive
+              ? theme.colorScheme.primary.withAlpha(20)
+              : theme.colorScheme.outlineVariant.withAlpha(40),
           width: 1,
         ),
       ),
@@ -417,7 +541,10 @@ class _StatChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withAlpha(15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFFD700).withAlpha(60), width: 1),
+        border: Border.all(
+          color: const Color(0xFFFFD700).withAlpha(60),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
@@ -435,10 +562,7 @@ class _StatChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
-              color: Colors.white.withAlpha(160),
-              fontSize: 12,
-            ),
+            style: TextStyle(color: Colors.white.withAlpha(160), fontSize: 12),
           ),
         ],
       ),
@@ -456,21 +580,28 @@ class _TabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-      ),
+      decoration: BoxDecoration(color: theme.colorScheme.surface),
       child: TabBar(
         controller: controller,
         dividerColor: Colors.transparent,
-        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
-        unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w500),
+        labelStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+        ),
+        unselectedLabelStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
         labelColor: theme.colorScheme.primary,
         unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
         indicator: UnderlineTabIndicator(
           borderSide: BorderSide(width: 3, color: theme.colorScheme.primary),
           insets: const EdgeInsets.symmetric(horizontal: 40),
         ),
-        tabs: const [Tab(text: 'Countries'), Tab(text: 'Provinces')],
+        tabs: const [
+          Tab(text: 'Countries'),
+          Tab(text: 'Provinces'),
+        ],
       ),
     );
   }
@@ -487,7 +618,8 @@ class _CountriesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final byCountry = gallery.photosByCountry;
-    final countries = byCountry.keys.where((c) => c != 'Unknown').toList()..sort();
+    final countries = byCountry.keys.where((c) => c != 'Unknown').toList()
+      ..sort();
 
     if (countries.isEmpty) {
       return Center(
@@ -496,13 +628,19 @@ class _CountriesTab extends StatelessWidget {
           children: [
             Text('🌍', style: const TextStyle(fontSize: 52)),
             const SizedBox(height: 12),
-            Text('No countries yet',
-                style: theme.textTheme.bodyLarge
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(
+              'No countries yet',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text('Take photos and let the map fill up',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(
+              'Take photos and let the map fill up',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       );
@@ -551,14 +689,14 @@ class _CountryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: isGold 
-          ? (isDark ? const Color(0xFF2D2400) : const Color(0xFFFFFDE7))
-          : theme.colorScheme.surfaceContainerLow,
+        color: isGold
+            ? (isDark ? const Color(0xFF2D2400) : const Color(0xFFFFFDE7))
+            : theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isGold
-            ? const Color(0xFFFFD700).withAlpha(isDark ? 80 : 140)
-            : theme.colorScheme.outlineVariant.withAlpha(40),
+              ? const Color(0xFFFFD700).withAlpha(isDark ? 80 : 140)
+              : theme.colorScheme.outlineVariant.withAlpha(40),
           width: 1,
         ),
       ),
@@ -621,7 +759,9 @@ class _CountryCard extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
-                color: isGold ? const Color(0xFF5D4037) : theme.colorScheme.onSurfaceVariant,
+                color: isGold
+                    ? const Color(0xFF5D4037)
+                    : theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -650,16 +790,16 @@ class _ProvincesTab extends StatelessWidget {
     final theme = Theme.of(context);
     final allProvinces = _kDistrictCount.keys.toList()..sort();
     final gold = allProvinces.where((p) => visitedSet.contains(p)).toList();
-    final unvisited = allProvinces.where((p) => !visitedSet.contains(p)).toList();
-
-    final shapes = shapesAsync.valueOrNull ?? {};
+    final unvisited = allProvinces
+        .where((p) => !visitedSet.contains(p))
+        .toList();
 
     return CustomScrollView(
       slivers: [
         // ── Collection summary ──────────────────────────────────────────
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            padding: const EdgeInsets.all(20),
             child: _CollectionHeader(
               collected: gold.length,
               total: allProvinces.length,
@@ -668,78 +808,45 @@ class _ProvincesTab extends StatelessWidget {
           ),
         ),
 
-        // ── Gold provinces ──────────────────────────────────────────────
-        if (gold.isNotEmpty) ...[
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-              child: Row(
-                children: [
-                  Text('🥇', style: const TextStyle(fontSize: 15)),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Your Collection',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFFFFAA00),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${gold.length} coins',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        // ── Visited Provinces ───────────────────────────────────────────
+        if (gold.isNotEmpty)
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.78,
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
-                (_, i) => _GoldCoin(
-                  province: gold[i],
-                  shape: shapes[gold[i]],
-                  isDark: isDark,
+                (_, i) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _ProvinceTile(
+                    province: gold[i],
+                    isVisited: true,
+                    isDark: isDark,
+                  ),
                 ),
                 childCount: gold.length,
               ),
             ),
           ),
-        ],
 
         // ── Undiscovered ────────────────────────────────────────────────
         if (unvisited.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
               child: Row(
                 children: [
-                  Icon(Icons.lock_outline_rounded,
-                      size: 15, color: theme.colorScheme.outlineVariant),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Undiscovered',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    size: 14,
+                    color: theme.colorScheme.outline,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Text(
-                    '${unvisited.length} remaining',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outlineVariant,
+                    'Undiscovered'.toUpperCase(),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1,
+                      color: theme.colorScheme.outline,
                     ),
                   ),
                 ],
@@ -747,16 +854,17 @@ class _ProvincesTab extends StatelessWidget {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 0.82,
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
-                (_, i) => _LockedCoin(province: unvisited[i], theme: theme),
+                (_, i) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _ProvinceTile(
+                    province: unvisited[i],
+                    isVisited: false,
+                    isDark: isDark,
+                  ),
+                ),
                 childCount: unvisited.length,
               ),
             ),
@@ -785,134 +893,120 @@ class _CollectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = total > 0 ? collected / total : 0.0;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFFFFD700).withAlpha(isDark ? 60 : 100),
+          color: const Color(0xFFFFD700).withAlpha(isDark ? 40 : 100),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(isDark ? 40 : 10),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: Colors.black.withAlpha(isDark ? 60 : 10),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Stacked coins visual
-          SizedBox(
-            width: 60,
-            height: 60,
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 8, bottom: 0,
-                  child: _MiniCoin(size: 44, opacity: 0.5),
-                ),
-                Positioned(
-                  left: 4, bottom: 4,
-                  child: _MiniCoin(size: 44, opacity: 0.7),
-                ),
-                Positioned(
-                  left: 0, bottom: 8,
-                  child: _MiniCoin(size: 44, opacity: 1.0),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '$collected',
-                        style: GoogleFonts.poppins(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFFFFD700),
-                          height: 1,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'PROGRESS',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2,
+                      color: const Color(0xFFFFD700),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '$collected',
+                          style: GoogleFonts.poppins(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w800,
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF2D2400),
+                            height: 1,
+                          ),
                         ),
-                      ),
-                      TextSpan(
-                        text: ' / $total coins',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDark
-                              ? Colors.white.withAlpha(140)
-                              : const Color(0xFF6D4C00).withAlpha(180),
-                          fontWeight: FontWeight.w500,
+                        TextSpan(
+                          text: ' / $total',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16,
+                            color: isDark ? Colors.white70 : Colors.black26,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFD700).withAlpha(30),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${(pct * 100).toInt()}%',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFFB8860B),
                   ),
                 ),
-                const SizedBox(height: 8),
-                ClipRRect(
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Stack(
+            children: [
+              Container(
+                height: 8,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withAlpha(10)
+                      : Colors.black.withAlpha(5),
                   borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: pct,
-                    minHeight: 5,
-                    backgroundColor: const Color(0xFFFFD700).withAlpha(30),
-                    valueColor: const AlwaysStoppedAnimation(Color(0xFFFFD700)),
-                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  collected == 0
-                      ? 'Start your journey — visit a province!'
-                      : collected == total
-                          ? '🎉 Thailand conquered! True Legend!'
-                          : 'Collect all 77 gold coins',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark
-                        ? Colors.white.withAlpha(120)
-                        : const Color(0xFF8B6000).withAlpha(200),
+              ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 1200),
+                curve: Curves.easeOutExpo,
+                height: 8,
+                width: MediaQuery.of(context).size.width * 0.75 * pct,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFD700), Color(0xFFFFAA00)],
                   ),
+                  borderRadius: BorderRadius.circular(4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFFD700).withAlpha(60),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniCoin extends StatelessWidget {
-  const _MiniCoin({required this.size, required this.opacity});
-  final double size;
-  final double opacity;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFFFE082),
-            Color(0xFFFFD54F),
-            Color(0xFFFFA000),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFFA000).withAlpha((60 * opacity).toInt()),
-            blurRadius: 8,
-            offset: const Offset(1, 2),
+              ),
+            ],
           ),
         ],
       ),
@@ -922,232 +1016,115 @@ class _MiniCoin extends StatelessWidget {
 
 // ── Gold coin ─────────────────────────────────────────────────────────────────
 
-class _GoldCoin extends StatelessWidget {
-  const _GoldCoin({
+class _ProvinceTile extends StatelessWidget {
+  const _ProvinceTile({
     required this.province,
-    required this.shape,
+    required this.isVisited,
     required this.isDark,
   });
   final String province;
-  final Path? shape;
+  final bool isVisited;
   final bool isDark;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Stack(
-              children: [
-                // 1. Outer Shadow (Soft ground shadow)
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(isDark ? 120 : 40),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                        spreadRadius: 1,
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isVisited
+            ? (isDark ? const Color(0xFF241E00) : const Color(0xFFFFFDF0))
+            : theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isVisited
+              ? const Color(0xFFFFD700).withAlpha(isDark ? 80 : 180)
+              : theme.colorScheme.outlineVariant.withAlpha(40),
+          width: isVisited ? 1.5 : 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              // Initial Box
+              Container(
+                width: 60,
+                color: isVisited
+                    ? const Color(0xFFFFD700).withAlpha(isDark ? 40 : 60)
+                    : theme.colorScheme.surfaceContainerHighest.withAlpha(100),
+                child: Center(
+                  child: Text(
+                    _getInitials(province),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: isVisited
+                          ? const Color(0xFFB8860B)
+                          : theme.colorScheme.outline,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        province,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: isVisited && !isDark
+                              ? const Color(0xFF423200)
+                              : theme.colorScheme.onSurface,
+                        ),
                       ),
+                      if (isVisited)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            'PROVINCE UNLOCKED',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                              color: const Color(0xFFB8860B).withAlpha(200),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
-
-                // 2. Beveled Rim (The metallic edge)
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFFFFEE58), // Highlight top
-                        Color(0xFF8B6000), // Shadow bottom
-                      ],
+              ),
+              if (isVisited)
+                const Padding(
+                  padding: EdgeInsets.only(right: 20),
+                  child: Center(
+                    child: Icon(
+                      Icons.stars_rounded,
+                      color: Color(0xFFFFD700),
+                      size: 24,
                     ),
                   ),
                 ),
-
-                // 3. Inner Face (Slightly recessed simulation)
-                Container(
-                  margin: const EdgeInsets.all(4.5),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    // Use a border to simulate the inner shadow of the beveled edge
-                    border: Border.all(
-                      color: Colors.black.withAlpha(isDark ? 60 : 30),
-                      width: 1.5,
-                    ),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFFFFD54F),
-                        Color(0xFFE6A000),
-                        Color(0xFFFFD54F),
-                      ],
-                      stops: [0.0, 0.5, 1.0],
-                    ),
-                  ),
-                ),
-
-                // 4. Subtle Radial Shine Overlay
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.white.withAlpha(120),
-                          Colors.transparent,
-                        ],
-                        center: const Alignment(-0.5, -0.5),
-                        radius: 0.6,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 5. Province Shape (Raised/Embossed)
-                Positioned.fill(
-                  child: Padding(
-                    padding: const EdgeInsets.all(18),
-                    child: shape != null
-                        ? CustomPaint(
-                            painter: _ProvincePainter(shape: shape!, isDark: isDark),
-                          )
-                        : const Center(
-                            child: Icon(Icons.stars_rounded, color: Color(0xFF8B6000), size: 28),
-                          ),
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
         ),
-        const SizedBox(height: 10),
-        Text(
-          province,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: isDark ? const Color(0xFFFFD54F) : const Color(0xFF5D4037),
-            height: 1.1,
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-}
-
-// ── Province shape painter ────────────────────────────────────────────────────
-
-class _ProvincePainter extends CustomPainter {
-  const _ProvincePainter({required this.shape, required this.isDark});
-  final Path shape;
-  final bool isDark;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final matrix = Matrix4.diagonal3Values(size.width, size.height, 1);
-    final scaled = shape.transform(matrix.storage);
-
-    // 1. Drop shadow for the shape (to give height)
-    canvas.drawPath(
-      scaled.shift(const Offset(1.5, 1.5)),
-      Paint()
-        ..color = const Color(0xFF5A3E00).withAlpha(180)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1),
-    );
-
-    // 2. Shape Edge highlight (top-left)
-    canvas.drawPath(
-      scaled.shift(const Offset(-0.5, -0.5)),
-      Paint()
-        ..color = const Color(0xFFFFF9C4).withAlpha(150),
-    );
-
-    // 3. Main metallic fill for the shape
-    canvas.drawPath(
-      scaled,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFFFF176),
-            Color(0xFFFFA000),
-          ],
-        ).createShader(scaled.getBounds()),
-    );
-
-    // 4. Subtle stroke for definition
-    canvas.drawPath(
-      scaled,
-      Paint()
-        ..color = const Color(0xFF8B6000).withAlpha(80)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.8,
+      ),
     );
   }
 
-  @override
-  bool shouldRepaint(_ProvincePainter old) => old.shape != shape;
-}
-
-// ── Locked coin ───────────────────────────────────────────────────────────────
-
-class _LockedCoin extends StatelessWidget {
-  const _LockedCoin({required this.province, required this.theme});
-  final String province;
-  final ThemeData theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: theme.colorScheme.surfaceContainerHighest.withAlpha(100),
-                border: Border.all(
-                  color: theme.colorScheme.outlineVariant.withAlpha(60),
-                  width: 1,
-                ),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.lock_person_rounded,
-                  size: 20,
-                  color: theme.colorScheme.onSurfaceVariant.withAlpha(60),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          province,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 9,
-            fontWeight: FontWeight.w500,
-            color: theme.colorScheme.onSurfaceVariant.withAlpha(100),
-            height: 1.1,
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
+  String _getInitials(String name) {
+    final parts = name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, math.min(2, name.length)).toUpperCase();
   }
 }

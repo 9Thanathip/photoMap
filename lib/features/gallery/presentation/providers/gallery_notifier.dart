@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:native_exif/native_exif.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/features/province/data/province_data.dart';
 import 'package:photo_map/core/services/geo_service.dart';
@@ -256,7 +257,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     final List<PhotoItem> withCoords = List.from(photos);
     
     // Batch process coordinates to avoid overloading the platform channel
-    const int batchSize = 30; // smaller batches for reliability
+    const int batchSize = 15; // smaller batches for high-res Android stability
     for (int i = 0; i < withCoords.length; i += batchSize) {
       final int end = (i + batchSize < withCoords.length) ? i + batchSize : withCoords.length;
       final List<Future<void>> batchFutures = [];
@@ -268,22 +269,42 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         final photoIdx = j;
         batchFutures.add(() async {
           try {
+            // First attempt: Standard platform-level async call
             final ll = await currentPhoto.assetEntity!.latlngAsync();
             if (ll != null && ll.latitude != 0) {
               withCoords[photoIdx] = currentPhoto.copyWith(
                 lat: ll.latitude,
                 lng: ll.longitude,
               );
+              return;
+            }
+
+            // Second attempt: Deep EXIF scan as fallback (if standard ways fail)
+            // This is critical for some Android devices where the OS hasn't indexed GPS yet.
+            // Try 'file' if 'originFile' is null (common on Android 10+ scoped storage).
+            final file = await currentPhoto.assetEntity!.originFile ?? await currentPhoto.assetEntity!.file;
+            if (file != null) {
+              final exif = await Exif.fromPath(file.path);
+              final attr = await exif.getAttributes();
+              await exif.close();
+              
+              final lat = attr?['GPSLatitude'];
+              final lng = attr?['GPSLongitude'];
+              
+              if (lat != null && lng != null) {
+                 withCoords[photoIdx] = currentPhoto.copyWith(
+                  lat: double.tryParse(lat.toString()) ?? 0.0,
+                  lng: double.tryParse(lng.toString()) ?? 0.0,
+                );
+              }
             }
           } catch (_) {}
         }());
       }
       if (batchFutures.isNotEmpty) {
         await Future.wait(batchFutures);
-        // update UI every 100 items to show progress
-        if (i % 100 == 0) {
-          state = state.copyWith(allPhotos: List.from(withCoords));
-        }
+        // Small delay to let the heap breathe
+        await Future.delayed(const Duration(milliseconds: 50));
       }
     }
     state = state.copyWith(allPhotos: List.from(withCoords));
@@ -293,7 +314,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     for (final photo in withCoords) {
       if (!photo.hasLocation) continue;
       final key =
-          '${photo.lat.toStringAsFixed(2)}_${photo.lng.toStringAsFixed(2)}';
+          '${photo.lat.toStringAsFixed(4)}_${photo.lng.toStringAsFixed(4)}';
       pending[key] = (lat: photo.lat, lng: photo.lng);
     }
     if (pending.isEmpty) {
@@ -375,7 +396,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         return photo.country.isEmpty ? photo.copyWith(country: 'Unknown') : photo;
       }
       
-      final key = '${photo.lat.toStringAsFixed(2)}_${photo.lng.toStringAsFixed(2)}';
+      final key = '${photo.lat.toStringAsFixed(4)}_${photo.lng.toStringAsFixed(4)}';
       final loc = resolved[key];
       if (loc == null) return photo;
       
