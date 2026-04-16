@@ -128,8 +128,11 @@ class _NavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = Theme.of(context).colorScheme.primary;
-    final inactiveColor = Colors.black.withOpacity(0.4);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeColor = isDark ? Colors.white : Colors.black;
+    final inactiveColor = isDark
+        ? Colors.white.withValues(alpha: 0.35)
+        : Colors.black.withValues(alpha: 0.3);
 
     return Expanded(
       child: GestureDetector(
