@@ -14,15 +14,15 @@ class ProvinceShape {
 
 class ThailandMapPainter extends CustomPainter {
   final List<ProvinceShape> provinces;
-  final Path? combinedPath; // Cached combined path for shadows
+  final Path? combinedPath;
   final Map<String, ui.Image?> provincePhotos;
   final Map<String, DateTime> imageLoadTimes;
+  final Map<String, ui.Rect> cropRects; // normalized 0-1 crop per province
   final DateTime currentTime;
   final DateTime openTime;
   final String? selectedProvince;
   final Color baseColor;
   final Color strokeColor;
-
   final Color? canvasColor;
 
   ThailandMapPainter({
@@ -30,6 +30,7 @@ class ThailandMapPainter extends CustomPainter {
     this.combinedPath,
     required this.provincePhotos,
     required this.imageLoadTimes,
+    this.cropRects = const {},
     required this.currentTime,
     required this.openTime,
     this.selectedProvince,
@@ -118,22 +119,31 @@ class ThailandMapPainter extends CustomPainter {
             ..filterQuality = ui.FilterQuality.low
             ..color = Colors.white.withOpacity(opacity);
 
-          final imgSize = Size(image.width.toDouble(), image.height.toDouble());
+          final imgW = image.width.toDouble();
+          final imgH = image.height.toDouble();
+          final imgSize = Size(imgW, imgH);
           final provinceRect = province.bounds;
 
-          final fittedSize = applyBoxFit(
-            BoxFit.cover,
-            imgSize,
-            provinceRect.size,
-          );
-          final inputRect = Alignment.center.inscribe(
-            fittedSize.source,
-            Offset.zero & imgSize,
-          );
-          final outputRect = Alignment.center.inscribe(
-            fittedSize.destination,
-            provinceRect,
-          );
+          ui.Rect inputRect;
+          ui.Rect outputRect;
+          final cropNorm = cropRects[province.name];
+          if (cropNorm != null) {
+            // Crop rect in pixel space
+            final cropPx = ui.Rect.fromLTRB(
+              cropNorm.left * imgW,
+              cropNorm.top * imgH,
+              cropNorm.right * imgW,
+              cropNorm.bottom * imgH,
+            );
+            // Cover-fit the crop region into the province bounds to avoid stretching
+            final fitted = applyBoxFit(BoxFit.cover, cropPx.size, provinceRect.size);
+            inputRect = Alignment.center.inscribe(fitted.source, cropPx);
+            outputRect = Alignment.center.inscribe(fitted.destination, provinceRect);
+          } else {
+            final fittedSize = applyBoxFit(BoxFit.cover, imgSize, provinceRect.size);
+            inputRect = Alignment.center.inscribe(fittedSize.source, Offset.zero & imgSize);
+            outputRect = Alignment.center.inscribe(fittedSize.destination, provinceRect);
+          }
 
           canvas.drawImageRect(image, inputRect, outputRect, imagePaint);
           canvas.restore();
@@ -179,6 +189,7 @@ class ThailandMapPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant ThailandMapPainter oldDelegate) {
     return oldDelegate.provincePhotos != provincePhotos ||
+        oldDelegate.cropRects != cropRects ||
         oldDelegate.selectedProvince != selectedProvince ||
         oldDelegate.currentTime != currentTime ||
         oldDelegate.openTime != openTime ||

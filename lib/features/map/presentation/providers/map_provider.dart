@@ -3,13 +3,15 @@ import 'dart:ui' as ui;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
+import 'cover_photo_provider.dart';
 import '../widgets/thailand_map_painter.dart';
 
 class MapState {
   final List<ProvinceShape> provinces;
   final ui.Path? combinedPath;
   final Map<String, ui.Image?> provincePhotos;
-  final Map<String, DateTime> imageLoadTimes; // Track when images were loaded
+  final Map<String, DateTime> imageLoadTimes;
+  final Map<String, ui.Rect> cropRects; // normalized crop rects per province
   final bool isLoading;
 
   MapState({
@@ -17,6 +19,7 @@ class MapState {
     this.combinedPath,
     required this.provincePhotos,
     required this.imageLoadTimes,
+    this.cropRects = const {},
     required this.isLoading,
   });
 
@@ -25,12 +28,14 @@ class MapState {
     ui.Path? combinedPath,
     Map<String, ui.Image?>? provincePhotos,
     Map<String, DateTime>? imageLoadTimes,
+    Map<String, ui.Rect>? cropRects,
     bool? isLoading,
   }) => MapState(
     provinces: provinces ?? this.provinces,
     combinedPath: combinedPath ?? this.combinedPath,
     provincePhotos: provincePhotos ?? this.provincePhotos,
     imageLoadTimes: imageLoadTimes ?? this.imageLoadTimes,
+    cropRects: cropRects ?? this.cropRects,
     isLoading: isLoading ?? this.isLoading,
   );
 }
@@ -58,6 +63,11 @@ class MapNotifier extends StateNotifier<MapState> {
         _updateProvincePhotos();
       }
     });
+    _ref.listen(coverPhotoProvider, (previous, next) {
+      if (previous?.assetIds != next.assetIds || previous?.cropRects != next.cropRects) {
+        _updateProvincePhotos();
+      }
+    });
   }
 
   Future<void> loadMap() async {
@@ -81,42 +91,47 @@ class MapNotifier extends StateNotifier<MapState> {
   final Map<String, ui.Image?> _imageCache = {};
 
   Future<void> _updateProvincePhotos() async {
-    final photosByProvince = _ref.read(galleryStateProvider).allPhotos;
-    final Map<String, ui.Image?> newPhotos = {};
-    final newLoadTimes = Map<String, DateTime>.from(state.imageLoadTimes);
+    final allPhotos = _ref.read(galleryStateProvider).allPhotos;
+    final coverState = _ref.read(coverPhotoProvider);
 
-    // Group photos by province
+    // Build default map: first photo per province
     final Map<String, AssetEntity> provinceSelectedPhotos = {};
-    for (var photo in photosByProvince) {
+    for (final photo in allPhotos) {
       if (photo.country == 'Thailand' && photo.province.isNotEmpty && photo.assetEntity != null) {
-        final normalizedProvince = photo.province
-            .replaceAll(RegExp(r'[\s-]'), '')
-            .toLowerCase();
-        provinceSelectedPhotos.putIfAbsent(
-          normalizedProvince,
-          () => photo.assetEntity!,
-        );
+        final norm = photo.province.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
+        provinceSelectedPhotos.putIfAbsent(norm, () => photo.assetEntity!);
       }
     }
 
-    // Load images for each province - UPDATE INCREMENTALLY for immediate visual feedback
-    for (var entry in provinceSelectedPhotos.entries) {
+    // Apply cover overrides: replace with the user-selected asset
+    for (final entry in coverState.assetIds.entries) {
+      final norm = entry.key;
+      final assetId = entry.value;
+      final override = allPhotos.where((p) => p.assetEntity?.id == assetId).firstOrNull;
+      if (override?.assetEntity != null) {
+        provinceSelectedPhotos[norm] = override!.assetEntity!;
+        // Invalidate cached image so it reloads with the new entity
+        _imageCache.remove(assetId);
+      }
+    }
+
+    // Start from existing photos so we never flash empty — only update changed entries
+    final updatedPhotos = Map<String, ui.Image?>.from(state.provincePhotos);
+
+    for (final entry in provinceSelectedPhotos.entries) {
       final provinceName = entry.key;
       final entity = entry.value;
-
-      // Memory cache hit: Apply immediately if we already have it
       if (_imageCache.containsKey(entity.id)) {
-        newPhotos[provinceName] = _imageCache[entity.id];
-        continue;
+        updatedPhotos[provinceName] = _imageCache[entity.id];
+      } else {
+        // Load async without wiping existing image first
+        _loadAndApplySingle(provinceName, entity);
       }
-
-      // Load in the background and update state as each one finishes
-      _loadAndApplySingle(provinceName, entity);
     }
 
-    // Initial state update with cached images (or empty if first load)
     state = state.copyWith(
-      provincePhotos: Map.from(newPhotos), // Clone to ensure StateNotifier detection
+      provincePhotos: updatedPhotos,
+      cropRects: Map.from(coverState.cropRects),
     );
   }
 

@@ -248,6 +248,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                         combinedPath: state.combinedPath,
                         provincePhotos: state.provincePhotos,
                         imageLoadTimes: _firstSeenTimes,
+                        cropRects: state.cropRects,
                         currentTime: _currentTime,
                         openTime: _openTime,
                         baseColor: settings.provinceColor,
@@ -260,7 +261,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 ),
               ),
             ),
-          
+
           // Top Background Scrim Overlay (For Status Bar readability)
           Positioned(
             top: 0,

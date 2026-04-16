@@ -11,9 +11,16 @@ import '../widgets/province_district/province_header.dart';
 import 'package:photo_map/common_widgets/view_mode_sheet.dart';
 
 class ProvinceGalleryScreen extends ConsumerStatefulWidget {
-  const ProvinceGalleryScreen({super.key, required this.provinceName});
+  const ProvinceGalleryScreen({
+    super.key,
+    required this.provinceName,
+    this.onPickCover,
+  });
 
   final String provinceName;
+  /// When non-null, the screen operates in "pick cover" mode.
+  /// Tapping a photo calls this callback instead of opening the viewer.
+  final void Function(PhotoItem photo)? onPickCover;
 
   @override
   ConsumerState<ProvinceGalleryScreen> createState() =>
@@ -83,6 +90,8 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
     final topPad = MediaQuery.paddingOf(context).top;
     final theme = Theme.of(context);
 
+    final isPickMode = widget.onPickCover != null;
+
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: Stack(
@@ -108,6 +117,38 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
             ),
           ),
 
+          // Pick mode hint bar at top (below header)
+          if (isPickMode)
+            Positioned(
+              top: topPad + 68,
+              left: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.touch_app_outlined,
+                        size: 16,
+                        color: theme.colorScheme.onSecondaryContainer),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tap a photo to set as cover',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: theme.colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // Header
           Positioned(
             top: topPad + 12,
@@ -124,17 +165,19 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
                     onToggleMode: () {},
                   ),
                 ),
-                const SizedBox(width: 8),
-                GlassCard(
-                  borderRadius: 12,
-                  padding: const EdgeInsets.all(8),
-                  onTap: _showFilterSheet,
-                  child: Icon(
-                    Icons.filter_list_rounded,
-                    size: 20,
-                    color: theme.colorScheme.onSurface,
+                if (!isPickMode) ...[
+                  const SizedBox(width: 8),
+                  GlassCard(
+                    borderRadius: 12,
+                    padding: const EdgeInsets.all(8),
+                    onTap: _showFilterSheet,
+                    child: Icon(
+                      Icons.filter_list_rounded,
+                      size: 20,
+                      color: theme.colorScheme.onSurface,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -149,14 +192,25 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
     ThemeData theme,
     List<PhotoItem> photos,
   ) {
+    final isPickMode = widget.onPickCover != null;
+    void onTap(List<PhotoItem> list, int i) {
+      if (isPickMode) {
+        widget.onPickCover!(list[i]);
+      } else {
+        _openViewer(context, list, i);
+      }
+    }
+
+    final extraTop = isPickMode ? 44.0 : 0.0;
+
     if (_viewMode == ViewMode.all) {
       return GridView.builder(
-        padding: EdgeInsets.fromLTRB(1.5, topPad + 88, 1.5, 32),
+        padding: EdgeInsets.fromLTRB(1.5, topPad + 88 + extraTop, 1.5, 32),
         gridDelegate: photoGridDelegate,
         itemCount: photos.length,
         itemBuilder: (_, i) => PhotoTile(
           photo: photos[i],
-          onTap: () => _openViewer(context, photos, i),
+          onTap: () => onTap(photos, i),
           onLongPress: () {},
         ),
       );
@@ -175,7 +229,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
 
     return CustomScrollView(
       slivers: [
-        SliverPadding(padding: EdgeInsets.only(top: topPad + 60)),
+        SliverPadding(padding: EdgeInsets.only(top: topPad + 60 + extraTop)),
         for (final key in sortedKeys) ...[
           SliverToBoxAdapter(
             child: Padding(
@@ -196,7 +250,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
               final sectionPhotos = sections[key]!;
               return PhotoTile(
                 photo: sectionPhotos[i],
-                onTap: () => _openViewer(context, sectionPhotos, i),
+                onTap: () => onTap(sectionPhotos, i),
                 onLongPress: () {},
               );
             }, childCount: sections[key]!.length),
