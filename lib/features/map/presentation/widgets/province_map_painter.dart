@@ -20,6 +20,7 @@ class ProvinceMapPainter extends CustomPainter {
   final String? selectedDistrict;
   final Color baseColor;
   final Color strokeColor;
+  final double strokeWidth;
   final Color? canvasColor;
 
   ProvinceMapPainter({
@@ -32,6 +33,7 @@ class ProvinceMapPainter extends CustomPainter {
     this.selectedDistrict,
     this.baseColor = const Color(0xFFE0E0E0),
     this.strokeColor = Colors.white,
+    this.strokeWidth = 0.8,
     this.canvasColor,
   });
 
@@ -66,7 +68,7 @@ class ProvinceMapPainter extends CustomPainter {
     // Shadow
     if (combinedPath != null && scale < 10.0) {
       final shadowPaint = Paint()
-        ..color = Colors.black.withOpacity(0.15)
+        ..color = Colors.black.withValues(alpha: 0.15)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, 4.0 / scale);
 
       canvas.save();
@@ -79,7 +81,7 @@ class ProvinceMapPainter extends CustomPainter {
     final strokePaint = Paint()
       ..style = ui.PaintingStyle.stroke
       ..color = strokeColor
-      ..strokeWidth = 0.8 / scale;
+      ..strokeWidth = strokeWidth / scale;
 
     for (var district in districts) {
       if (!visibleRect.overlaps(district.bounds)) continue;
@@ -88,7 +90,7 @@ class ProvinceMapPainter extends CustomPainter {
       final isSelected = district.name == selectedDistrict;
 
       fillPaint.color = isSelected
-          ? Colors.blue.withOpacity(0.3)
+          ? Colors.blue.withValues(alpha: 0.3)
           : baseColor;
       canvas.drawPath(district.path, fillPaint);
 
@@ -106,7 +108,7 @@ class ProvinceMapPainter extends CustomPainter {
 
           final imagePaint = Paint()
             ..filterQuality = ui.FilterQuality.low
-            ..color = Colors.white.withOpacity(opacity);
+            ..color = Colors.white.withValues(alpha: opacity);
 
           final imgSize = Size(image.width.toDouble(), image.height.toDouble());
           final districtRect = district.bounds;
@@ -143,6 +145,8 @@ class ProvinceMapPainter extends CustomPainter {
         oldDelegate.currentTime != currentTime ||
         oldDelegate.openTime != openTime ||
         oldDelegate.baseColor != baseColor ||
+        oldDelegate.strokeColor != strokeColor ||
+        oldDelegate.strokeWidth != strokeWidth ||
         oldDelegate.canvasColor != canvasColor;
   }
 }

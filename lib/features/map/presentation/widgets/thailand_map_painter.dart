@@ -23,6 +23,7 @@ class ThailandMapPainter extends CustomPainter {
   final String? selectedProvince;
   final Color baseColor;
   final Color strokeColor;
+  final double strokeWidth;
   final Color? canvasColor;
 
   ThailandMapPainter({
@@ -36,6 +37,7 @@ class ThailandMapPainter extends CustomPainter {
     this.selectedProvince,
     this.baseColor = const Color(0xFFE0E0E0),
     this.strokeColor = Colors.white,
+    this.strokeWidth = 0.8,
     this.canvasColor,
   });
 
@@ -77,7 +79,7 @@ class ThailandMapPainter extends CustomPainter {
     // At high zoom, the country-wide shadow is irrelevant and prone to crashing GPUs.
     if (combinedPath != null && scale < 2.5) {
       final shadowPaint = Paint()
-        ..color = Colors.black.withOpacity(0.18)
+        ..color = Colors.black.withValues(alpha: 0.18)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6.0 / scale);
 
       canvas.save();
@@ -90,7 +92,7 @@ class ThailandMapPainter extends CustomPainter {
     final strokePaint = Paint()
       ..style = ui.PaintingStyle.stroke
       ..color = strokeColor
-      ..strokeWidth = 0.5 / scale;
+      ..strokeWidth = strokeWidth / scale;
 
     for (var province in provinces) {
       // Frustum Culling: Skip if province is outside visible area
@@ -100,7 +102,7 @@ class ThailandMapPainter extends CustomPainter {
       final isSelected = province.name == selectedProvince;
 
       // Always draw base fill so the province shape is visible during fade-in
-      fillPaint.color = isSelected ? Colors.blue.withOpacity(0.3) : baseColor;
+      fillPaint.color = isSelected ? Colors.blue.withValues(alpha: 0.3) : baseColor;
       canvas.drawPath(province.path, fillPaint);
 
       if (image != null) {
@@ -117,7 +119,7 @@ class ThailandMapPainter extends CustomPainter {
 
           final imagePaint = Paint()
             ..filterQuality = ui.FilterQuality.low
-            ..color = Colors.white.withOpacity(opacity);
+            ..color = Colors.white.withValues(alpha: opacity);
 
           final imgW = image.width.toDouble();
           final imgH = image.height.toDouble();
@@ -194,6 +196,8 @@ class ThailandMapPainter extends CustomPainter {
         oldDelegate.currentTime != currentTime ||
         oldDelegate.openTime != openTime ||
         oldDelegate.baseColor != baseColor ||
+        oldDelegate.strokeColor != strokeColor ||
+        oldDelegate.strokeWidth != strokeWidth ||
         oldDelegate.canvasColor != canvasColor;
   }
 }

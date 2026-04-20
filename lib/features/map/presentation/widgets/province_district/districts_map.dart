@@ -13,6 +13,7 @@ class DistrictsMap extends ConsumerStatefulWidget {
     required this.baseColor,
     required this.canvasColor,
     required this.strokeColor,
+    required this.strokeWidth,
     required this.currentTime,
     required this.openTime,
   });
@@ -23,6 +24,7 @@ class DistrictsMap extends ConsumerStatefulWidget {
   final Color baseColor;
   final Color canvasColor;
   final Color strokeColor;
+  final double strokeWidth;
   final DateTime currentTime;
   final DateTime openTime;
 
@@ -144,6 +146,7 @@ class _DistrictsMapState extends ConsumerState<DistrictsMap> {
               baseColor: widget.baseColor,
               canvasColor: widget.canvasColor,
               strokeColor: widget.strokeColor,
+              strokeWidth: widget.strokeWidth,
             ),
           ),
         ),

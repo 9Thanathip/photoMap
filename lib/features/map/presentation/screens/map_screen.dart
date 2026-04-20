@@ -198,8 +198,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final topPad = MediaQuery.paddingOf(context).top;
     final botPad = MediaQuery.paddingOf(context).bottom;
 
-    final brightness = ThemeData.estimateBrightnessForColor(settings.provinceColor);
-    final strokeColor = brightness == Brightness.dark ? Colors.white30 : Colors.white;
+    final strokeColor = settings.strokeColor;
+    final strokeWidth = settings.strokeWidth;
 
     // Register first-seen time at the exact frame each province image appears.
     // This guarantees opacity starts at 0 on the first render frame, regardless
@@ -253,6 +253,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                         openTime: _openTime,
                         baseColor: settings.provinceColor,
                         strokeColor: strokeColor,
+                        strokeWidth: strokeWidth,
                         canvasColor: settings.canvasColor,
                       ),
                       child: const SizedBox.expand(),

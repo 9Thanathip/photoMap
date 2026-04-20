@@ -159,12 +159,8 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
     final topPad = MediaQuery.paddingOf(context).top;
     final botPad = MediaQuery.paddingOf(context).bottom;
 
-    final brightness = ThemeData.estimateBrightnessForColor(
-      settings.provinceColor,
-    );
-    final strokeColor = brightness == Brightness.dark
-        ? Colors.white30
-        : Colors.white;
+    final strokeColor = settings.strokeColor;
+    final strokeWidth = settings.strokeWidth;
 
     return Scaffold(
       backgroundColor: settings.canvasColor,
@@ -182,6 +178,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                       baseColor: settings.provinceColor,
                       canvasColor: settings.canvasColor,
                       strokeColor: strokeColor,
+                      strokeWidth: strokeWidth,
                       currentTime: _currentTime,
                       openTime: _openTime,
                       onSelectDistrict: (d) => _onSelectDistrict(d, byDistrict),
@@ -208,8 +205,8 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.25),
-                      Colors.black.withOpacity(0),
+                      Colors.black.withValues(alpha: 0.25),
+                      Colors.black.withValues(alpha: 0),
                     ],
                   ),
                 ),
@@ -253,7 +250,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                     Divider(
                       height: 1,
                       thickness: 0.5,
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                     ),
                     MapActionButton(
                       icon: Icons.center_focus_strong_outlined,
@@ -263,7 +260,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                     Divider(
                       height: 1,
                       thickness: 0.5,
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                     ),
                     MapActionButton(
                       icon: _downloading 

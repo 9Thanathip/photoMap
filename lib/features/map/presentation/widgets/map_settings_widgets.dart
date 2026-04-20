@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/features/map/presentation/providers/map_settings_provider.dart';
@@ -8,6 +9,16 @@ class ColorPreset {
   final String label;
   final Color color;
 }
+
+const kStrokePresets = [
+  ColorPreset('White', Colors.white),
+  ColorPreset('Light', Color(0xFFE0E0E0)),
+  ColorPreset('Silver', Color(0xFFAAAAAA)),
+  ColorPreset('Warm', Color(0xFFD4B896)),
+  ColorPreset('Gold', Color(0xFFFFD060)),
+  ColorPreset('Black', Color(0xFF1A1A1A)),
+  ColorPreset('Dark', Color(0xFF444444)),
+];
 
 const kProvincePresets = [
   ColorPreset('Stone', Color(0xFFD9D9D9)),
@@ -57,19 +68,21 @@ class SettingsSheet extends ConsumerWidget {
     final settings = ref.watch(mapSettingsProvider);
     final notifier = ref.read(mapSettingsProvider.notifier);
     final botPad = MediaQuery.paddingOf(context).bottom;
+    final theme = Theme.of(context);
 
     return Container(
       margin: EdgeInsets.fromLTRB(16, 0, 16, botPad + 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const AppSheetHandle(),
+          // ── Fill colors ───────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Row(
               children: [
                 Expanded(
@@ -102,6 +115,121 @@ class SettingsSheet extends ConsumerWidget {
               ],
             ),
           ),
+          // ── Border controls ───────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Border',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                      letterSpacing: -0.1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Color row
+                  Row(
+                    children: [
+                      Text(
+                        'Color',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => _openColorPicker(
+                          context,
+                          title: 'Border Color',
+                          current: settings.strokeColor,
+                          presets: kStrokePresets,
+                          onSelect: notifier.updateStrokeColor,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: settings.strokeColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Icon(Icons.chevron_right_rounded,
+                                size: 18,
+                                color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  // Width slider
+                  Row(
+                    children: [
+                      Text(
+                        'Width',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        settings.strokeWidth.toStringAsFixed(1),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 3,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                      activeTrackColor: theme.colorScheme.onSurface,
+                      inactiveTrackColor: theme.colorScheme.onSurface.withValues(alpha: 0.15),
+                      thumbColor: theme.colorScheme.onSurface,
+                    ),
+                    child: Slider(
+                      value: settings.strokeWidth,
+                      min: 0.3,
+                      max: 3.0,
+                      divisions: 27,
+                      onChanged: (v) {
+                        final stepped = (v * 10).round() / 10;
+                        if (stepped != (settings.strokeWidth * 10).round() / 10) {
+                          HapticFeedback.selectionClick();
+                        }
+                        notifier.updateStrokeWidth(v);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -124,7 +252,7 @@ class ColorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark =
         ThemeData.estimateBrightnessForColor(color) == Brightness.dark;
-    final textColor = isDark ? Colors.white.withOpacity(0.9) : Colors.black54;
+    final textColor = isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black54;
 
     return GestureDetector(
       onTap: onTap,
@@ -136,7 +264,7 @@ class ColorCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.4),
+              color: color.withValues(alpha: 0.4),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -163,9 +291,7 @@ class ColorCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(
-                    0.12,
-                  ),
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(Icons.colorize_rounded, size: 14, color: textColor),
@@ -317,7 +443,7 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
           );
         }
         final p = widget.presets[i];
-        final isSel = p.color.value == _selected.value;
+        final isSel = p.color.toARGB32() == _selected.toARGB32();
         return GestureDetector(
           onTap: () => setState(() => _selected = p.color),
           child: Container(
