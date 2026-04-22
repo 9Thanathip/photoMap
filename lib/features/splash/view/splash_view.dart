@@ -8,28 +8,21 @@ class SplashView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? Colors.black : Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.primary.withAlpha(80),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+            ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Image.asset(
+                'assets/icon.png',
+                width: 88,
+                height: 88,
               ),
-              child: const Icon(Icons.photo_camera_rounded,
-                  color: Colors.white, size: 44),
             ),
             const Gap(20),
             Text(
@@ -38,24 +31,9 @@ class SplashView extends StatelessWidget {
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
                 letterSpacing: -0.5,
+                color: isDark ? Colors.white : Colors.black,
               ),
             ),
-            const Gap(6),
-            Text(
-              'Explore & Capture Thailand',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            // const Gap(56),
-            // SizedBox(
-            //   width: 28,
-            //   height: 28,
-            //   child: CircularProgressIndicator(
-            //     strokeWidth: 2.5,
-            //     color: theme.colorScheme.primary,
-            //   ),
-            // ),
           ],
         ),
       ),
