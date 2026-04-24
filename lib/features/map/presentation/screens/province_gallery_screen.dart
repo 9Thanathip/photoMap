@@ -265,10 +265,13 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
     Navigator.of(context, rootNavigator: true).push(
       PageRouteBuilder<void>(
         opaque: false,
-        transitionDuration: const Duration(milliseconds: 300),
-        reverseTransitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
+        reverseTransitionDuration: const Duration(milliseconds: 400),
         pageBuilder: (context, animation, _) => FadeTransition(
-          opacity: animation,
+          opacity: CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOutCubic,
+          ),
           child: PhotoViewerScreen(photos: photos, initialIndex: index),
         ),
       ),

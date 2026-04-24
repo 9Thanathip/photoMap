@@ -12,11 +12,13 @@ class ImageViewerPage extends StatefulWidget {
     required this.photo,
     required this.onZoomChanged,
     required this.onTap,
+    this.alignment = Alignment.center,
   });
 
   final PhotoItem photo;
   final ValueChanged<bool> onZoomChanged;
   final VoidCallback onTap;
+  final Alignment alignment;
 
   @override
   State<ImageViewerPage> createState() => _ImageViewerPageState();
@@ -123,6 +125,7 @@ class _ImageViewerPageState extends State<ImageViewerPage>
               thumbnailSize: kDisplaySize,
             ),
             fit: BoxFit.contain,
+            alignment: widget.alignment,
             width: double.infinity,
             height: double.infinity,
             frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
@@ -137,6 +140,7 @@ class _ImageViewerPageState extends State<ImageViewerPage>
                       thumbnailSize: const ThumbnailSize(400, 400),
                     ),
                     fit: BoxFit.contain,
+                    alignment: widget.alignment,
                   ),
                   child,
                 ],
