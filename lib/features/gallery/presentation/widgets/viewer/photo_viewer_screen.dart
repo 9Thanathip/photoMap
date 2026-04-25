@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
@@ -12,11 +10,6 @@ import '../editor/photo_editor_screen.dart';
 import 'image_viewer_page.dart';
 import 'video_viewer_page.dart';
 import 'photo_info_content.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:math' as math;
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:native_exif/native_exif.dart';
 
 class PhotoViewerScreen extends StatefulWidget {
   const PhotoViewerScreen({
@@ -250,11 +243,14 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       },
       itemBuilder: (_, index) {
         final photo = widget.photos[index];
+        final isCurrent = index == _currentIndex;
+        final heroTag = isCurrent ? photo.path : '__no_hero_${index}_${photo.path}';
+
         final page = photo.assetEntity?.type == AssetType.video
             ? VideoViewerPage(
-                tag: photo.path,
-                controller: index == _currentIndex ? _videoController : null,
-                initialized: index == _currentIndex && _videoInitialized,
+                tag: heroTag,
+                controller: isCurrent ? _videoController : null,
+                initialized: isCurrent && _videoInitialized,
                 onTap: _toggleOverlay,
                 onSliderDragStart: () =>
                     setState(() => _isSliderDragging = true),
@@ -265,6 +261,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                 photo: photo,
                 onZoomChanged: _onZoomChanged,
                 onTap: _toggleOverlay,
+                heroTag: heroTag,
               );
 
         return Padding(
@@ -275,20 +272,16 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
               final dy = _spring.value;
               final screenH = MediaQuery.sizeOf(context).height;
 
-              // Apply translation and alignment offset ONLY to the active page
-              final isCurrent = index == _currentIndex;
-              final itemDy = isCurrent ? dy : 0.0;
-
               // Smoothly interpolate alignment from center (0,0) to bottom (0,1)
               // as the info panel opens (dy from 0 to -520)
-              final alignmentT = (itemDy / -520.0).clamp(0.0, 1.0);
+              final alignmentT = (dy / -520.0).clamp(0.0, 1.0);
               final alignment = Alignment(0, alignmentT);
 
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
                   Transform.translate(
-                    offset: Offset(0, itemDy),
+                    offset: Offset(0, dy),
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [

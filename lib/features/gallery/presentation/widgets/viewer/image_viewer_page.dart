@@ -13,12 +13,14 @@ class ImageViewerPage extends StatefulWidget {
     required this.onZoomChanged,
     required this.onTap,
     this.alignment = Alignment.center,
+    this.heroTag,
   });
 
   final PhotoItem photo;
   final ValueChanged<bool> onZoomChanged;
   final VoidCallback onTap;
   final Alignment alignment;
+  final String? heroTag;
 
   @override
   State<ImageViewerPage> createState() => _ImageViewerPageState();
@@ -108,7 +110,7 @@ class _ImageViewerPageState extends State<ImageViewerPage>
     }
 
     return Hero(
-      tag: widget.photo.path,
+      tag: widget.heroTag ?? widget.photo.path,
       child: GestureDetector(
         onTap: widget.onTap,
         onDoubleTapDown: (details) => _doubleTapPosition = details.localPosition,
