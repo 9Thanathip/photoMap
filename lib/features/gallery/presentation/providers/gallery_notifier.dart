@@ -323,7 +323,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       if (asset.type == AssetType.image || asset.type == AssetType.video) {
         // Reuse cached item if exists to preserve geocoding results
         final existing = currentMap?[asset.id];
-        if (existing != null) {
+        if (existing != null && existing.hasLocation) {
           items.add(existing.copyWithAsset(asset));
           continue;
         }
@@ -377,16 +377,13 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
             final file = await currentPhoto.assetEntity!.originFile ?? await currentPhoto.assetEntity!.file;
             if (file != null) {
               final exif = await Exif.fromPath(file.path);
-              final attr = await exif.getAttributes();
+              final latLong = await exif.getLatLong();
               await exif.close();
 
-              final lat = attr?['GPSLatitude'];
-              final lng = attr?['GPSLongitude'];
-
-              if (lat != null && lng != null) {
+              if (latLong != null) {
                  withCoords[photoIdx] = currentPhoto.copyWith(
-                  lat: double.tryParse(lat.toString()) ?? 0.0,
-                  lng: double.tryParse(lng.toString()) ?? 0.0,
+                  lat: latLong.latitude,
+                  lng: latLong.longitude,
                 );
               }
             }
