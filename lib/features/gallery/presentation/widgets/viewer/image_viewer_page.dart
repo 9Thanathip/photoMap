@@ -125,6 +125,26 @@ class _ImageViewerPageState extends State<ImageViewerPage>
                 : 1.0,
             child: Hero(
               tag: widget.heroTag ?? widget.photo.path,
+              flightShuttleBuilder: (
+                BuildContext flightContext,
+                Animation<double> animation,
+                HeroFlightDirection flightDirection,
+                BuildContext fromHeroContext,
+                BuildContext toHeroContext,
+              ) {
+                return Material(
+                  color: Colors.transparent,
+                  child: Image(
+                    image: AssetEntityImageProvider(
+                      widget.photo.assetEntity!,
+                      isOriginal: false,
+                      thumbnailSize: kDisplaySize,
+                    ),
+                    fit: BoxFit.cover,
+                    alignment: widget.alignment,
+                  ),
+                );
+              },
               child: Image(
                 image: AssetEntityImageProvider(
                   widget.photo.assetEntity!,
