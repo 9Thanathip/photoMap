@@ -360,10 +360,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                   onVerticalDragUpdate: _onVerticalDragUpdate,
                   onVerticalDragEnd: _onVerticalDragEnd,
                   behavior: HitTestBehavior.opaque,
-                  child: Transform.scale(
-                    scale: scale,
-                    child: child, // This is the PageView
-                  ),
+                  child: child, // This is the PageView
                 ),
                 // ── Overlay ──
                 IgnorePointer(
