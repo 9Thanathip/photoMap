@@ -108,6 +108,21 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
           Center(
             child: Hero(
               tag: widget.tag,
+              flightShuttleBuilder: (
+                BuildContext flightContext,
+                Animation<double> animation,
+                HeroFlightDirection flightDirection,
+                BuildContext fromHeroContext,
+                BuildContext toHeroContext,
+              ) {
+                return Material(
+                  color: Colors.transparent,
+                  child: AspectRatio(
+                    aspectRatio: c.value.aspectRatio,
+                    child: VideoPlayer(c),
+                  ),
+                );
+              },
               child: AspectRatio(
                 aspectRatio: c.value.aspectRatio,
                 child: VideoPlayer(c),
