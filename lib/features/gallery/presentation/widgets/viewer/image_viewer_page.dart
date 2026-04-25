@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_map/features/gallery/presentation/widgets/main_gallery/photo_tile.dart';
 import '../../providers/gallery_notifier.dart';
 
 // Single source of truth — both precache and display must use the same key
@@ -67,13 +68,12 @@ class _ImageViewerPageState extends State<ImageViewerPage>
 
     if (scale > 1.1) {
       // Zoom out
-      _animation = Matrix4Tween(
-        begin: matrix,
-        end: Matrix4.identity(),
-      ).animate(CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutCubic,
-      ));
+      _animation = Matrix4Tween(begin: matrix, end: Matrix4.identity()).animate(
+        CurvedAnimation(
+          parent: _animationController,
+          curve: Curves.easeOutCubic,
+        ),
+      );
     } else {
       // Zoom in at tap position
       final position = _doubleTapPosition ?? Offset.zero;
@@ -81,13 +81,12 @@ class _ImageViewerPageState extends State<ImageViewerPage>
         ..translate(-position.dx * 1.5, -position.dy * 1.5)
         ..scale(2.5);
 
-      _animation = Matrix4Tween(
-        begin: matrix,
-        end: zoomedMatrix,
-      ).animate(CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutCubic,
-      ));
+      _animation = Matrix4Tween(begin: matrix, end: zoomedMatrix).animate(
+        CurvedAnimation(
+          parent: _animationController,
+          curve: Curves.easeOutCubic,
+        ),
+      );
     }
 
     _animationController.forward(from: 0);
@@ -120,31 +119,35 @@ class _ImageViewerPageState extends State<ImageViewerPage>
         panEnabled: _isZoomed,
         child: Center(
           child: AspectRatio(
-            aspectRatio: widget.photo.assetEntity!.width > 0 && widget.photo.assetEntity!.height > 0
-                ? widget.photo.assetEntity!.width / widget.photo.assetEntity!.height
+            aspectRatio:
+                widget.photo.assetEntity!.width > 0 &&
+                    widget.photo.assetEntity!.height > 0
+                ? widget.photo.assetEntity!.width /
+                      widget.photo.assetEntity!.height
                 : 1.0,
             child: Hero(
               tag: widget.heroTag ?? widget.photo.path,
-              flightShuttleBuilder: (
-                BuildContext flightContext,
-                Animation<double> animation,
-                HeroFlightDirection flightDirection,
-                BuildContext fromHeroContext,
-                BuildContext toHeroContext,
-              ) {
-                return Material(
-                  color: Colors.transparent,
-                  child: Image(
-                    image: AssetEntityImageProvider(
-                      widget.photo.assetEntity!,
-                      isOriginal: false,
-                      thumbnailSize: kDisplaySize,
-                    ),
-                    fit: BoxFit.cover,
-                    alignment: widget.alignment,
-                  ),
-                );
-              },
+              flightShuttleBuilder:
+                  (
+                    BuildContext flightContext,
+                    Animation<double> animation,
+                    HeroFlightDirection flightDirection,
+                    BuildContext fromHeroContext,
+                    BuildContext toHeroContext,
+                  ) {
+                    return Material(
+                      color: Colors.transparent,
+                      child: Image(
+                        image: AssetEntityImageProvider(
+                          widget.photo.assetEntity!,
+                          isOriginal: false,
+                          thumbnailSize: kDisplaySize,
+                        ),
+                        fit: BoxFit.cover,
+                        alignment: widget.alignment,
+                      ),
+                    );
+                  },
               child: Image(
                 image: AssetEntityImageProvider(
                   widget.photo.assetEntity!,
@@ -175,6 +178,5 @@ class _ImageViewerPageState extends State<ImageViewerPage>
         ),
       ),
     );
-  }
   }
 }
