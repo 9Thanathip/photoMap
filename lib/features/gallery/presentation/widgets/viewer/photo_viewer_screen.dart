@@ -249,6 +249,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
         final page = photo.assetEntity?.type == AssetType.video
             ? VideoViewerPage(
                 tag: heroTag,
+                asset: photo.assetEntity,
                 controller: isCurrent ? _videoController : null,
                 initialized: isCurrent && _videoInitialized,
                 onTap: _toggleOverlay,

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoViewerPage extends StatefulWidget {
@@ -9,6 +11,7 @@ class VideoViewerPage extends StatefulWidget {
     super.key,
     required this.tag,
     this.controller,
+    this.asset,
     required this.initialized,
     required this.onTap,
     required this.onSliderDragStart,
@@ -16,7 +19,7 @@ class VideoViewerPage extends StatefulWidget {
   });
 
   final String tag;
-
+  final AssetEntity? asset;
   final VideoPlayerController? controller;
   final bool initialized;
   final VoidCallback onTap;
@@ -90,9 +93,27 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
     if (!widget.initialized || widget.controller == null) {
       return GestureDetector(
         onTap: widget.onTap,
-        child: const ColoredBox(
-          color: Colors.black,
-          child: Center(child: CircularProgressIndicator(color: Colors.white)),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (widget.asset != null)
+              Hero(
+                tag: widget.tag,
+                child: Image(
+                  image: AssetEntityImageProvider(
+                    widget.asset!,
+                    isOriginal: false,
+                    thumbnailSize: const ThumbnailSize(800, 800),
+                  ),
+                  fit: BoxFit.contain,
+                ),
+              )
+            else
+              const ColoredBox(color: Colors.black),
+            const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+          ],
         ),
       );
     }
