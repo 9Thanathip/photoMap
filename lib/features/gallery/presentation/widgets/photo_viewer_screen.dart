@@ -15,6 +15,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:native_exif/native_exif.dart';
 
 class PhotoViewerScreen extends StatefulWidget {
   const PhotoViewerScreen({
@@ -471,6 +472,88 @@ class _PhotoInfoContent extends StatelessWidget {
   const _PhotoInfoContent({required this.photo});
   final PhotoItem photo;
 
+  Future<Map<String, String>> _fetchTechnicalInfo(AssetEntity? asset) async {
+    if (asset == null) return {};
+    try {
+      if (asset.type == AssetType.video) {
+        return {
+          'camera': 'Video Recording',
+          'lens': 'Main Camera — 4K 60fps',
+          'iso': '—',
+          'exposure': '—',
+        };
+      }
+
+      final file = await asset.originFile ?? await asset.file;
+      if (file == null) return {};
+
+      final exif = await Exif.fromPath(file.path);
+      final attr = await exif.getAttributes();
+      await exif.close();
+
+      if (attr == null || attr.isEmpty) return {};
+
+      final make = attr['Make']?.toString().trim() ?? '';
+      final model = attr['Model']?.toString().trim() ?? '';
+
+      String cameraName = '';
+      if (make.isNotEmpty && model.isNotEmpty) {
+        if (model.toLowerCase().contains(make.toLowerCase())) {
+          cameraName = model;
+        } else {
+          cameraName = '$make $model';
+        }
+      } else if (model.isNotEmpty) {
+        cameraName = model;
+      } else if (make.isNotEmpty) {
+        cameraName = make;
+      } else {
+        cameraName = 'Unknown Camera';
+      }
+
+      final focalLength = attr['FocalLength']?.toString() ?? '';
+      final fNumber = attr['FNumber']?.toString() ?? '';
+      final iso = attr['ISOSpeedRatings']?.toString() ?? '';
+      final exposureTime = attr['ExposureTime']?.toString() ?? '';
+
+      String exposureStr = '0 ev';
+      if (exposureTime.isNotEmpty) {
+        final expNum = double.tryParse(exposureTime);
+        if (expNum != null && expNum > 0) {
+          if (expNum < 1) {
+            final denom = (1 / expNum).round();
+            exposureStr = '1/${denom}s';
+          } else {
+            exposureStr = '${expNum.toStringAsFixed(1)}s';
+          }
+        } else {
+          exposureStr = exposureTime;
+        }
+      }
+
+      String lensInfo = '';
+      if (focalLength.isNotEmpty && fNumber.isNotEmpty) {
+        lensInfo = '${focalLength}mm — f/$fNumber';
+      } else if (focalLength.isNotEmpty) {
+        lensInfo = '${focalLength}mm';
+      } else if (fNumber.isNotEmpty) {
+        lensInfo = 'f/$fNumber';
+      } else {
+        lensInfo = 'Standard Lens';
+      }
+
+      return {
+        'camera': cameraName,
+        'lens': lensInfo,
+        'iso': iso.isNotEmpty ? iso : '—',
+        'exposure': exposureStr,
+      };
+    } catch (e) {
+      debugPrint('Error loading EXIF: $e');
+      return {};
+    }
+  }
+
   Future<void> _launchMap(double lat, double lng) async {
     debugPrint('Attempting to launch map for: $lat, $lng');
     final googleMapsUrl = Uri.parse(
@@ -584,90 +667,106 @@ class _PhotoInfoContent extends StatelessWidget {
           ),
 
           const SizedBox(height: 20),
-          // Technical Info Card
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
+          // Technical Info Card (Loaded from EXIF)
+          FutureBuilder<Map<String, String>>(
+            future: _fetchTechnicalInfo(asset),
+            builder: (context, snapshot) {
+              final info = snapshot.data ?? {};
+              final camera = info['camera'] ??
+                  (asset?.type == AssetType.video
+                      ? 'Video Recording'
+                      : 'Unknown Camera');
+              final lens = info['lens'] ??
+                  (asset?.type == AssetType.video
+                      ? 'Main Video'
+                      : 'Standard Lens');
+              final iso = info['iso'] ?? '—';
+              final exposure = info['exposure'] ?? '—';
+
+              return Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
                   children: [
-                    Icon(
-                      asset?.type == AssetType.video
-                          ? Icons.videocam_rounded
-                          : Icons.camera_alt_rounded,
-                      size: 20,
-                      color: Colors.white54,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            asset?.type == AssetType.video
-                                ? 'Video Recording'
-                                : 'Apple iPhone 17 Pro',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            asset?.type == AssetType.video
-                                ? 'Main Camera — 4K 60fps'
-                                : 'Ultra Wide Camera — 13 mm f2.2',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: Colors.white54,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        asset?.mimeType?.split('/').last.toUpperCase() ??
-                            'JPEG',
-                        style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
+                    Row(
+                      children: [
+                        Icon(
+                          asset?.type == AssetType.video
+                              ? Icons.videocam_rounded
+                              : Icons.camera_alt_rounded,
+                          size: 20,
+                          color: Colors.white54,
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                camera,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                lens,
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: Colors.white54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            border:
+                                Border.all(color: Colors.grey.withOpacity(0.3)),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            asset?.mimeType?.split('/').last.toUpperCase() ??
+                                'JPEG',
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24, thickness: 0.5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _infoDetail(
+                          asset?.type == AssetType.video
+                              ? 'Quality'
+                              : 'Resolution',
+                          asset?.type == AssetType.video
+                              ? '4K • 60 fps'
+                              : '$mp MP • ${asset?.width} × ${asset?.height}',
+                          isDark,
+                          flex: 2,
+                        ),
+                        _infoDetail('ISO', iso, isDark),
+                        _infoDetail('Exposure', exposure, isDark),
+                      ],
                     ),
                   ],
                 ),
-                const Divider(height: 24, thickness: 0.5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _infoDetail(
-                      asset?.type == AssetType.video ? 'Quality' : 'Resolution',
-                      asset?.type == AssetType.video
-                          ? '4K • 60 fps'
-                          : '$mp MP • ${asset?.width} × ${asset?.height}',
-                      isDark,
-                      flex: 2,
-                    ),
-                    _infoDetail('ISO', '50', isDark),
-                    _infoDetail('Exposure', '0 ev', isDark),
-                  ],
-                ),
-              ],
-            ),
+              );
+            },
           ),
           const SizedBox(height: 20),
           // Location Section
