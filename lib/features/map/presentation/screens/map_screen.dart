@@ -376,13 +376,14 @@ class _GeocodingProgressChipState extends State<_GeocodingProgressChip>
   @override
   void didUpdateWidget(covariant _GeocodingProgressChip old) {
     super.didUpdateWidget(old);
-    final shouldShow = widget.isGeocoding && widget.total > 0;
+    final shouldShow = widget.isGeocoding && widget.total > 0 && widget.processed < widget.total;
     if (shouldShow && !_visible) {
       _visible = true;
       _anim.forward();
     } else if (!shouldShow && _visible) {
-      _visible = false;
-      _anim.value = 0.0;
+      _anim.reverse().then((_) {
+        if (mounted) setState(() => _visible = false);
+      });
     }
   }
 
@@ -408,29 +409,36 @@ class _GeocodingProgressChipState extends State<_GeocodingProgressChip>
       child: GlassCard(
         borderRadius: 14,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                value: progress,
-                strokeWidth: 2.5,
-                backgroundColor: barBg,
-                valueColor: AlwaysStoppedAnimation<Color>(barFg),
+        child: SizedBox(
+          width: 100,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  value: progress,
+                  strokeWidth: 2.5,
+                  backgroundColor: barBg,
+                  valueColor: AlwaysStoppedAnimation<Color>(barFg),
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '${widget.processed} / ${widget.total}',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: textColor,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${widget.processed} / ${widget.total}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
