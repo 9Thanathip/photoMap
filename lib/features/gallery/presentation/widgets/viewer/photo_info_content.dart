@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:device_info_plus/device_info_plus.dart';
+import 'package:exif/exif.dart' as exif_lib;
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart' hide LatLng;
 import 'package:google_fonts/google_fonts.dart';
@@ -25,68 +25,6 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
   void initState() {
     super.initState();
     _exifFuture = _fetchTechnicalInfo(widget.photo.assetEntity);
-  }
-
-  static String? _cachedDeviceName;
-
-  static Future<String> _getDeviceName() async {
-    if (_cachedDeviceName != null) return _cachedDeviceName!;
-    final plugin = DeviceInfoPlugin();
-    if (Platform.isIOS) {
-      final info = await plugin.iosInfo;
-      _cachedDeviceName = info.utsname.machine; // e.g. "iPhone15,2"
-      // Map to marketing name if possible
-      _cachedDeviceName = _iosModelName(info.utsname.machine);
-    } else if (Platform.isAndroid) {
-      final info = await plugin.androidInfo;
-      _cachedDeviceName = '${info.brand} ${info.model}';
-    } else {
-      _cachedDeviceName = 'Unknown Camera';
-    }
-    return _cachedDeviceName!;
-  }
-
-  static String _iosModelName(String machine) {
-    // Common iPhone models
-    const map = {
-      'iPhone10,3': 'iPhone X',
-      'iPhone10,6': 'iPhone X',
-      'iPhone11,2': 'iPhone XS',
-      'iPhone11,4': 'iPhone XS Max',
-      'iPhone11,6': 'iPhone XS Max',
-      'iPhone11,8': 'iPhone XR',
-      'iPhone12,1': 'iPhone 11',
-      'iPhone12,3': 'iPhone 11 Pro',
-      'iPhone12,5': 'iPhone 11 Pro Max',
-      'iPhone13,1': 'iPhone 12 mini',
-      'iPhone13,2': 'iPhone 12',
-      'iPhone13,3': 'iPhone 12 Pro',
-      'iPhone13,4': 'iPhone 12 Pro Max',
-      'iPhone14,4': 'iPhone 13 mini',
-      'iPhone14,5': 'iPhone 13',
-      'iPhone14,2': 'iPhone 13 Pro',
-      'iPhone14,3': 'iPhone 13 Pro Max',
-      'iPhone14,7': 'iPhone 14',
-      'iPhone14,8': 'iPhone 14 Plus',
-      'iPhone15,2': 'iPhone 14 Pro',
-      'iPhone15,3': 'iPhone 14 Pro Max',
-      'iPhone15,4': 'iPhone 15',
-      'iPhone15,5': 'iPhone 15 Plus',
-      'iPhone16,1': 'iPhone 15 Pro',
-      'iPhone16,2': 'iPhone 15 Pro Max',
-      'iPhone17,1': 'iPhone 16 Pro',
-      'iPhone17,2': 'iPhone 16 Pro Max',
-      'iPhone17,3': 'iPhone 16',
-      'iPhone17,4': 'iPhone 16 Plus',
-      'iPhone17,5': 'iPhone 16e',
-      'iPhone18,1': 'iPhone 17 Pro',
-      'iPhone18,2': 'iPhone 17 Pro Max',
-      'iPhone18,3': 'iPhone 17',
-      'iPhone18,4': 'iPhone 17 Plus',
-      'iPhone18,5': 'iPhone 17 Air',
-    };
-    final name = map[machine] ?? machine;
-    return 'Apple $name';
   }
 
   Future<Map<String, String>> _fetchTechnicalInfo(AssetEntity? asset) async {
@@ -120,6 +58,16 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
 
       await exif.close();
 
+      // Fallback: read Make/Model via pure-Dart exif package from raw bytes
+      if (make.isEmpty && model.isEmpty) {
+        try {
+          final bytes = await file.readAsBytes();
+          final tags = await exif_lib.readExifFromBytes(bytes);
+          make = tags['Image Make']?.printable.trim() ?? '';
+          model = tags['Image Model']?.printable.trim() ?? '';
+        } catch (_) {}
+      }
+
       if (attr.isEmpty && make.isEmpty && model.isEmpty) return {};
 
       String cameraName = '';
@@ -134,7 +82,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
       } else if (make.isNotEmpty) {
         cameraName = make;
       } else {
-        cameraName = await _getDeviceName();
+        cameraName = 'Unknown Camera';
       }
 
       final focalLength = (attr['FocalLength'] ?? attr['focalLength'])?.toString() ?? '';
