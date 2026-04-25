@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../../../gallery/presentation/providers/gallery_notifier.dart';
@@ -114,6 +117,30 @@ class _MapScreenState extends ConsumerState<MapScreen>
     } finally {
       if (mounted) setState(() => _downloading = false);
     }
+  }
+
+  Future<void> _share() async {
+    try {
+      final boundary =
+          _repaintKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+      if (boundary == null) return;
+
+      final image = await boundary.toImage(pixelRatio: 2.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) return;
+
+      final bytes = byteData.buffer.asUint8List();
+      final dir = await getTemporaryDirectory();
+      final file = File(
+        '${dir.path}/thailand_map_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
+      await file.writeAsBytes(bytes);
+
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(file.path)]),
+      );
+    } catch (_) {}
   }
 
   void _handleMapTap(
@@ -321,6 +348,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
               onShowSettings: _showSettings,
               onResetView: _resetView,
               onDownload: _download,
+              onShare: _share,
             ),
           ),
 

@@ -117,7 +117,8 @@ class _ImageViewerPageState extends State<ImageViewerPage>
         minScale: 1.0,
         maxScale: 4.0,
         panEnabled: _isZoomed,
-        child: Center(
+        child: Align(
+          alignment: widget.alignment,
           child: AspectRatio(
             aspectRatio:
                 widget.photo.assetEntity!.width > 0 &&
