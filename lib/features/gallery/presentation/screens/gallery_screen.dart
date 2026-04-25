@@ -112,38 +112,45 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
             top: 0,
             left: 0,
             right: 0,
-            child: GalleryHeader(
-              topPad: topPad,
-              inAlbumsTab: _inAlbumsTab,
-              inCountry: inCountry,
-              inProvince: inProvince,
-              selectedCountry: gallery.selectedCountry,
-              selectedProvince: gallery.selectedProvince,
-              onPhotoTab: () => _tabs.animateTo(0),
-              onAlbumTab: () => _tabs.animateTo(1),
-              onBack: () {
-                final notifier = ref.read(galleryStateProvider.notifier);
-                inProvince
-                    ? notifier.selectProvince('All')
-                    : notifier.selectCountry('All');
-              },
-              onFilterTap: () => _showFilterSheet(context, theme),
-              isSelectMode: select.isSelectMode,
-              selectedCount: select.selectedCount,
-              totalCount: sortedPhotos.length,
-              onEnterSelect: () =>
-                  ref.read(gallerySelectProvider.notifier).enter(),
-              onCancelSelect: () =>
-                  ref.read(gallerySelectProvider.notifier).exit(),
-              onSelectAll: () {
-                final notifier = ref.read(gallerySelectProvider.notifier);
-                if (select.selectedCount == sortedPhotos.length) {
-                  notifier.clearSelection();
-                } else {
-                  notifier.selectAll(sortedPhotos.map((p) => p.path));
-                }
-              },
-            ),
+            child: () {
+              final currentViewPhotos = (_inAlbumsTab && inProvince)
+                  ? ([...gallery.filteredPhotos]
+                    ..sort((a, b) => b.timestamp.compareTo(a.timestamp)))
+                  : sortedPhotos;
+
+              return GalleryHeader(
+                topPad: topPad,
+                inAlbumsTab: _inAlbumsTab,
+                inCountry: inCountry,
+                inProvince: inProvince,
+                selectedCountry: gallery.selectedCountry,
+                selectedProvince: gallery.selectedProvince,
+                onPhotoTab: () => _tabs.animateTo(0),
+                onAlbumTab: () => _tabs.animateTo(1),
+                onBack: () {
+                  final notifier = ref.read(galleryStateProvider.notifier);
+                  inProvince
+                      ? notifier.selectProvince('All')
+                      : notifier.selectCountry('All');
+                },
+                onFilterTap: () => _showFilterSheet(context, theme),
+                isSelectMode: select.isSelectMode,
+                selectedCount: select.selectedCount,
+                totalCount: currentViewPhotos.length,
+                onEnterSelect: () =>
+                    ref.read(gallerySelectProvider.notifier).enter(),
+                onCancelSelect: () =>
+                    ref.read(gallerySelectProvider.notifier).exit(),
+                onSelectAll: () {
+                  final notifier = ref.read(gallerySelectProvider.notifier);
+                  if (select.selectedCount == currentViewPhotos.length) {
+                    notifier.clearSelection();
+                  } else {
+                    notifier.selectAll(currentViewPhotos.map((p) => p.path));
+                  }
+                },
+              );
+            }(),
           ),
         ],
       ),
@@ -230,6 +237,11 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
           contentTopPad: _contentTopPad,
           inCountry: inCountry,
           inProvince: inProvince,
+          viewMode: _viewMode,
+          isSelectMode: select.isSelectMode,
+          selectedPaths: select.selectedPaths,
+          onToggleSelect: (photo) =>
+              ref.read(gallerySelectProvider.notifier).toggle(photo.path),
           onTap: (photos, index) => _openViewer(context, photos, index),
           onLongPress: (photo) => _showPhotoOptions(context, photo),
         ),

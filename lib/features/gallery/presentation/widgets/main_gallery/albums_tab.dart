@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import '../../providers/gallery_notifier.dart';
 import 'album_card.dart';
 import 'photo_tile.dart';
-import 'photos_tab.dart' show photoGridDelegate;
+import 'photos_tab.dart' show photoGridDelegate, ViewMode;
 
 const _albumGridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
   crossAxisCount: 2,
@@ -22,6 +23,10 @@ class AlbumsTab extends ConsumerStatefulWidget {
     required this.inProvince,
     required this.onTap,
     required this.onLongPress,
+    this.viewMode = ViewMode.all,
+    this.isSelectMode = false,
+    this.selectedPaths = const {},
+    this.onToggleSelect,
   });
 
   final GalleryState gallery;
@@ -30,6 +35,10 @@ class AlbumsTab extends ConsumerStatefulWidget {
   final bool inProvince;
   final void Function(List<PhotoItem> photos, int index) onTap;
   final void Function(PhotoItem) onLongPress;
+  final ViewMode viewMode;
+  final bool isSelectMode;
+  final Set<String> selectedPaths;
+  final void Function(PhotoItem)? onToggleSelect;
 
   @override
   ConsumerState<AlbumsTab> createState() => _AlbumsTabState();
@@ -219,25 +228,125 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     );
   }
 
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  Map<String, List<PhotoItem>> _groupBy(
+      List<PhotoItem> items, String Function(PhotoItem) key) {
+    final map = <String, List<PhotoItem>>{};
+    for (final p in items) {
+      map.putIfAbsent(key(p), () => []).add(p);
+    }
+    return map;
+  }
+
   Widget _provincePhotos() {
     final photos = widget.gallery.filteredPhotos;
     if (photos.isEmpty) {
       return const AppEmptyState(
           icon: Icons.photo_library_outlined,
           title: 'No photos here',
-          subtitle: 'Tap the button below to add photos');
+          subtitle: 'Your photo library is empty');
     }
+
+    return switch (widget.viewMode) {
+      ViewMode.all => _flatGrid(photos),
+      ViewMode.year => _sectionedGrid(
+          _groupBy(photos, (p) => '${p.timestamp.year}'),
+          (k) => k,
+          context,
+        ),
+      ViewMode.month => _sectionedGrid(
+          _groupBy(photos, (p) {
+            final t = p.timestamp;
+            return '${t.year}-${t.month.toString().padLeft(2, '0')}';
+          }),
+          (k) {
+            final parts = k.split('-');
+            return '${_months[int.parse(parts[1]) - 1]} ${parts[0]}';
+          },
+          context,
+        ),
+      ViewMode.day => _sectionedGrid(
+          _groupBy(photos, (p) {
+            final t = p.timestamp;
+            return '${t.year}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}';
+          }),
+          (k) {
+            final parts = k.split('-');
+            return '${int.parse(parts[2])} ${_months[int.parse(parts[1]) - 1]} ${parts[0]}';
+          },
+          context,
+        ),
+    };
+  }
+
+  Widget _flatGrid(List<PhotoItem> items) {
     return GridView.builder(
-      key: PageStorageKey(
-          'albums_photos_${widget.gallery.selectedCountry}_${widget.gallery.selectedProvince}'),
       padding: EdgeInsets.only(top: widget.contentTopPad, bottom: 120),
       gridDelegate: photoGridDelegate,
-      itemCount: photos.length,
-      itemBuilder: (_, i) => PhotoTile(
-        photo: photos[i],
-        onTap: () => widget.onTap(photos, i),
-        onLongPress: () => widget.onLongPress(photos[i]),
-      ),
+      itemCount: items.length,
+      itemBuilder: (_, i) {
+        final item = items[i];
+        return PhotoTile(
+          photo: item,
+          isSelectMode: widget.isSelectMode,
+          isSelected: widget.selectedPaths.contains(item.path),
+          onTap: widget.isSelectMode
+              ? () => widget.onToggleSelect!(item)
+              : () => widget.onTap(items, i),
+          onLongPress: widget.isSelectMode
+              ? () {}
+              : () => widget.onLongPress(item),
+        );
+      },
+    );
+  }
+
+  Widget _sectionedGrid(Map<String, List<PhotoItem>> sections,
+      String Function(String) label, BuildContext context) {
+    final theme = Theme.of(context);
+    final sortedKeys = sections.keys.toList()..sort((a, b) => b.compareTo(a));
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(padding: EdgeInsets.only(top: widget.contentTopPad)),
+        for (final key in sortedKeys) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 12, 10, 4),
+              child: Text(label(key),
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSurface)),
+            ),
+          ),
+          SliverGrid(
+            gridDelegate: photoGridDelegate,
+            delegate: SliverChildBuilderDelegate(
+              (_, i) {
+                final sectionPhotos = sections[key]!;
+                final item = sectionPhotos[i];
+                return PhotoTile(
+                  photo: item,
+                  isSelectMode: widget.isSelectMode,
+                  isSelected: widget.selectedPaths.contains(item.path),
+                  onTap: widget.isSelectMode
+                      ? () => widget.onToggleSelect!(item)
+                      : () => widget.onTap(sectionPhotos, i),
+                  onLongPress: widget.isSelectMode
+                      ? () {}
+                      : () => widget.onLongPress(item),
+                );
+              },
+              childCount: sections[key]!.length,
+            ),
+          ),
+        ],
+        const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
+      ],
     );
   }
 }
