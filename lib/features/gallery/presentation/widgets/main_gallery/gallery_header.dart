@@ -146,19 +146,28 @@ class GalleryHeader extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (!inAlbumsTab) ...[
-                    GlassCard(
-                      onTap: onFilterTap,
-                      borderRadius: 100,
-                      padding: const EdgeInsets.all(10),
-                      child: Icon(
-                        Icons.filter_list_rounded,
-                        size: 20,
-                        color: theme.colorScheme.onSurface,
-                      ),
+                  Visibility(
+                    visible: !inAlbumsTab,
+                    maintainSize: true,
+                    maintainAnimation: true,
+                    maintainState: true,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GlassCard(
+                          onTap: onFilterTap,
+                          borderRadius: 100,
+                          padding: const EdgeInsets.all(10),
+                          child: Icon(
+                            Icons.filter_list_rounded,
+                            size: 20,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const Gap(8),
+                      ],
                     ),
-                    const Gap(8),
-                  ],
+                  ),
                   if (onEnterSelect != null)
                     GlassCard(
                       onTap: onEnterSelect,
