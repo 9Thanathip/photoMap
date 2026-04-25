@@ -1,5 +1,5 @@
-import 'dart:async';
 import 'dart:io';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
@@ -16,17 +16,17 @@ import 'dart:math' as math;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-
-
 class PhotoViewerScreen extends StatefulWidget {
   const PhotoViewerScreen({
     super.key,
     required this.photos,
     required this.initialIndex,
+    this.routeAnimation,
   });
 
   final List<PhotoItem> photos;
   final int initialIndex;
+  final Animation<double>? routeAnimation;
 
   @override
   State<PhotoViewerScreen> createState() => _PhotoViewerScreenState();
@@ -61,7 +61,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     _initVideo(_currentIndex);
     // Preload adjacent after first frame so context is ready
     WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _precacheAdjacent(_currentIndex));
+      (_) => _precacheAdjacent(_currentIndex),
+    );
 
     _spring = AnimationController(
       vsync: this,
@@ -118,8 +119,11 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       final asset = widget.photos[i].assetEntity;
       if (asset == null || asset.type == AssetType.video) continue;
       precacheImage(
-        AssetEntityImageProvider(asset,
-            isOriginal: false, thumbnailSize: kDisplaySize),
+        AssetEntityImageProvider(
+          asset,
+          isOriginal: false,
+          thumbnailSize: kDisplaySize,
+        ),
         context,
       );
     }
@@ -129,8 +133,11 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     if (_dragging) return;
     if (_spring.value < -50) {
       // If info panel is open, tap on image closes it
-      _spring.animateTo(0,
-          duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic);
+      _spring.animateTo(
+        0,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
+      );
       return;
     }
     setState(() => _showOverlay = !_showOverlay);
@@ -160,14 +167,14 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     final vel = e.primaryVelocity ?? 0;
     final dy = _spring.value;
 
-    if (dy < -30) {
+    if (dy < -50) {
       // Info panel is open (or being opened)
-      if (vel > 300 || dy > -200) {
+      if (vel > 500 || dy > -250) {
         // Swipe down to close info panel (return to normal view)
         _snapTo(0, vel);
       } else {
         // Keep info panel open
-        _snapTo(-420, vel);
+        _snapTo(-520, vel);
       }
     } else {
       // Info panel is closed
@@ -182,8 +189,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
         }
       } else {
         // Dragging up (Opening info panel)
-        if (vel < -300 || dy < -60) {
-          _snapTo(-420, vel);
+        if (vel < -200 || dy < -40) {
+          _snapTo(-520, vel);
         } else {
           _snapTo(0, vel);
         }
@@ -193,11 +200,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
 
   void _snapTo(double target, double velocity) {
     final simulation = SpringSimulation(
-      const SpringDescription(
-        mass: 1,
-        stiffness: 200,
-        damping: 24,
-      ),
+      const SpringDescription(mass: 1, stiffness: 200, damping: 24),
       _spring.value,
       target,
       velocity,
@@ -206,8 +209,6 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
   }
 
   void _openEditor() {
-
-
     Navigator.push(
       context,
       PageRouteBuilder<void>(
@@ -217,10 +218,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
         pageBuilder: (context, animation, secondaryAnimation) {
           return FadeTransition(
             opacity: animation,
-            child: PhotoEditorScreen(
-              photo: _current,
-              heroTag: _current.path,
-            ),
+            child: PhotoEditorScreen(photo: _current, heroTag: _current.path),
           );
         },
       ),
@@ -274,10 +272,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
             builder: (context, child) {
               final dy = _spring.value;
               final screenH = MediaQuery.sizeOf(context).height;
-              
-              // Smoothly interpolate alignment from center (0,0) to bottom (0,1) 
-              // as the info panel opens (dy from 0 to -420)
-              final alignmentT = (dy / -420.0).clamp(0.0, 1.0);
+
+              // Smoothly interpolate alignment from center (0,0) to bottom (0,1)
+              // as the info panel opens (dy from 0 to -520)
+              final alignmentT = (dy / -520.0).clamp(0.0, 1.0);
               final alignment = Alignment(0, alignmentT);
 
               return Stack(
@@ -316,29 +314,39 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       },
     );
 
-
     final overlay = _buildOverlay();
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AnimatedBuilder(
-        animation: _spring,
+        animation: widget.routeAnimation != null
+            ? Listenable.merge([_spring, widget.routeAnimation!])
+            : _spring,
         builder: (context, child) {
           final dy = _spring.value;
           final screenH = MediaQuery.sizeOf(context).height;
-          
+          final routeAlpha = widget.routeAnimation?.value ?? 1.0;
+
           // Dismissal progress (0 to 1) only when dragging down
-          final dismissProgress = dy > 0 ? (dy / (screenH * 0.4)).clamp(0.0, 1.0) : 0.0;
-          
+          final dismissProgress = dy > 0
+              ? (dy / (screenH * 0.4)).clamp(0.0, 1.0)
+              : 0.0;
+
           // Smooth scale and opacity tracking
           final scale = 1.0 - (dismissProgress * 0.18);
-          final bgOpacity = (1.0 - dismissProgress).clamp(0.0, 1.0);
-          
+          final bgOpacity = ((1.0 - dismissProgress) * routeAlpha).clamp(
+            0.0,
+            1.0,
+          );
+
           // Fade UI buttons as we drag away
-          final overlayOpacity = (1.0 - (dy.abs() / 150.0)).clamp(0.0, 1.0);
+          final overlayOpacity = ((1.0 - (dy.abs() / 150.0)) * routeAlpha)
+              .clamp(0.0, 1.0);
 
           return ColoredBox(
-            color: dy <= 0 ? Colors.black : Colors.black.withOpacity(bgOpacity),
+            color: dy <= 0
+                ? Colors.black.withOpacity(routeAlpha)
+                : Colors.black.withOpacity(bgOpacity),
             child: Stack(
               children: [
                 GestureDetector(
@@ -353,7 +361,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                 ),
                 // ── Overlay ──
                 IgnorePointer(
-                  ignoring: !_showOverlay || _dragging,
+                  ignoring: !_showOverlay || _dragging || dy < -20,
                   child: AnimatedOpacity(
                     opacity: _showOverlay ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 200),
@@ -368,7 +376,6 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
         child: pageView,
       ),
     );
-
   }
 
   Widget _buildOverlay() {
@@ -388,8 +395,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white),
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white,
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
                 const Spacer(),
@@ -433,10 +442,9 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                       _bottomAction(Icons.ios_share, () {}),
                       _bottomAction(Icons.favorite_border_rounded, () {}),
                       _bottomAction(Icons.info_outline_rounded, () {
-                         _snapTo(-420, 0);
+                        _snapTo(-520, 0);
                       }),
                       if (!_isVideo)
-
                         _bottomAction(Icons.tune_rounded, _openEditor),
                       _bottomAction(Icons.delete_outline_rounded, () {}),
                     ],
@@ -463,14 +471,57 @@ class _PhotoInfoContent extends StatelessWidget {
   const _PhotoInfoContent({required this.photo});
   final PhotoItem photo;
 
+  Future<void> _launchMap(double lat, double lng) async {
+    debugPrint('Attempting to launch map for: $lat, $lng');
+    final googleMapsUrl = Uri.parse(
+      "https://www.google.com/maps/search/?api=1&query=$lat,$lng",
+    );
+    final appleMapsUrl = Uri.parse("maps://?q=$lat,$lng");
+
+    try {
+      if (Platform.isIOS) {
+        if (await canLaunchUrl(appleMapsUrl)) {
+          debugPrint('Launching Apple Maps');
+          await launchUrl(appleMapsUrl);
+        } else {
+          debugPrint('Launching Google Maps (Fallback)');
+          await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+        }
+      } else {
+        debugPrint('Launching Google Maps');
+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Error launching map: $e');
+    }
+  }
+
   String _getWeekday(int day) {
-    return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][day - 1];
+    return [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ][day - 1];
   }
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     final day = date.day.toString();
     final month = months[date.month - 1];
@@ -485,14 +536,19 @@ class _PhotoInfoContent extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final asset = photo.assetEntity;
-    final mp = asset != null ? (asset.width * asset.height / 1000000).toStringAsFixed(1) : '0';
+    final mp = asset != null
+        ? (asset.width * asset.height / 1000000).toStringAsFixed(1)
+        : '0';
 
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.black,
+      decoration: const BoxDecoration(color: Colors.black),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        24,
+        16,
+        160 + MediaQuery.paddingOf(context).bottom,
       ),
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -540,7 +596,9 @@ class _PhotoInfoContent extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      asset?.type == AssetType.video ? Icons.videocam_rounded : Icons.camera_alt_rounded,
+                      asset?.type == AssetType.video
+                          ? Icons.videocam_rounded
+                          : Icons.camera_alt_rounded,
                       size: 20,
                       color: Colors.white54,
                     ),
@@ -550,7 +608,9 @@ class _PhotoInfoContent extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            asset?.type == AssetType.video ? 'Video Recording' : 'Apple iPhone 17 Pro',
+                            asset?.type == AssetType.video
+                                ? 'Video Recording'
+                                : 'Apple iPhone 17 Pro',
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -558,8 +618,8 @@ class _PhotoInfoContent extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            asset?.type == AssetType.video 
-                                ? 'Main Camera — 4K 60fps' 
+                            asset?.type == AssetType.video
+                                ? 'Main Camera — 4K 60fps'
                                 : 'Ultra Wide Camera — 13 mm f2.2',
                             style: GoogleFonts.inter(
                               fontSize: 12,
@@ -570,14 +630,22 @@ class _PhotoInfoContent extends StatelessWidget {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey.withOpacity(0.3)),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        asset?.mimeType?.split('/').last.toUpperCase() ?? 'JPEG',
-                        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey),
+                        asset?.mimeType?.split('/').last.toUpperCase() ??
+                            'JPEG',
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
                   ],
@@ -586,8 +654,14 @@ class _PhotoInfoContent extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _infoDetail(asset?.type == AssetType.video ? 'Quality' : 'Resolution', 
-                        asset?.type == AssetType.video ? '4K • 60 fps' : '$mp MP • ${asset?.width} × ${asset?.height}', isDark, flex: 2),
+                    _infoDetail(
+                      asset?.type == AssetType.video ? 'Quality' : 'Resolution',
+                      asset?.type == AssetType.video
+                          ? '4K • 60 fps'
+                          : '$mp MP • ${asset?.width} × ${asset?.height}',
+                      isDark,
+                      flex: 2,
+                    ),
                     _infoDetail('ISO', '50', isDark),
                     _infoDetail('Exposure', '0 ev', isDark),
                   ],
@@ -608,84 +682,121 @@ class _PhotoInfoContent extends StatelessWidget {
                   children: [
                     // Real Flutter Map
                     Positioned.fill(
-                      child: FlutterMap(
-                        options: MapOptions(
-                          initialCenter: LatLng(photo.lat, photo.lng),
-                          initialZoom: 14,
-                          interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
+                      child: IgnorePointer(
+                        child: FlutterMap(
+                          options: MapOptions(
+                            initialCenter: LatLng(photo.lat, photo.lng),
+                            initialZoom: 14,
+                            interactionOptions: const InteractionOptions(
+                              flags: InteractiveFlag.none,
+                            ),
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.photo_map.app',
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: LatLng(photo.lat, photo.lng),
+                                  width: 80,
+                                  height: 80,
+                                  child: const Icon(
+                                    Icons.location_on_rounded,
+                                    color: Colors.red,
+                                    size: 40,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        children: [
-                          TileLayer(
-                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.photo_map.app',
-                          ),
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: LatLng(photo.lat, photo.lng),
-                                width: 80,
-                                height: 80,
-                                child: const Icon(Icons.location_on_rounded, color: Colors.red, size: 40),
-                              ),
-                            ],
-                          ),
-                        ],
                       ),
                     ),
-                    // Map Overlay like Apple
+                    // Map Overlay like Apple (IgnorePointer so taps pass through)
                     Positioned(
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [
-                              Colors.black.withOpacity(0.7),
-                              Colors.transparent,
+                      child: IgnorePointer(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [
+                                Colors.black.withOpacity(0.7),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.location_on_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      photo.district.isNotEmpty
+                                          ? photo.district
+                                          : photo.province,
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    Text(
+                                      [
+                                        photo.province,
+                                        photo.country,
+                                      ].where((s) => s.isNotEmpty).join(', '),
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right_rounded,
+                                color: Colors.white54,
+                              ),
                             ],
                           ),
                         ),
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.location_on_rounded, color: Colors.white, size: 18),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    photo.district.isNotEmpty ? photo.district : photo.province,
-                                    style: GoogleFonts.inter(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  Text(
-                                    [photo.province, photo.country].where((s) => s.isNotEmpty).join(', '),
-                                    style: GoogleFonts.inter(
-                                      color: Colors.white70,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.chevron_right_rounded, color: Colors.white54),
-                          ],
-                        ),
+                      ),
+                    ),
+                    // Tap layer on top — absorbs vertical drags so the
+                    // outer dismiss-gesture doesn't steal from taps.
+                    Positioned.fill(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => _launchMap(photo.lat, photo.lng),
+                        onVerticalDragStart: (_) {},
+                        onVerticalDragUpdate: (_) {},
+                        onVerticalDragEnd: (_) {},
+                        child: const SizedBox.expand(),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+            SizedBox(
+              height: 48 + MediaQuery.paddingOf(context).bottom,
+            ), // More space at the very bottom
           ],
-
         ],
       ),
     );
@@ -721,4 +832,3 @@ class _PhotoInfoContent extends StatelessWidget {
     );
   }
 }
-

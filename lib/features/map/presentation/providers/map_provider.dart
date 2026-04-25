@@ -64,7 +64,8 @@ class MapNotifier extends StateNotifier<MapState> {
       }
     });
     _ref.listen(coverPhotoProvider, (previous, next) {
-      if (previous?.assetIds != next.assetIds || previous?.cropRects != next.cropRects) {
+      if (previous?.assetIds != next.assetIds ||
+          previous?.cropRects != next.cropRects) {
         _updateProvincePhotos();
       }
     });
@@ -97,8 +98,12 @@ class MapNotifier extends StateNotifier<MapState> {
     // Build default map: first photo per province
     final Map<String, AssetEntity> provinceSelectedPhotos = {};
     for (final photo in allPhotos) {
-      if (photo.country == 'Thailand' && photo.province.isNotEmpty && photo.assetEntity != null) {
-        final norm = photo.province.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
+      if (photo.country == 'Thailand' &&
+          photo.province.isNotEmpty &&
+          photo.assetEntity != null) {
+        final norm = photo.province
+            .replaceAll(RegExp(r'[\s-]'), '')
+            .toLowerCase();
         provinceSelectedPhotos.putIfAbsent(norm, () => photo.assetEntity!);
       }
     }
@@ -107,7 +112,9 @@ class MapNotifier extends StateNotifier<MapState> {
     for (final entry in coverState.assetIds.entries) {
       final norm = entry.key;
       final assetId = entry.value;
-      final override = allPhotos.where((p) => p.assetEntity?.id == assetId).firstOrNull;
+      final override = allPhotos
+          .where((p) => p.assetEntity?.id == assetId)
+          .firstOrNull;
       if (override?.assetEntity != null) {
         provinceSelectedPhotos[norm] = override!.assetEntity!;
         // Invalidate cached image so it reloads with the new entity
@@ -135,15 +142,18 @@ class MapNotifier extends StateNotifier<MapState> {
     );
   }
 
-  Future<void> _loadAndApplySingle(String provinceName, AssetEntity entity) async {
+  Future<void> _loadAndApplySingle(
+    String provinceName,
+    AssetEntity entity,
+  ) async {
     final img = await _loadUiImage(entity);
     if (img != null) {
       _imageCache[entity.id] = img;
-      
+
       // Update state incrementally
       final updatedPhotos = Map<String, ui.Image?>.from(state.provincePhotos);
       updatedPhotos[provinceName] = img;
-      
+
       final updatedLoadTimes = Map<String, DateTime>.from(state.imageLoadTimes);
       if (!updatedLoadTimes.containsKey(provinceName)) {
         updatedLoadTimes[provinceName] = DateTime.now();
@@ -157,7 +167,7 @@ class MapNotifier extends StateNotifier<MapState> {
   }
 
   Future<ui.Image?> _loadUiImage(AssetEntity entity) async {
-    // Optimized to 250x250 for the map view. 
+    // Optimized to 250x250 for the map view.
     // This is significantly faster to decode than 400x400 and uses much less RAM.
     final byteData = await entity.thumbnailDataWithSize(
       const ThumbnailSize(250, 250),

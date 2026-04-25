@@ -261,17 +261,13 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
     Navigator.of(context, rootNavigator: true).push(
       PageRouteBuilder<void>(
         opaque: false,
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 350),
         reverseTransitionDuration: const Duration(milliseconds: 300),
-        pageBuilder: (context, animation, secondaryAnimation) {
-          return FadeTransition(
-            opacity: animation,
-            child: PhotoViewerScreen(
-              photos: photos,
-              initialIndex: initialIndex,
-            ),
-          );
-        },
+        pageBuilder: (context, animation, _) => PhotoViewerScreen(
+          photos: photos,
+          initialIndex: initialIndex,
+          routeAnimation: animation,
+        ),
       ),
     );
   }

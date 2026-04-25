@@ -192,11 +192,12 @@ class _DistrictGalleryScreenState extends ConsumerState<DistrictGalleryScreen> {
     Navigator.of(context, rootNavigator: true).push(
       PageRouteBuilder<void>(
         opaque: false,
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 350),
         reverseTransitionDuration: const Duration(milliseconds: 300),
-        pageBuilder: (context, animation, _) => FadeTransition(
-          opacity: animation,
-          child: PhotoViewerScreen(photos: photos, initialIndex: index),
+        pageBuilder: (context, animation, _) => PhotoViewerScreen(
+          photos: photos,
+          initialIndex: index,
+          routeAnimation: animation,
         ),
       ),
     );
