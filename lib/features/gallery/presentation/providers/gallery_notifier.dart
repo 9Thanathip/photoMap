@@ -276,7 +276,14 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       // after the permission dialog is dismissed for the first time.
       List<AssetPathEntity> albums = [];
       for (int attempt = 0; attempt < 3; attempt++) {
-        albums = await PhotoManager.getAssetPathList(onlyAll: true);
+        albums = await PhotoManager.getAssetPathList(
+          onlyAll: true,
+          filterOption: FilterOptionGroup(
+            orders: [
+              const OrderOption(type: OrderOptionType.createDate, asc: false),
+            ],
+          ),
+        );
         if (albums.isNotEmpty) break;
         await Future.delayed(const Duration(milliseconds: 800));
       }
@@ -287,6 +294,12 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       }
       final album = albums.first;
       final total = await album.assetCountAsync;
+      
+      if (total == 0) {
+        state = state.copyWith(allPhotos: [], isLoading: false);
+        return;
+      }
+      
       final assets = await album.getAssetListRange(start: 0, end: total);
       
       final currentMap = {for(final p in state.allPhotos) p.path: p};
