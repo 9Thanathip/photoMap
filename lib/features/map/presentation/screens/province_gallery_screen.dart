@@ -14,10 +14,13 @@ class ProvinceGalleryScreen extends ConsumerStatefulWidget {
   const ProvinceGalleryScreen({
     super.key,
     required this.provinceName,
+    this.districtName,
     this.onPickCover,
   });
 
   final String provinceName;
+  final String? districtName;
+
   /// When non-null, the screen operates in "pick cover" mode.
   /// Tapping a photo calls this callback instead of opening the viewer.
   final void Function(PhotoItem photo)? onPickCover;
@@ -81,11 +84,14 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
   @override
   Widget build(BuildContext context) {
     final gallery = ref.watch(galleryStateProvider);
-    final photos =
-        gallery.allPhotos
-            .where((p) => p.province == widget.provinceName)
-            .toList()
-          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    final photos = gallery.allPhotos.where((p) {
+      final matchesProvince = p.province == widget.provinceName;
+      if (widget.districtName != null) {
+        return matchesProvince && p.district == widget.districtName;
+      }
+      return matchesProvince;
+    }).toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     final topPad = MediaQuery.paddingOf(context).top;
     final theme = Theme.of(context);
@@ -124,17 +130,24 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
               left: 16,
               right: 16,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.92),
+                  color: theme.colorScheme.secondaryContainer.withValues(
+                    alpha: 0.92,
+                  ),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.touch_app_outlined,
-                        size: 16,
-                        color: theme.colorScheme.onSecondaryContainer),
+                    Icon(
+                      Icons.touch_app_outlined,
+                      size: 16,
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Tap a photo to set as cover',
@@ -149,6 +162,34 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
               ),
             ),
 
+          // Top gradient protection
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: topPad + 110,
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: _isScrolled ? 0.6 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        theme.colorScheme.surface,
+                        theme.colorScheme.surface,
+                        theme.colorScheme.surface.withAlpha(0),
+                      ],
+                      stops: const [0.0, 0.72, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           // Header
           Positioned(
             top: topPad + 12,
@@ -158,7 +199,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
               children: [
                 Expanded(
                   child: ProvinceHeader(
-                    title: widget.provinceName,
+                    title: widget.districtName ?? widget.provinceName,
                     viewMode: ProvinceViewMode.grid,
                     isSelectingDistrict: true,
                     onBack: () => Navigator.pop(context),

@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
-import 'district_gallery_screen.dart';
+import 'province_gallery_screen.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/districts_grid.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/districts_map.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/province_header.dart';
@@ -61,8 +61,9 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
     setState(() => _downloading = true);
 
     try {
-      final boundary = _repaintKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
+      final boundary =
+          _repaintKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) return;
 
       final image = await boundary.toImage(pixelRatio: 2.0);
@@ -70,7 +71,8 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
       if (byteData == null) return;
 
       final bytes = byteData.buffer.asUint8List();
-      final filename = '${widget.provinceName}_map_${DateTime.now().millisecondsSinceEpoch}.png';
+      final filename =
+          '${widget.provinceName}_map_${DateTime.now().millisecondsSinceEpoch}.png';
 
       await PhotoManager.editor.saveImage(
         bytes,
@@ -84,7 +86,9 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
           SnackBar(
             content: const Text('Saved to Photos'),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -94,7 +98,9 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
           SnackBar(
             content: const Text('Failed to save image'),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -135,16 +141,18 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
     );
   }
 
-  void _onSelectDistrict(String districtName, Map<String, List<PhotoItem>> byDistrict) {
+  void _onSelectDistrict(
+    String districtName,
+    Map<String, List<PhotoItem>> byDistrict,
+  ) {
     final photos = List<PhotoItem>.from(byDistrict[districtName] ?? [])
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => DistrictGalleryScreen(
+        builder: (_) => ProvinceGalleryScreen(
           provinceName: widget.provinceName,
           districtName: districtName,
-          photos: photos,
         ),
       ),
     );
@@ -263,8 +271,8 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                       color: Colors.black.withValues(alpha: 0.08),
                     ),
                     MapActionButton(
-                      icon: _downloading 
-                          ? Icons.hourglass_top_rounded 
+                      icon: _downloading
+                          ? Icons.hourglass_top_rounded
                           : Icons.download_rounded,
                       tooltip: 'Save to Photos',
                       onTap: _download,
