@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart' hide LatLng;
 import 'package:google_fonts/google_fonts.dart';
@@ -11,6 +12,68 @@ import '../../providers/gallery_notifier.dart';
 class PhotoInfoContent extends StatelessWidget {
   const PhotoInfoContent({super.key, required this.photo});
   final PhotoItem photo;
+
+  static String? _cachedDeviceName;
+
+  static Future<String> _getDeviceName() async {
+    if (_cachedDeviceName != null) return _cachedDeviceName!;
+    final plugin = DeviceInfoPlugin();
+    if (Platform.isIOS) {
+      final info = await plugin.iosInfo;
+      _cachedDeviceName = info.utsname.machine; // e.g. "iPhone15,2"
+      // Map to marketing name if possible
+      _cachedDeviceName = _iosModelName(info.utsname.machine);
+    } else if (Platform.isAndroid) {
+      final info = await plugin.androidInfo;
+      _cachedDeviceName = '${info.brand} ${info.model}';
+    } else {
+      _cachedDeviceName = 'Unknown Camera';
+    }
+    return _cachedDeviceName!;
+  }
+
+  static String _iosModelName(String machine) {
+    // Common iPhone models
+    const map = {
+      'iPhone10,3': 'iPhone X',
+      'iPhone10,6': 'iPhone X',
+      'iPhone11,2': 'iPhone XS',
+      'iPhone11,4': 'iPhone XS Max',
+      'iPhone11,6': 'iPhone XS Max',
+      'iPhone11,8': 'iPhone XR',
+      'iPhone12,1': 'iPhone 11',
+      'iPhone12,3': 'iPhone 11 Pro',
+      'iPhone12,5': 'iPhone 11 Pro Max',
+      'iPhone13,1': 'iPhone 12 mini',
+      'iPhone13,2': 'iPhone 12',
+      'iPhone13,3': 'iPhone 12 Pro',
+      'iPhone13,4': 'iPhone 12 Pro Max',
+      'iPhone14,4': 'iPhone 13 mini',
+      'iPhone14,5': 'iPhone 13',
+      'iPhone14,2': 'iPhone 13 Pro',
+      'iPhone14,3': 'iPhone 13 Pro Max',
+      'iPhone14,7': 'iPhone 14',
+      'iPhone14,8': 'iPhone 14 Plus',
+      'iPhone15,2': 'iPhone 14 Pro',
+      'iPhone15,3': 'iPhone 14 Pro Max',
+      'iPhone15,4': 'iPhone 15',
+      'iPhone15,5': 'iPhone 15 Plus',
+      'iPhone16,1': 'iPhone 15 Pro',
+      'iPhone16,2': 'iPhone 15 Pro Max',
+      'iPhone17,1': 'iPhone 16 Pro',
+      'iPhone17,2': 'iPhone 16 Pro Max',
+      'iPhone17,3': 'iPhone 16',
+      'iPhone17,4': 'iPhone 16 Plus',
+      'iPhone17,5': 'iPhone 16e',
+      'iPhone18,1': 'iPhone 17 Pro',
+      'iPhone18,2': 'iPhone 17 Pro Max',
+      'iPhone18,3': 'iPhone 17',
+      'iPhone18,4': 'iPhone 17 Plus',
+      'iPhone18,5': 'iPhone 17 Air',
+    };
+    final name = map[machine] ?? machine;
+    return 'Apple $name';
+  }
 
   Future<Map<String, String>> _fetchTechnicalInfo(AssetEntity? asset) async {
     if (asset == null) return {};
@@ -28,13 +91,22 @@ class PhotoInfoContent extends StatelessWidget {
       if (file == null) return {};
 
       final exif = await Exif.fromPath(file.path);
-      final attr = await exif.getAttributes();
+      final attr = await exif.getAttributes() ?? {};
+
+      // Try reading Make/Model directly if not in bulk attributes
+      String make = (attr['Make'] ?? attr['make'])?.toString().trim() ?? '';
+      String model = (attr['Model'] ?? attr['model'])?.toString().trim() ?? '';
+
+      if (make.isEmpty) {
+        try { make = (await exif.getAttribute('Make'))?.trim() ?? ''; } catch (_) {}
+      }
+      if (model.isEmpty) {
+        try { model = (await exif.getAttribute('Model'))?.trim() ?? ''; } catch (_) {}
+      }
+
       await exif.close();
 
-      if (attr == null || attr.isEmpty) return {};
-
-      final make = attr['Make']?.toString().trim() ?? '';
-      final model = attr['Model']?.toString().trim() ?? '';
+      if (attr.isEmpty && make.isEmpty && model.isEmpty) return {};
 
       String cameraName = '';
       if (make.isNotEmpty && model.isNotEmpty) {
@@ -48,13 +120,13 @@ class PhotoInfoContent extends StatelessWidget {
       } else if (make.isNotEmpty) {
         cameraName = make;
       } else {
-        cameraName = 'Unknown Camera';
+        cameraName = await _getDeviceName();
       }
 
-      final focalLength = attr['FocalLength']?.toString() ?? '';
-      final fNumber = attr['FNumber']?.toString() ?? '';
-      final iso = attr['ISOSpeedRatings']?.toString() ?? '';
-      final exposureTime = attr['ExposureTime']?.toString() ?? '';
+      final focalLength = (attr['FocalLength'] ?? attr['focalLength'])?.toString() ?? '';
+      final fNumber = (attr['FNumber'] ?? attr['fNumber'] ?? attr['ApertureValue'])?.toString() ?? '';
+      final iso = (attr['ISOSpeedRatings'] ?? attr['isoSpeedRatings'] ?? attr['ISO'])?.toString() ?? '';
+      final exposureTime = (attr['ExposureTime'] ?? attr['exposureTime'])?.toString() ?? '';
 
       String exposureStr = '0 ev';
       if (exposureTime.isNotEmpty) {
@@ -71,21 +143,38 @@ class PhotoInfoContent extends StatelessWidget {
         }
       }
 
+      String focalLengthStr = '';
+      if (focalLength.isNotEmpty) {
+        final flNum = double.tryParse(focalLength);
+        focalLengthStr = flNum != null ? flNum.toStringAsFixed(1) : focalLength;
+      }
+
+      String fNumberStr = '';
+      if (fNumber.isNotEmpty) {
+        final fnNum = double.tryParse(fNumber);
+        fNumberStr = fnNum != null ? fnNum.toStringAsFixed(2) : fNumber;
+      }
+
       String lensInfo = '';
-      if (focalLength.isNotEmpty && fNumber.isNotEmpty) {
-        lensInfo = '${focalLength}mm — f/$fNumber';
-      } else if (focalLength.isNotEmpty) {
-        lensInfo = '${focalLength}mm';
-      } else if (fNumber.isNotEmpty) {
-        lensInfo = 'f/$fNumber';
+      if (focalLengthStr.isNotEmpty && fNumberStr.isNotEmpty) {
+        lensInfo = '${focalLengthStr}mm — f/$fNumberStr';
+      } else if (focalLengthStr.isNotEmpty) {
+        lensInfo = '${focalLengthStr}mm';
+      } else if (fNumberStr.isNotEmpty) {
+        lensInfo = 'f/$fNumberStr';
       } else {
         lensInfo = 'Standard Lens';
       }
 
+      // Strip potential bracket formatting like [50] from ISO values
+      String finalIso = iso.isNotEmpty 
+          ? iso.replaceAll('[', '').replaceAll(']', '').trim() 
+          : '—';
+
       return {
         'camera': cameraName,
         'lens': lensInfo,
-        'iso': iso.isNotEmpty ? iso : '—',
+        'iso': finalIso,
         'exposure': exposureStr,
       };
     } catch (e) {
