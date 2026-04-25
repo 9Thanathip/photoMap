@@ -4,9 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import '../../../gallery/presentation/providers/gallery_notifier.dart';
-import '../../../gallery/presentation/widgets/photo_tile.dart';
-import '../../../gallery/presentation/widgets/photo_viewer_screen.dart';
-import '../../../gallery/presentation/widgets/photos_tab.dart';
+import '../../../gallery/presentation/widgets/main_gallery/photo_tile.dart';
+import '../../../gallery/presentation/widgets/viewer/photo_viewer_screen.dart';
+import '../../../gallery/presentation/widgets/main_gallery/photos_tab.dart';
 import '../widgets/province_district/province_header.dart';
 import 'package:photo_map/common_widgets/view_mode_sheet.dart';
 

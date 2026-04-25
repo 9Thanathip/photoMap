@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:photo_manager/photo_manager.dart';
-import '../providers/gallery_notifier.dart';
+import '../../providers/gallery_notifier.dart';
 
 // ── Nominatim place model ─────────────────────────────────────────────────────
 

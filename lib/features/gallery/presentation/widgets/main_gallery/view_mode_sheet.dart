@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
-import 'package:photo_map/features/gallery/presentation/widgets/photos_tab.dart';
+import 'package:photo_map/features/gallery/presentation/widgets/main_gallery/photos_tab.dart';
 
 class ViewModeSheet extends StatelessWidget {
   const ViewModeSheet({

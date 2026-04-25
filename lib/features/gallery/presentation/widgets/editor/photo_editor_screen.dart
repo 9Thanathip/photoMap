@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
-import '../providers/gallery_notifier.dart';
-import '../../utils/color_matrix_utils.dart';
+import '../../providers/gallery_notifier.dart';
+import '../../../utils/color_matrix_utils.dart';
 
 enum _EditMode { presets, adjust }
 

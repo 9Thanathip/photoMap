@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
-import '../providers/gallery_notifier.dart';
+import '../../providers/gallery_notifier.dart';
 import 'album_card.dart';
 import 'photo_tile.dart';
 import 'photos_tab.dart' show photoGridDelegate;

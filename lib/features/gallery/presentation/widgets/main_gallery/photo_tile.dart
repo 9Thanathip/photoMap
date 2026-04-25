@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:shimmer/shimmer.dart';
-import '../providers/gallery_notifier.dart';
+import '../../providers/gallery_notifier.dart';
 
 class PhotoTile extends StatefulWidget {
   const PhotoTile({

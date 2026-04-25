@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
-import '../providers/gallery_notifier.dart';
+import '../../providers/gallery_notifier.dart';
 
 class LocationPickerSheet extends ConsumerStatefulWidget {
   const LocationPickerSheet({super.key, required this.photo});

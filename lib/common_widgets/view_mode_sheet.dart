@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:photo_map/features/gallery/presentation/widgets/photos_tab.dart';
+import 'package:photo_map/features/gallery/presentation/widgets/main_gallery/photos_tab.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 
 /// Shows a bottom sheet for selecting a [ViewMode].

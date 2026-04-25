@@ -5,11 +5,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shimmer/shimmer.dart';
 import '../providers/gallery_notifier.dart';
 import '../providers/gallery_select_provider.dart';
-import '../widgets/albums_tab.dart';
-import '../widgets/gallery_header.dart';
-import '../widgets/photo_options_sheet.dart';
-import '../widgets/photo_viewer_screen.dart';
-import '../widgets/photos_tab.dart';
+import '../widgets/main_gallery/albums_tab.dart';
+import '../widgets/main_gallery/gallery_header.dart';
+import '../widgets/viewer/photo_options_sheet.dart';
+import '../widgets/viewer/photo_viewer_screen.dart';
+import '../widgets/main_gallery/photos_tab.dart';
 import 'package:photo_map/common_widgets/view_mode_sheet.dart';
 
 class GalleryScreen extends ConsumerStatefulWidget {
