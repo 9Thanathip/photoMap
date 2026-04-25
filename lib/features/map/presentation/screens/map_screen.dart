@@ -23,7 +23,7 @@ class MapScreen extends ConsumerStatefulWidget {
 }
 
 class _MapScreenState extends ConsumerState<MapScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final Ticker _ticker;
   DateTime _currentTime = DateTime.now();
   late final DateTime _openTime;
