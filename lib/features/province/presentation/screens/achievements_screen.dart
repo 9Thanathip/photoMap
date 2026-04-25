@@ -4,11 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/features/map/presentation/screens/province_gallery_screen.dart';
 import '../widgets/achievements_stats.dart';
-import '../widgets/achievements_stats_card.dart';
 import '../widgets/country_pills.dart';
 import '../widgets/gold_text.dart';
-import '../widgets/province_achievement_card.dart';
-import '../widgets/thailand_map_thumbnail.dart';
 
 const Map<String, int> _kDistrictCount = {
   'Amnat Charoen': 7, 'Ang Thong': 7, 'Bangkok': 50, 'Bueng Kan': 8,
@@ -41,13 +38,12 @@ class ProvinceScreen extends ConsumerStatefulWidget {
 
 class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
   String _country = 'Thailand';
-  String? _expanded;
 
   @override
   Widget build(BuildContext context) {
     final photos = ref.watch(galleryStateProvider).allPhotos;
-    final shapes = ref.watch(shapesProvider);
     final topPad = MediaQuery.paddingOf(context).top;
+    final dark = context.isDark;
 
     final stats = AchievementsStats.from(photos);
     final countries = <String>{'Thailand', ...stats.countriesVisited.keys};
@@ -67,97 +63,191 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
         });
 
     final visitedCount = allProvinces.where(visitedSet.contains).length;
-    final progress = allProvinces.isEmpty ? 0.0 : visitedCount / allProvinces.length;
+    final total = allProvinces.length;
+    final progress = total == 0 ? 0.0 : visitedCount / total;
+    final pct = (progress * 100).toStringAsFixed(0);
+
+    // ── Black & white theme ──
+    final bgColor = dark ? const Color(0xFF0A0A0A) : const Color(0xFFF5F5F5);
+    final cardBg = dark ? const Color(0xFF161616) : Colors.white;
+    final borderC = dark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.06);
+    final tp = dark ? Colors.white : const Color(0xFF111111);
+    final ts = dark ? Colors.white54 : const Color(0xFF777777);
+    final tt = dark ? Colors.white24 : const Color(0xFFBBBBBB);
 
     return Scaffold(
-      backgroundColor: context.isDark ? const Color(0xFF0A0A0F) : const Color(0xFFF2F2F7),
+      backgroundColor: bgColor,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(20, topPad + 20, 20, 8),
+              padding: EdgeInsets.fromLTRB(20, topPad + 20, 20, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── Header ──
                   Text(
-                    'Achievements',
-                    style: GoogleFonts.poppins(
-                      fontSize: 30, fontWeight: FontWeight.w700,
-                      color: context.isDark ? Colors.white : const Color(0xFF1C1C1E),
-                      height: 1.1,
+                    'Places',
+                    style: GoogleFonts.inter(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: tp,
                     ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
-                    '$visitedCount of ${allProvinces.length} provinces visited',
-                    style: GoogleFonts.poppins(
-                        fontSize: 13, color: context.dim(0.38, 0.38)),
+                    '$visitedCount of $total provinces explored',
+                    style: GoogleFonts.inter(fontSize: 14, color: ts),
                   ),
+
                   if (countries.length > 1) ...[
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
                     CountryPills(
                       countries: countries,
                       selected: _country,
                       stats: stats,
-                      onSelected: (c) => setState(() {
-                        _country = c;
-                        _expanded = null;
-                      }),
+                      onSelected: (c) => setState(() => _country = c),
                     ),
                   ],
                   const SizedBox(height: 20),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_country == 'Thailand') ...[
-                        SizedBox(
-                          width: 86,
-                          child: shapes.when(
-                            loading: () => const SizedBox(height: 154),
-                            error: (err, st) => const SizedBox(height: 154),
-                            data: (s) => ThailandMapThumbnail(
-                              shapes: s, visitedSet: visitedSet),
+
+                  // ── Progress card ──
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 24),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: borderC),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          '$pct%',
+                          style: GoogleFonts.inter(
+                            fontSize: 52,
+                            fontWeight: FontWeight.w700,
+                            color: tp,
+                            height: 1,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                      ],
-                      Expanded(
-                        child: AchievementsStatsCard(
-                          visited: visitedCount,
-                          total: allProvinces.length,
-                          progress: progress,
+                        const SizedBox(height: 6),
+                        Text(
+                          '$visitedCount / $total provinces',
+                          style: GoogleFonts.inter(fontSize: 13, color: ts),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(3),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 5,
+                            backgroundColor: tt.withValues(alpha: 0.2),
+                            valueColor: AlwaysStoppedAnimation(tp),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 28),
                 ],
               ),
             ),
           ),
+
+          // ── Province list ──
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
             sliver: SliverList.builder(
               itemCount: allProvinces.length,
-              itemBuilder: (context, i) {
+              itemBuilder: (_, i) {
                 final name = allProvinces[i];
-                final isExpanded = _expanded == name;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: ProvinceAchievementCard(
-                    name: name,
-                    visited: visitedSet.contains(name),
-                    photos: stats.photosByProvince[name] ?? [],
-                    isExpanded: isExpanded,
-                    onTap: () =>
-                        setState(() => _expanded = isExpanded ? null : name),
-                    onViewAll: visitedSet.contains(name)
-                        ? () => Navigator.of(context, rootNavigator: true).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) =>
-                                    ProvinceGalleryScreen(provinceName: name),
-                              ),
-                            )
-                        : null,
+                final visited = visitedSet.contains(name);
+                final count = stats.photosByProvince[name]?.length ?? 0;
+
+                return GestureDetector(
+                  onTap: visited
+                      ? () =>
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  ProvinceGalleryScreen(provinceName: name),
+                            ),
+                          )
+                      : null,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 13),
+                    margin: const EdgeInsets.only(bottom: 6),
+                    decoration: BoxDecoration(
+                      color: visited ? cardBg : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      border: visited
+                          ? Border.all(color: borderC)
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        // Check / empty circle
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: visited
+                                ? tp
+                                : Colors.transparent,
+                            border: visited
+                                ? null
+                                : Border.all(
+                                    color: tt,
+                                    width: 1.5,
+                                  ),
+                          ),
+                          child: visited
+                              ? Icon(
+                                  Icons.check_rounded,
+                                  size: 14,
+                                  color: dark
+                                      ? Colors.black
+                                      : Colors.white,
+                                )
+                              : null,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            name,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: visited
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                              color: visited ? tp : tt,
+                            ),
+                          ),
+                        ),
+                        if (visited && count > 0) ...[
+                          Text(
+                            '$count',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: ts,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 16,
+                            color: tt,
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 );
               },

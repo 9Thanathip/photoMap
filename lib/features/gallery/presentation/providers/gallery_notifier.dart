@@ -5,7 +5,6 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/features/province/data/province_data.dart';
 import 'package:photo_map/core/services/geo_service.dart';
 import 'package:photo_map/core/services/cache_service.dart';
-import 'dart:math' as math;
 
 class PhotoItem {
   const PhotoItem({
@@ -37,38 +36,37 @@ class PhotoItem {
     String? district,
     double? lat,
     double? lng,
-  }) =>
-      PhotoItem(
-        path: path,
-        country: country ?? this.country,
-        province: province ?? this.province,
-        district: district ?? this.district,
-        timestamp: timestamp,
-        lat: lat ?? this.lat,
-        lng: lng ?? this.lng,
-        assetEntity: assetEntity,
-      );
+  }) => PhotoItem(
+    path: path,
+    country: country ?? this.country,
+    province: province ?? this.province,
+    district: district ?? this.district,
+    timestamp: timestamp,
+    lat: lat ?? this.lat,
+    lng: lng ?? this.lng,
+    assetEntity: assetEntity,
+  );
 
   PhotoItem copyWithAsset(AssetEntity asset) => PhotoItem(
-        path: path,
-        country: country,
-        province: province,
-        district: district,
-        timestamp: timestamp,
-        lat: lat,
-        lng: lng,
-        assetEntity: asset,
-      );
+    path: path,
+    country: country,
+    province: province,
+    district: district,
+    timestamp: timestamp,
+    lat: lat,
+    lng: lng,
+    assetEntity: asset,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': path,
-        'country': country,
-        'province': province,
-        'district': district,
-        'timestamp': timestamp.toIso8601String(),
-        'lat': lat,
-        'lng': lng,
-      };
+    'id': path,
+    'country': country,
+    'province': province,
+    'district': district,
+    'timestamp': timestamp.toIso8601String(),
+    'lat': lat,
+    'lng': lng,
+  };
 
   factory PhotoItem.fromJson(Map<String, dynamic> json, [AssetEntity? asset]) =>
       PhotoItem(
@@ -116,23 +114,21 @@ class GalleryState {
     int? geocodeProcessed,
     int? geocodeTotal,
     String? error,
-  }) =>
-      GalleryState(
-        allPhotos: allPhotos ?? this.allPhotos,
-        selectedCountry: selectedCountry ?? this.selectedCountry,
-        selectedProvince: selectedProvince ?? this.selectedProvince,
-        isLoading: isLoading ?? this.isLoading,
-        isGeocoding: isGeocoding ?? this.isGeocoding,
-        geocodeProcessed: geocodeProcessed ?? this.geocodeProcessed,
-        geocodeTotal: geocodeTotal ?? this.geocodeTotal,
-        error: error,
-      );
+  }) => GalleryState(
+    allPhotos: allPhotos ?? this.allPhotos,
+    selectedCountry: selectedCountry ?? this.selectedCountry,
+    selectedProvince: selectedProvince ?? this.selectedProvince,
+    isLoading: isLoading ?? this.isLoading,
+    isGeocoding: isGeocoding ?? this.isGeocoding,
+    geocodeProcessed: geocodeProcessed ?? this.geocodeProcessed,
+    geocodeTotal: geocodeTotal ?? this.geocodeTotal,
+    error: error,
+  );
 
   /// Photos for current album drill-down selection.
   List<PhotoItem> get filteredPhotos {
     if (selectedCountry == 'All') return allPhotos;
-    final byCountry =
-        allPhotos.where((p) => p.country == selectedCountry);
+    final byCountry = allPhotos.where((p) => p.country == selectedCountry);
     if (selectedProvince == 'All') return byCountry.toList();
     return byCountry.where((p) {
       final prov = p.province.isEmpty ? 'Unknown' : p.province;
@@ -201,23 +197,26 @@ class GalleryState {
 
 final galleryStateProvider =
     StateNotifierProvider<GalleryNotifier, GalleryState>((ref) {
-  return GalleryNotifier();
-});
+      return GalleryNotifier();
+    });
 
 class GalleryNotifier extends StateNotifier<GalleryState> {
   final GeoService _geoService = GeoService();
   final CacheService _cacheService = CacheService();
-  final Map<String, ({String country, String province, String district})> _geocodingCache = {};
+  final Map<String, ({String country, String province, String district})>
+  _geocodingCache = {};
 
   GalleryNotifier()
-      : super(const GalleryState(
+    : super(
+        const GalleryState(
           allPhotos: [],
           selectedCountry: 'All',
           selectedProvince: 'All',
           isLoading: false,
           isGeocoding: false,
           error: null,
-        )) {
+        ),
+      ) {
     _initAndLoad();
   }
   Future<void> _initAndLoad() async {
@@ -257,7 +256,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     final cachedData = await _cacheService.loadPhotoMetadata();
     if (cachedData != null && cachedData.isNotEmpty) {
       // Background full scan, but show cache now
-      await _loadFromCache(cachedData); 
+      await _loadFromCache(cachedData);
       _loadAll(isSilent: true); // background refresh
     } else {
       await _loadAll(); // first time or no cache
@@ -294,20 +293,24 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       }
       final album = albums.first;
       final total = await album.assetCountAsync;
-      
+
       if (total == 0) {
         state = state.copyWith(allPhotos: [], isLoading: false);
         return;
       }
-      
+
       final assets = await album.getAssetListRange(start: 0, end: total);
-      
-      final currentMap = {for(final p in state.allPhotos) p.path: p};
+
+      final currentMap = {for (final p in state.allPhotos) p.path: p};
       final photos = _buildPhotoItems(assets, currentMap);
-      
+
       state = state.copyWith(allPhotos: photos, isLoading: false);
       _geocodePhotos(photos).catchError((_) {
-        state = state.copyWith(isGeocoding: false, geocodeProcessed: 0, geocodeTotal: 0);
+        state = state.copyWith(
+          isGeocoding: false,
+          geocodeProcessed: 0,
+          geocodeTotal: 0,
+        );
       });
     } catch (e) {
       final msg = e.toString().contains('Permission')
@@ -317,7 +320,10 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     }
   }
 
-  List<PhotoItem> _buildPhotoItems(List<AssetEntity> assets, [Map<String, PhotoItem>? currentMap]) {
+  List<PhotoItem> _buildPhotoItems(
+    List<AssetEntity> assets, [
+    Map<String, PhotoItem>? currentMap,
+  ]) {
     final items = <PhotoItem>[];
     for (final asset in assets) {
       if (asset.type == AssetType.image || asset.type == AssetType.video) {
@@ -328,15 +334,17 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
           continue;
         }
 
-        items.add(PhotoItem(
-          path: asset.id,
-          country: '',
-          province: '',
-          timestamp: asset.createDateTime,
-          lat: asset.latitude ?? 0.0,
-          lng: asset.longitude ?? 0.0,
-          assetEntity: asset,
-        ));
+        items.add(
+          PhotoItem(
+            path: asset.id,
+            country: '',
+            province: '',
+            timestamp: asset.createDateTime,
+            lat: asset.latitude ?? 0.0,
+            lng: asset.longitude ?? 0.0,
+            assetEntity: asset,
+          ),
+        );
       }
     }
     return items;
@@ -355,12 +363,15 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     // Batch process coordinates to avoid overloading the platform channel
     const int batchSize = 15;
     for (int i = 0; i < withCoords.length; i += batchSize) {
-      final int end = (i + batchSize < withCoords.length) ? i + batchSize : withCoords.length;
+      final int end = (i + batchSize < withCoords.length)
+          ? i + batchSize
+          : withCoords.length;
       final List<Future<void>> batchFutures = [];
 
       for (int j = i; j < end; j++) {
         final currentPhoto = withCoords[j];
-        if (currentPhoto.hasLocation || currentPhoto.assetEntity == null) continue;
+        if (currentPhoto.hasLocation || currentPhoto.assetEntity == null)
+          continue;
 
         final photoIdx = j;
         batchFutures.add(() async {
@@ -374,14 +385,16 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
               return;
             }
 
-            final file = await currentPhoto.assetEntity!.originFile ?? await currentPhoto.assetEntity!.file;
+            final file =
+                await currentPhoto.assetEntity!.originFile ??
+                await currentPhoto.assetEntity!.file;
             if (file != null) {
               final exif = await Exif.fromPath(file.path);
               final latLong = await exif.getLatLong();
               await exif.close();
 
               if (latLong != null) {
-                 withCoords[photoIdx] = currentPhoto.copyWith(
+                withCoords[photoIdx] = currentPhoto.copyWith(
                   lat: latLong.latitude,
                   lng: latLong.longitude,
                 );
@@ -414,7 +427,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       pending[key] = (lat: photo.lat, lng: photo.lng);
     }
     if (pending.isEmpty) {
-      state = state.copyWith(isGeocoding: false, geocodeProcessed: 0, geocodeTotal: 0);
+      state = state.copyWith(
+        isGeocoding: false,
+        geocodeProcessed: 0,
+        geocodeTotal: 0,
+      );
       return;
     }
 
@@ -422,13 +439,19 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     _applyOfflineGeo(withCoords);
 
     // Step 3: Lazy Background Online Pass (Internet geocoding with throttling prevention)
-    final resolved = <String, ({String country, String province, String district})>{};
+    final resolved =
+        <String, ({String country, String province, String district})>{};
 
     // Seed resolved with what offline pass already found
     for (final photo in state.allPhotos) {
       if (!photo.hasLocation || photo.province.isEmpty) continue;
-      final key = '${photo.lat.toStringAsFixed(4)}_${photo.lng.toStringAsFixed(4)}';
-      resolved[key] = (country: photo.country, province: photo.province, district: photo.district);
+      final key =
+          '${photo.lat.toStringAsFixed(4)}_${photo.lng.toStringAsFixed(4)}';
+      resolved[key] = (
+        country: photo.country,
+        province: photo.province,
+        district: photo.district,
+      );
     }
 
     final needsOnline = pending.keys.where((k) {
@@ -442,17 +465,24 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
       final coords = pending[key]!;
       try {
-        final placemarks = await placemarkFromCoordinates(coords.lat, coords.lng);
+        final placemarks = await placemarkFromCoordinates(
+          coords.lat,
+          coords.lng,
+        );
         if (placemarks.isNotEmpty) {
           final pm = placemarks.first;
 
           final country = pm.country ?? 'Unknown';
           String province = _cleanProvinceName(pm.administrativeArea ?? '');
           if (province.isEmpty || province == 'Unknown') {
-            final subProvince = _cleanProvinceName(pm.subAdministrativeArea ?? '');
+            final subProvince = _cleanProvinceName(
+              pm.subAdministrativeArea ?? '',
+            );
             if (subProvince.isNotEmpty) province = subProvince;
           }
-          final district = _cleanDistrictName(pm.subAdministrativeArea ?? pm.locality ?? '');
+          final district = _cleanDistrictName(
+            pm.subAdministrativeArea ?? pm.locality ?? '',
+          );
 
           final existing = resolved[key];
           resolved[key] = (
@@ -473,16 +503,22 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     }
 
     _persistAll();
-    state = state.copyWith(isGeocoding: false, geocodeProcessed: 0, geocodeTotal: 0);
+    state = state.copyWith(
+      isGeocoding: false,
+      geocodeProcessed: 0,
+      geocodeTotal: 0,
+    );
   }
 
   /// Run offline GeoJSON matching and apply results immediately.
   void _applyOfflineGeo(List<PhotoItem> photos) {
-    final resolved = <String, ({String country, String province, String district})>{};
+    final resolved =
+        <String, ({String country, String province, String district})>{};
 
     for (final photo in photos) {
       if (!photo.hasLocation) continue;
-      final key = '${photo.lat.toStringAsFixed(4)}_${photo.lng.toStringAsFixed(4)}';
+      final key =
+          '${photo.lat.toStringAsFixed(4)}_${photo.lng.toStringAsFixed(4)}';
 
       // Skip if already resolved
       if (photo.province.isNotEmpty) continue;
@@ -498,7 +534,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       if (geoProvince != null) {
         String provinceName = geoProvince;
         for (final p in thaiProvinces) {
-          if (p.name.replaceAll(RegExp(r'[\s-]'), '').toLowerCase() == geoProvince) {
+          if (p.name.replaceAll(RegExp(r'[\s-]'), '').toLowerCase() ==
+              geoProvince) {
             provinceName = p.name;
             break;
           }
@@ -522,26 +559,35 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     _cacheService.savePhotoMetadata(photoJson);
 
     // 2. Geocoding results
-    final geoJson = _geocodingCache.map((key, val) => MapEntry(key, {
-          'country': val.country,
-          'province': val.province,
-          'district': val.district,
-        }));
+    final geoJson = _geocodingCache.map(
+      (key, val) => MapEntry(key, {
+        'country': val.country,
+        'province': val.province,
+        'district': val.district,
+      }),
+    );
     _cacheService.saveGeoCache(geoJson);
   }
 
-  void _applyResolved(Map<String, ({String country, String province, String district})> resolved) {
+  void _applyResolved(
+    Map<String, ({String country, String province, String district})> resolved,
+  ) {
     final updated = state.allPhotos.map((photo) {
       if (!photo.hasLocation) {
-        return photo.country.isEmpty ? photo.copyWith(country: 'Unknown') : photo;
+        return photo.country.isEmpty
+            ? photo.copyWith(country: 'Unknown')
+            : photo;
       }
-      
-      final key = '${photo.lat.toStringAsFixed(4)}_${photo.lng.toStringAsFixed(4)}';
+
+      final key =
+          '${photo.lat.toStringAsFixed(4)}_${photo.lng.toStringAsFixed(4)}';
       final loc = resolved[key];
       if (loc == null) return photo;
-      
+
       return photo.copyWith(
-        country: photo.country.isEmpty || photo.country == 'Unknown' ? loc.country : photo.country,
+        country: photo.country.isEmpty || photo.country == 'Unknown'
+            ? loc.country
+            : photo.country,
         province: photo.province.isEmpty ? loc.province : photo.province,
         district: photo.district.isEmpty ? loc.district : photo.district,
       );
@@ -617,8 +663,9 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       state = state.copyWith(selectedProvince: province);
 
   void addPhoto(String path, String province) {
-    final country =
-        state.selectedCountry == 'All' ? 'Unknown' : state.selectedCountry;
+    final country = state.selectedCountry == 'All'
+        ? 'Unknown'
+        : state.selectedCountry;
     final photo = PhotoItem(
       path: path,
       country: country,
@@ -655,7 +702,10 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
   /// Update country/province for a photo identified by its path.
   void updatePhotoLocation(
-      String photoPath, String newCountry, String newProvince) {
+    String photoPath,
+    String newCountry,
+    String newProvince,
+  ) {
     state = state.copyWith(
       allPhotos: state.allPhotos.map((p) {
         if (p.path != photoPath) return p;
@@ -681,9 +731,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
       // 1. Add brand-new assets
       final newAssets = assets
-          .where((a) =>
-              (a.type == AssetType.image || a.type == AssetType.video) &&
-              !existingPaths.contains(a.id))
+          .where(
+            (a) =>
+                (a.type == AssetType.image || a.type == AssetType.video) &&
+                !existingPaths.contains(a.id),
+          )
           .toList();
 
       List<PhotoItem> merged = state.allPhotos;
@@ -722,7 +774,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
       state = state.copyWith(allPhotos: updated);
       _geocodePhotos(updated).catchError((_) {
-        state = state.copyWith(isGeocoding: false, geocodeProcessed: 0, geocodeTotal: 0);
+        state = state.copyWith(
+          isGeocoding: false,
+          geocodeProcessed: 0,
+          geocodeTotal: 0,
+        );
       });
     } catch (_) {
       // Silent fail — don't disrupt the UI on background refresh
