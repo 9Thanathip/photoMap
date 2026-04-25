@@ -381,9 +381,8 @@ class _GeocodingProgressChipState extends State<_GeocodingProgressChip>
       _visible = true;
       _anim.forward();
     } else if (!shouldShow && _visible) {
-      _anim.reverse().then((_) {
-        if (mounted) setState(() => _visible = false);
-      });
+      _visible = false;
+      _anim.value = 0.0;
     }
   }
 
