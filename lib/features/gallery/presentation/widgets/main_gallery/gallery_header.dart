@@ -147,7 +147,7 @@ class GalleryHeader extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Visibility(
-                    visible: !inAlbumsTab,
+                    visible: !inAlbumsTab || inProvince,
                     maintainSize: true,
                     maintainAnimation: true,
                     maintainState: true,
@@ -165,26 +165,26 @@ class GalleryHeader extends StatelessWidget {
                           ),
                         ),
                         const Gap(8),
+                        if (onEnterSelect != null)
+                          GlassCard(
+                            onTap: onEnterSelect,
+                            borderRadius: 12,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            child: Text(
+                              'Select',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
-                  if (onEnterSelect != null)
-                    GlassCard(
-                      onTap: onEnterSelect,
-                      borderRadius: 12,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      child: Text(
-                        'Select',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ],
