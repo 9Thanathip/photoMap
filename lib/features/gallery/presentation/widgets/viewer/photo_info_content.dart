@@ -9,9 +9,23 @@ import 'package:latlong2/latlong.dart';
 import 'package:native_exif/native_exif.dart';
 import '../../providers/gallery_notifier.dart';
 
-class PhotoInfoContent extends StatelessWidget {
+class PhotoInfoContent extends StatefulWidget {
   const PhotoInfoContent({super.key, required this.photo});
   final PhotoItem photo;
+
+  @override
+  State<PhotoInfoContent> createState() => _PhotoInfoContentState();
+}
+
+class _PhotoInfoContentState extends State<PhotoInfoContent> {
+  late final Future<Map<String, String>> _exifFuture;
+  PhotoItem get photo => widget.photo;
+
+  @override
+  void initState() {
+    super.initState();
+    _exifFuture = _fetchTechnicalInfo(widget.photo.assetEntity);
+  }
 
   static String? _cachedDeviceName;
 
@@ -298,7 +312,7 @@ class PhotoInfoContent extends StatelessWidget {
           const SizedBox(height: 20),
           // Technical Info Card (Loaded from EXIF)
           FutureBuilder<Map<String, String>>(
-            future: _fetchTechnicalInfo(asset),
+            future: _exifFuture,
             builder: (context, snapshot) {
               final info = snapshot.data ?? {};
               final camera = info['camera'] ??
@@ -410,8 +424,9 @@ class PhotoInfoContent extends StatelessWidget {
                   children: [
                     // Real Flutter Map
                     Positioned.fill(
-                      child: IgnorePointer(
-                        child: FlutterMap(
+                      child: RepaintBoundary(
+                        child: IgnorePointer(
+                          child: FlutterMap(
                           options: MapOptions(
                             initialCenter: LatLng(photo.lat, photo.lng),
                             initialZoom: 14,
@@ -442,6 +457,7 @@ class PhotoInfoContent extends StatelessWidget {
                           ],
                         ),
                       ),
+                    ),
                     ),
                     // Map Overlay like Apple (IgnorePointer so taps pass through)
                     Positioned(
