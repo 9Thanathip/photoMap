@@ -376,7 +376,10 @@ class _GeocodingProgressChipState extends State<_GeocodingProgressChip>
   @override
   void didUpdateWidget(covariant _GeocodingProgressChip old) {
     super.didUpdateWidget(old);
-    final shouldShow = widget.isGeocoding && widget.total > 0 && widget.processed < widget.total;
+    final shouldShow =
+        widget.isGeocoding &&
+        widget.total > 0 &&
+        widget.processed < widget.total;
     if (shouldShow && !_visible) {
       _visible = true;
       _anim.forward();
@@ -413,6 +416,7 @@ class _GeocodingProgressChipState extends State<_GeocodingProgressChip>
           width: 100,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
                 width: 18,
