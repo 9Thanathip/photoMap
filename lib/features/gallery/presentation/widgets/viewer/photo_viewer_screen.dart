@@ -264,6 +264,13 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                 heroTag: heroTag,
               );
 
+        if (!isCurrent) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: RepaintBoundary(child: page),
+          );
+        }
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: AnimatedBuilder(
