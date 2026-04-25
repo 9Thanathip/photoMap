@@ -275,16 +275,20 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
               final dy = _spring.value;
               final screenH = MediaQuery.sizeOf(context).height;
 
+              // Apply translation and alignment offset ONLY to the active page
+              final isCurrent = index == _currentIndex;
+              final itemDy = isCurrent ? dy : 0.0;
+
               // Smoothly interpolate alignment from center (0,0) to bottom (0,1)
               // as the info panel opens (dy from 0 to -520)
-              final alignmentT = (dy / -520.0).clamp(0.0, 1.0);
+              final alignmentT = (itemDy / -520.0).clamp(0.0, 1.0);
               final alignment = Alignment(0, alignmentT);
 
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
                   Transform.translate(
-                    offset: Offset(0, dy),
+                    offset: Offset(0, itemDy),
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
