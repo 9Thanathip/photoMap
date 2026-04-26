@@ -4,8 +4,10 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/features/gallery/presentation/widgets/main_gallery/photo_tile.dart';
 import '../../providers/gallery_notifier.dart';
 
-// Single source of truth — both precache and display must use the same key
+// Display size for the full viewer image
 const kDisplaySize = ThumbnailSize(1920, 1920);
+// Thumbnail size matching the gallery grid — used for Hero flight
+const kThumbSize = ThumbnailSize.square(200);
 
 class ImageViewerPage extends StatefulWidget {
   const ImageViewerPage({
@@ -108,6 +110,22 @@ class _ImageViewerPageState extends State<ImageViewerPage>
       );
     }
 
+    final asset = widget.photo.assetEntity!;
+
+    // Lightweight thumbnail provider (same as gallery grid) — already decoded & cached
+    final thumbProvider = AssetEntityImageProvider(
+      asset,
+      isOriginal: false,
+      thumbnailSize: kThumbSize,
+    );
+
+    // Full-resolution provider — may take time to decode for large photos
+    final fullProvider = AssetEntityImageProvider(
+      asset,
+      isOriginal: false,
+      thumbnailSize: kDisplaySize,
+    );
+
     return GestureDetector(
       onTap: widget.onTap,
       onDoubleTapDown: (details) => _doubleTapPosition = details.localPosition,
@@ -121,51 +139,82 @@ class _ImageViewerPageState extends State<ImageViewerPage>
           alignment: widget.alignment,
           child: Hero(
             tag: widget.heroTag ?? widget.photo.path,
-            flightShuttleBuilder:
-                (
-                  BuildContext flightContext,
-                  Animation<double> animation,
-                  HeroFlightDirection flightDirection,
-                  BuildContext fromHeroContext,
-                  BuildContext toHeroContext,
-                ) {
-                  return Material(
-                    color: Colors.transparent,
-                    child: Image(
-                      image: AssetEntityImageProvider(
-                        widget.photo.assetEntity!,
-                        isOriginal: false,
-                        thumbnailSize: kDisplaySize,
-                      ),
-                      fit: BoxFit.contain,
-                      alignment: widget.alignment,
-                    ),
-                  );
-                },
-            child: Image(
-              image: AssetEntityImageProvider(
-                widget.photo.assetEntity!,
-                isOriginal: false,
-                thumbnailSize: kDisplaySize,
-              ),
-              fit: BoxFit.contain,
+            // Use the small thumbnail during Hero flight for smooth animation
+            flightShuttleBuilder: (_, animation, direction, fromCtx, toCtx) {
+              return Material(
+                color: Colors.transparent,
+                child: Image(
+                  image: thumbProvider,
+                  fit: BoxFit.contain,
+                  alignment: widget.alignment,
+                ),
+              );
+            },
+            child: _TwoPhaseImage(
+              thumbProvider: thumbProvider,
+              fullProvider: fullProvider,
               alignment: widget.alignment,
-              width: double.infinity,
-              height: double.infinity,
-              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                if (wasSynchronouslyLoaded || frame != null) return child;
-                return const Center(
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
-                  ),
-                );
-              },
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Shows the small thumbnail instantly, then crossfades to full-res once decoded.
+class _TwoPhaseImage extends StatefulWidget {
+  const _TwoPhaseImage({
+    required this.thumbProvider,
+    required this.fullProvider,
+    required this.alignment,
+  });
+
+  final ImageProvider thumbProvider;
+  final ImageProvider fullProvider;
+  final Alignment alignment;
+
+  @override
+  State<_TwoPhaseImage> createState() => _TwoPhaseImageState();
+}
+
+class _TwoPhaseImageState extends State<_TwoPhaseImage> {
+  bool _fullLoaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Start resolving full-res image
+    final stream = widget.fullProvider.resolve(createLocalImageConfiguration(context));
+    late ImageStreamListener listener;
+    listener = ImageStreamListener((_, __) {
+      if (mounted) setState(() => _fullLoaded = true);
+      stream.removeListener(listener);
+    });
+    stream.addListener(listener);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedCrossFade(
+      firstChild: Image(
+        image: widget.thumbProvider,
+        fit: BoxFit.contain,
+        alignment: widget.alignment,
+        width: double.infinity,
+        height: double.infinity,
+      ),
+      secondChild: Image(
+        image: widget.fullProvider,
+        fit: BoxFit.contain,
+        alignment: widget.alignment,
+        width: double.infinity,
+        height: double.infinity,
+      ),
+      crossFadeState: _fullLoaded
+          ? CrossFadeState.showSecond
+          : CrossFadeState.showFirst,
+      duration: const Duration(milliseconds: 200),
     );
   }
 }
