@@ -52,7 +52,7 @@ class _SetupOverlayWrapperState extends ConsumerState<SetupOverlayWrapper> {
     final gallery = ref.watch(galleryStateProvider);
 
     final isCurrentlyActive = auth.status == AuthStatus.authenticated &&
-        !gallery.loadedFromCache &&
+        gallery.isFirstTimeNoCache &&
         gallery.isGeocoding &&
         !_hasCompletedOnce &&
         (gallery.geocodeTotal == 0 ||

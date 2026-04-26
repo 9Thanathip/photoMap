@@ -92,6 +92,7 @@ class GalleryState {
     this.geocodeProcessed = 0,
     this.geocodeTotal = 0,
     this.loadedFromCache = false,
+    this.isFirstTimeNoCache = false,
     required this.error,
   });
 
@@ -103,6 +104,7 @@ class GalleryState {
   final int geocodeProcessed;
   final int geocodeTotal;
   final bool loadedFromCache;
+  final bool isFirstTimeNoCache;
   final String? error;
 
   double get geocodeProgress =>
@@ -117,6 +119,7 @@ class GalleryState {
     int? geocodeProcessed,
     int? geocodeTotal,
     bool? loadedFromCache,
+    bool? isFirstTimeNoCache,
     String? error,
   }) => GalleryState(
     allPhotos: allPhotos ?? this.allPhotos,
@@ -127,6 +130,7 @@ class GalleryState {
     geocodeProcessed: geocodeProcessed ?? this.geocodeProcessed,
     geocodeTotal: geocodeTotal ?? this.geocodeTotal,
     loadedFromCache: loadedFromCache ?? this.loadedFromCache,
+    isFirstTimeNoCache: isFirstTimeNoCache ?? this.isFirstTimeNoCache,
     error: error,
   );
 
@@ -249,7 +253,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
     // Load Geocoding Cache from disk
     final savedGeo = await _cacheService.loadGeoCache();
-    if (savedGeo != null) {
+    if (savedGeo != null && savedGeo.isNotEmpty) {
       savedGeo.forEach((key, val) {
         final data = val as Map<String, dynamic>;
         _geocodingCache[key] = (
@@ -258,6 +262,9 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
           district: (data['district'] as String?) ?? '',
         );
       });
+      state = state.copyWith(isFirstTimeNoCache: false);
+    } else {
+      state = state.copyWith(isFirstTimeNoCache: true);
     }
 
     final permission = await PhotoManager.requestPermissionExtend(
@@ -281,14 +288,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     PhotoManager.addChangeCallback(_onPhotoLibraryChanged);
     PhotoManager.startChangeNotify();
 
-    // Attempt to load from local metadata cache first for instant UI
-    final cachedData = await _cacheService.loadPhotoMetadata();
-    if (cachedData != null && cachedData.isNotEmpty) {
-      await _loadFromCache(cachedData);
-      _loadAll(isSilent: true);
-    } else {
-      await _loadAll(); // first time or no cache
-    }
+    await _loadAll();
   }
 
   void _onPhotoLibraryChanged(MethodCall call) {
@@ -344,8 +344,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
       final assets = await album.getAssetListRange(start: 0, end: total);
 
-      final currentMap = {for (final p in state.allPhotos) p.path: p};
-      final photos = _buildPhotoItems(assets, currentMap);
+      final photos = _buildPhotoItems(assets);
 
       state = state.copyWith(allPhotos: photos, isLoading: false);
       _geocodePhotos(photos).catchError((_) {
@@ -363,25 +362,18 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     }
   }
 
-  List<PhotoItem> _buildPhotoItems(
-    List<AssetEntity> assets, [
-    Map<String, PhotoItem>? currentMap,
-  ]) {
+  List<PhotoItem> _buildPhotoItems(List<AssetEntity> assets) {
     final items = <PhotoItem>[];
     for (final asset in assets) {
       if (asset.type == AssetType.image || asset.type == AssetType.video) {
-        // Reuse cached item if exists to preserve geocoding results
-        final existing = currentMap?[asset.id];
-        if (existing != null && existing.hasLocation) {
-          items.add(existing.copyWithAsset(asset));
-          continue;
-        }
-
+        final cachedGeo = _geocodingCache[asset.id];
+        
         items.add(
           PhotoItem(
             path: asset.id,
-            country: '',
-            province: '',
+            country: cachedGeo?.country ?? '',
+            province: cachedGeo?.province ?? '',
+            district: cachedGeo?.district ?? '',
             timestamp: asset.createDateTime,
             lat: asset.latitude ?? 0.0,
             lng: asset.longitude ?? 0.0,
@@ -775,71 +767,39 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     if (_isSilentReloading) return;
     _isSilentReloading = true;
     try {
-      final albums = await PhotoManager.getAssetPathList(onlyAll: true);
+      final albums = await PhotoManager.getAssetPathList(
+        onlyAll: true,
+        filterOption: FilterOptionGroup(
+          orders: [
+            const OrderOption(type: OrderOptionType.createDate, asc: false),
+          ],
+        ),
+      );
       if (albums.isEmpty) return;
 
       final album = albums.first;
       final total = await album.assetCountAsync;
-      final assets = await album.getAssetListRange(start: 0, end: total);
-
-      final existingPaths = state.allPhotos.map((p) => p.path).toSet();
-
-      // 1. Add brand-new assets
-      final newAssets = assets
-          .where(
-            (a) =>
-                (a.type == AssetType.image || a.type == AssetType.video) &&
-                !existingPaths.contains(a.id) &&
-                !_deletedAssetIds.contains(a.id),
-          )
-          .toList();
-
-      List<PhotoItem> newPhotos = [];
-      List<PhotoItem> merged = state.allPhotos;
-      if (newAssets.isNotEmpty) {
-        newPhotos = _buildPhotoItems(newAssets);
-        merged = [...newPhotos, ...merged];
-        state = state.copyWith(
-          allPhotos: merged
-              .where((p) => !_deletedAssetIds.contains(p.path))
-              .toList(),
-        );
+      if (total == 0) {
+        state = state.copyWith(allPhotos: []);
+        return;
       }
 
-      // 2. Re-fetch coordinates for existing photos that have no location yet
-      //    (covers the case where user added location in iOS Photos app)
-      final assetById = {for (final a in assets) a.id: a};
-      final noLocation = merged
-          .where((p) => !p.hasLocation && assetById.containsKey(p.path))
-          .toList();
+      final assets = await album.getAssetListRange(start: 0, end: total);
+      final photos = _buildPhotoItems(assets);
 
-      if (noLocation.isEmpty) return;
+      // Deduplicate by asset ID just in case
+      final uniqueMap = <String, PhotoItem>{};
+      for (final p in photos) {
+        if (!_deletedAssetIds.contains(p.path)) {
+          uniqueMap[p.path] = p;
+        }
+      }
+      final finalPhotos = uniqueMap.values.toList();
 
-      final updated = List<PhotoItem>.from(merged);
-      final futures = noLocation.map((photo) async {
-        final asset = assetById[photo.path]!;
-        try {
-          final ll = await asset.latlngAsync();
-          if (ll != null && ll.latitude != 0) {
-            final idx = updated.indexWhere((p) => p.path == photo.path);
-            if (idx != -1) {
-              updated[idx] = photo.copyWith(
-                lat: ll.latitude,
-                lng: ll.longitude,
-              );
-            }
-          }
-        } catch (_) {}
-      });
-      await Future.wait(futures);
+      state = state.copyWith(allPhotos: finalPhotos);
 
-      state = state.copyWith(
-        allPhotos: updated
-            .where((p) => !_deletedAssetIds.contains(p.path))
-            .toList(),
-      );
-
-      final pendingGeocode = [...newPhotos, ...noLocation];
+      // Geocode any items that don't have location yet
+      final pendingGeocode = finalPhotos.where((p) => !p.hasLocation).toList();
       if (pendingGeocode.isNotEmpty) {
         _geocodePhotos(pendingGeocode).catchError((_) {
           state = state.copyWith(
@@ -854,5 +814,5 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     } finally {
       _isSilentReloading = false;
     }
-  }
+}
 }
