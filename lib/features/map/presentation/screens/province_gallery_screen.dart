@@ -9,6 +9,7 @@ import '../../../gallery/presentation/widgets/viewer/photo_viewer_screen.dart';
 import '../../../gallery/presentation/widgets/main_gallery/photos_tab.dart';
 import '../widgets/province_district/province_header.dart';
 import 'package:photo_map/common_widgets/view_mode_sheet.dart';
+import '../providers/province_map_provider.dart';
 
 class ProvinceGalleryScreen extends ConsumerStatefulWidget {
   const ProvinceGalleryScreen({
@@ -84,14 +85,15 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
   @override
   Widget build(BuildContext context) {
     final gallery = ref.watch(galleryStateProvider);
-    final photos = gallery.allPhotos.where((p) {
-      final matchesProvince = p.province == widget.provinceName;
-      if (widget.districtName != null) {
-        return matchesProvince && p.district == widget.districtName;
-      }
-      return matchesProvince;
-    }).toList()
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    final mapState = ref.watch(provinceMapProvider(widget.provinceName));
+
+    final photos = widget.districtName != null
+        ? (mapState.allPhotosByDistrict[widget.districtName] ?? [])
+        : gallery.allPhotos
+              .where((p) => p.province == widget.provinceName)
+              .toList();
+
+    photos.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     final topPad = MediaQuery.paddingOf(context).top;
     final theme = Theme.of(context);
