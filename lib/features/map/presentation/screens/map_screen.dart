@@ -353,15 +353,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
           ),
 
           // Geocoding progress indicator
-          Positioned(
-            top: topPad + 12,
-            right: 20,
-            child: _GeocodingProgressChip(
-              isGeocoding: gallery.isGeocoding,
-              processed: gallery.geocodeProcessed,
-              total: gallery.geocodeTotal,
+          if (!gallery.loadedFromCache)
+            Positioned(
+              top: topPad + 12,
+              right: 20,
+              child: _GeocodingProgressChip(
+                isGeocoding: gallery.isGeocoding,
+                processed: gallery.geocodeProcessed,
+                total: gallery.geocodeTotal,
+              ),
             ),
-          ),
         ],
       ),
     );

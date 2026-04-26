@@ -90,6 +90,7 @@ class GalleryState {
     required this.isGeocoding,
     this.geocodeProcessed = 0,
     this.geocodeTotal = 0,
+    this.loadedFromCache = false,
     required this.error,
   });
 
@@ -100,6 +101,7 @@ class GalleryState {
   final bool isGeocoding;
   final int geocodeProcessed;
   final int geocodeTotal;
+  final bool loadedFromCache;
   final String? error;
 
   double get geocodeProgress =>
@@ -113,6 +115,7 @@ class GalleryState {
     bool? isGeocoding,
     int? geocodeProcessed,
     int? geocodeTotal,
+    bool? loadedFromCache,
     String? error,
   }) => GalleryState(
     allPhotos: allPhotos ?? this.allPhotos,
@@ -122,6 +125,7 @@ class GalleryState {
     isGeocoding: isGeocoding ?? this.isGeocoding,
     geocodeProcessed: geocodeProcessed ?? this.geocodeProcessed,
     geocodeTotal: geocodeTotal ?? this.geocodeTotal,
+    loadedFromCache: loadedFromCache ?? this.loadedFromCache,
     error: error,
   );
 
@@ -265,7 +269,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
   Future<void> _loadFromCache(List<Map<String, dynamic>> cachedData) async {
     final cachedItems = cachedData.map((j) => PhotoItem.fromJson(j)).toList();
-    state = state.copyWith(allPhotos: cachedItems);
+    state = state.copyWith(allPhotos: cachedItems, loadedFromCache: true);
   }
 
   Future<void> _loadAll({bool isSilent = false}) async {
@@ -361,7 +365,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     final List<PhotoItem> withCoords = List.from(photos);
 
     // Batch process coordinates to avoid overloading the platform channel
-    const int batchSize = 15;
+    const int batchSize = 100;
     for (int i = 0; i < withCoords.length; i += batchSize) {
       final int end = (i + batchSize < withCoords.length)
           ? i + batchSize
@@ -370,8 +374,9 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
       for (int j = i; j < end; j++) {
         final currentPhoto = withCoords[j];
-        if (currentPhoto.hasLocation || currentPhoto.assetEntity == null)
+        if (currentPhoto.hasLocation || currentPhoto.assetEntity == null) {
           continue;
+        }
 
         final photoIdx = j;
         batchFutures.add(() async {
@@ -382,30 +387,13 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
                 lat: ll.latitude,
                 lng: ll.longitude,
               );
-              return;
-            }
-
-            final file =
-                await currentPhoto.assetEntity!.originFile ??
-                await currentPhoto.assetEntity!.file;
-            if (file != null) {
-              final exif = await Exif.fromPath(file.path);
-              final latLong = await exif.getLatLong();
-              await exif.close();
-
-              if (latLong != null) {
-                withCoords[photoIdx] = currentPhoto.copyWith(
-                  lat: latLong.latitude,
-                  lng: latLong.longitude,
-                );
-              }
             }
           } catch (_) {}
         }());
       }
       if (batchFutures.isNotEmpty) {
         await Future.wait(batchFutures);
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 150));
       }
 
       // Update state after each batch so map can show photos progressively
