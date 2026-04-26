@@ -137,23 +137,37 @@ class _ImageViewerPageState extends State<ImageViewerPage>
         panEnabled: _isZoomed,
         child: Align(
           alignment: widget.alignment,
-          child: Hero(
-            tag: widget.heroTag ?? widget.photo.path,
-            // Use the small thumbnail during Hero flight for smooth animation
-            flightShuttleBuilder: (_, animation, direction, fromCtx, toCtx) {
-              return Material(
-                color: Colors.transparent,
-                child: Image(
-                  image: thumbProvider,
-                  fit: BoxFit.contain,
-                  alignment: widget.alignment,
-                ),
-              );
-            },
-            child: _TwoPhaseImage(
-              thumbProvider: thumbProvider,
-              fullProvider: fullProvider,
-              alignment: widget.alignment,
+          child: AspectRatio(
+            aspectRatio:
+                widget.photo.assetEntity!.orientatedWidth > 0 &&
+                    widget.photo.assetEntity!.orientatedHeight > 0
+                ? widget.photo.assetEntity!.orientatedWidth /
+                      widget.photo.assetEntity!.orientatedHeight
+                : 1.0,
+            child: Hero(
+              tag: widget.heroTag ?? widget.photo.path,
+              flightShuttleBuilder:
+                  (
+                    BuildContext flightContext,
+                    Animation<double> animation,
+                    HeroFlightDirection flightDirection,
+                    BuildContext fromHeroContext,
+                    BuildContext toHeroContext,
+                  ) {
+                    return Material(
+                      color: Colors.transparent,
+                      child: Image(
+                        image: thumbProvider,
+                        fit: BoxFit.cover,
+                        alignment: widget.alignment,
+                      ),
+                    );
+                  },
+              child: _TwoPhaseImage(
+                thumbProvider: thumbProvider,
+                fullProvider: fullProvider,
+                alignment: widget.alignment,
+              ),
             ),
           ),
         ),
@@ -234,7 +248,7 @@ class _TwoPhaseImageState extends State<_TwoPhaseImage> {
         // Thumbnail always rendered underneath as safety net
         Image(
           image: widget.thumbProvider,
-          fit: BoxFit.contain,
+          fit: BoxFit.cover,
           alignment: widget.alignment,
         ),
         // Full-res fades in on top once loaded
@@ -244,7 +258,7 @@ class _TwoPhaseImageState extends State<_TwoPhaseImage> {
           child: showFull
               ? Image(
                   image: widget.fullProvider,
-                  fit: BoxFit.contain,
+                  fit: BoxFit.cover,
                   alignment: widget.alignment,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 )
