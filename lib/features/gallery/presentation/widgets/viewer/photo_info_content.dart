@@ -105,16 +105,29 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
         }
       }
 
+      double? parseRational(String value) {
+        if (value.isEmpty) return null;
+        if (value.contains('/')) {
+          final parts = value.split('/');
+          if (parts.length == 2) {
+            final n = double.tryParse(parts[0].trim());
+            final d = double.tryParse(parts[1].trim());
+            if (n != null && d != null && d != 0) return n / d;
+          }
+        }
+        return double.tryParse(value);
+      }
+
       String focalLengthStr = '';
       if (focalLength.isNotEmpty) {
-        final flNum = double.tryParse(focalLength);
+        final flNum = parseRational(focalLength);
         focalLengthStr = flNum != null ? flNum.toStringAsFixed(1) : focalLength;
       }
 
       String fNumberStr = '';
       if (fNumber.isNotEmpty) {
-        final fnNum = double.tryParse(fNumber);
-        fNumberStr = fnNum != null ? fnNum.toStringAsFixed(2) : fNumber;
+        final fnNum = parseRational(fNumber);
+        fNumberStr = fnNum != null ? fnNum.toStringAsFixed(1) : fNumber;
       }
 
       String lensInfo = '';
