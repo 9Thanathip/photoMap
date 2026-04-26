@@ -8,8 +8,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../../../gallery/presentation/providers/gallery_notifier.dart';
-import 'package:photo_map/common_widgets/glass_card.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../province/data/province_data.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_actions.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_header.dart';
@@ -138,9 +136,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
       );
       await file.writeAsBytes(bytes);
 
-      await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path)]),
-      );
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     } catch (_) {}
   }
 
@@ -352,128 +348,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
               onShare: _share,
             ),
           ),
-
-          // Geocoding progress indicator
-          if (!gallery.loadedFromCache)
-            Positioned(
-              top: topPad + 12,
-              right: 20,
-              child: _GeocodingProgressChip(
-                isGeocoding: gallery.isGeocoding,
-                processed: gallery.geocodeProcessed,
-                total: gallery.geocodeTotal,
-              ),
-            ),
         ],
-      ),
-    );
-  }
-}
-
-class _GeocodingProgressChip extends StatefulWidget {
-  const _GeocodingProgressChip({
-    required this.isGeocoding,
-    required this.processed,
-    required this.total,
-  });
-
-  final bool isGeocoding;
-  final int processed;
-  final int total;
-
-  @override
-  State<_GeocodingProgressChip> createState() => _GeocodingProgressChipState();
-}
-
-class _GeocodingProgressChipState extends State<_GeocodingProgressChip>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _anim;
-  bool _visible = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _anim = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 350),
-    );
-    if (widget.isGeocoding && widget.total > 0) {
-      _visible = true;
-      _anim.value = 1.0;
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _GeocodingProgressChip old) {
-    super.didUpdateWidget(old);
-    final shouldShow =
-        widget.isGeocoding &&
-        widget.total > 0 &&
-        widget.processed < widget.total;
-    if (shouldShow && !_visible) {
-      _visible = true;
-      _anim.forward();
-    } else if (!shouldShow && _visible) {
-      _anim.reverse().then((_) {
-        if (mounted) setState(() => _visible = false);
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _anim.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!_visible) return const SizedBox.shrink();
-
-    final progress = widget.total > 0 ? widget.processed / widget.total : 0.0;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final barBg = isDark ? Colors.white24 : Colors.black12;
-    final barFg = isDark ? Colors.white : theme.colorScheme.primary;
-
-    return FadeTransition(
-      opacity: CurvedAnimation(parent: _anim, curve: Curves.easeOut),
-      child: GlassCard(
-        borderRadius: 14,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: SizedBox(
-          width: 100,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  value: progress,
-                  strokeWidth: 2.5,
-                  backgroundColor: barBg,
-                  valueColor: AlwaysStoppedAnimation<Color>(barFg),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${widget.processed} / ${widget.total}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: textColor,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

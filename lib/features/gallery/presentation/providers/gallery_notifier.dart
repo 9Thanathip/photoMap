@@ -212,6 +212,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   final Map<String, ({String country, String province, String district})>
   _geocodingCache = {};
   final Set<String> _deletedAssetIds = {};
+  bool _isSilentReloading = false;
 
   GalleryNotifier(this._ref)
     : super(
@@ -393,13 +394,14 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   }
 
   Future<void> _geocodePhotos(List<PhotoItem> photos) async {
+    if (state.isGeocoding) return;
     state = state.copyWith(
       isGeocoding: true,
       geocodeProcessed: 0,
       geocodeTotal: photos.length,
     );
-
-    // Step 1: fetch coordinates via latlngAsync for photos missing GPS data
+    try {
+      // Step 1: fetch coordinates via latlngAsync for photos missing GPS data
     final List<PhotoItem> withCoords = List.from(photos);
 
     // Batch process coordinates to avoid overloading the platform channel
@@ -531,11 +533,13 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     }
 
     _persistAll();
-    state = state.copyWith(
-      isGeocoding: false,
-      geocodeProcessed: 0,
-      geocodeTotal: 0,
-    );
+    } finally {
+      state = state.copyWith(
+        isGeocoding: false,
+        geocodeProcessed: 0,
+        geocodeTotal: 0,
+      );
+    }
   }
 
   /// Run offline GeoJSON matching and apply results immediately.
@@ -767,6 +771,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   /// Reload without spinner — adds new photos and re-geocodes any that still
   /// lack coordinates (e.g. user just added location in iOS Photos).
   Future<void> silentReload() async {
+    if (_isSilentReloading) return;
+    _isSilentReloading = true;
     try {
       final albums = await PhotoManager.getAssetPathList(onlyAll: true);
       if (albums.isEmpty) return;
@@ -787,9 +793,10 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
           )
           .toList();
 
+      List<PhotoItem> newPhotos = [];
       List<PhotoItem> merged = state.allPhotos;
       if (newAssets.isNotEmpty) {
-        final newPhotos = _buildPhotoItems(newAssets);
+        newPhotos = _buildPhotoItems(newAssets);
         merged = [...newPhotos, ...merged];
         state = state.copyWith(
           allPhotos: merged
@@ -830,15 +837,21 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
             .where((p) => !_deletedAssetIds.contains(p.path))
             .toList(),
       );
-      _geocodePhotos(updated).catchError((_) {
-        state = state.copyWith(
-          isGeocoding: false,
-          geocodeProcessed: 0,
-          geocodeTotal: 0,
-        );
-      });
+
+      final pendingGeocode = [...newPhotos, ...noLocation];
+      if (pendingGeocode.isNotEmpty) {
+        _geocodePhotos(pendingGeocode).catchError((_) {
+          state = state.copyWith(
+            isGeocoding: false,
+            geocodeProcessed: 0,
+            geocodeTotal: 0,
+          );
+        });
+      }
     } catch (_) {
       // Silent fail — don't disrupt the UI on background refresh
+    } finally {
+      _isSilentReloading = false;
     }
   }
 }
