@@ -715,6 +715,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
   /// Remove photo from state only (already deleted from device).
   void removeFromState(String photoPath) {
+    _deletedAssetIds.add(photoPath);
     state = state.copyWith(
       allPhotos: state.allPhotos.where((p) => p.path != photoPath).toList(),
     );

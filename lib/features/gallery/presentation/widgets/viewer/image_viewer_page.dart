@@ -163,6 +163,7 @@ class _ImageViewerPageState extends State<ImageViewerPage>
 }
 
 /// Shows the small thumbnail instantly, then crossfades to full-res once decoded.
+/// If full-res fails to load (some Android photos), stays on thumbnail.
 class _TwoPhaseImage extends StatefulWidget {
   const _TwoPhaseImage({
     required this.thumbProvider,
@@ -180,41 +181,76 @@ class _TwoPhaseImage extends StatefulWidget {
 
 class _TwoPhaseImageState extends State<_TwoPhaseImage> {
   bool _fullLoaded = false;
+  bool _fullFailed = false;
+  ImageStreamListener? _listener;
+  ImageStream? _stream;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Start resolving full-res image
-    final stream = widget.fullProvider.resolve(createLocalImageConfiguration(context));
-    late ImageStreamListener listener;
-    listener = ImageStreamListener((_, __) {
-      if (mounted) setState(() => _fullLoaded = true);
-      stream.removeListener(listener);
-    });
-    stream.addListener(listener);
+    _resolveFullImage();
+  }
+
+  void _resolveFullImage() {
+    // Clean up previous listener
+    if (_listener != null && _stream != null) {
+      _stream!.removeListener(_listener!);
+    }
+
+    _listener = ImageStreamListener(
+      (info, synchronousCall) {
+        if (mounted && !_fullLoaded) {
+          setState(() => _fullLoaded = true);
+        }
+      },
+      onError: (error, stackTrace) {
+        debugPrint('Full-res image failed: $error');
+        if (mounted) setState(() => _fullFailed = true);
+      },
+    );
+
+    _stream = widget.fullProvider.resolve(
+      createLocalImageConfiguration(context),
+    );
+    _stream!.addListener(_listener!);
+  }
+
+  @override
+  void dispose() {
+    if (_listener != null && _stream != null) {
+      _stream!.removeListener(_listener!);
+    }
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedCrossFade(
-      firstChild: Image(
-        image: widget.thumbProvider,
-        fit: BoxFit.contain,
-        alignment: widget.alignment,
-        width: double.infinity,
-        height: double.infinity,
-      ),
-      secondChild: Image(
-        image: widget.fullProvider,
-        fit: BoxFit.contain,
-        alignment: widget.alignment,
-        width: double.infinity,
-        height: double.infinity,
-      ),
-      crossFadeState: _fullLoaded
-          ? CrossFadeState.showSecond
-          : CrossFadeState.showFirst,
-      duration: const Duration(milliseconds: 200),
+    // If full-res failed, just show the thumbnail — don't crossfade to black
+    final showFull = _fullLoaded && !_fullFailed;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Thumbnail always rendered underneath as safety net
+        Image(
+          image: widget.thumbProvider,
+          fit: BoxFit.contain,
+          alignment: widget.alignment,
+        ),
+        // Full-res fades in on top once loaded
+        AnimatedOpacity(
+          opacity: showFull ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: showFull
+              ? Image(
+                  image: widget.fullProvider,
+                  fit: BoxFit.contain,
+                  alignment: widget.alignment,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 }
