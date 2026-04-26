@@ -119,61 +119,49 @@ class _ImageViewerPageState extends State<ImageViewerPage>
         panEnabled: _isZoomed,
         child: Align(
           alignment: widget.alignment,
-          child: AspectRatio(
-            aspectRatio:
-                widget.photo.assetEntity!.width > 0 &&
-                    widget.photo.assetEntity!.height > 0
-                ? widget.photo.assetEntity!.width /
-                      widget.photo.assetEntity!.height
-                : 1.0,
-            child: Hero(
-              tag: widget.heroTag ?? widget.photo.path,
-              flightShuttleBuilder:
-                  (
-                    BuildContext flightContext,
-                    Animation<double> animation,
-                    HeroFlightDirection flightDirection,
-                    BuildContext fromHeroContext,
-                    BuildContext toHeroContext,
-                  ) {
-                    return Material(
-                      color: Colors.transparent,
-                      child: Image(
-                        image: AssetEntityImageProvider(
-                          widget.photo.assetEntity!,
-                          isOriginal: false,
-                          thumbnailSize: kDisplaySize,
-                        ),
-                        fit: BoxFit.cover,
-                        alignment: widget.alignment,
+          child: Hero(
+            tag: widget.heroTag ?? widget.photo.path,
+            flightShuttleBuilder:
+                (
+                  BuildContext flightContext,
+                  Animation<double> animation,
+                  HeroFlightDirection flightDirection,
+                  BuildContext fromHeroContext,
+                  BuildContext toHeroContext,
+                ) {
+                  return Material(
+                    color: Colors.transparent,
+                    child: Image(
+                      image: AssetEntityImageProvider(
+                        widget.photo.assetEntity!,
+                        isOriginal: false,
+                        thumbnailSize: kDisplaySize,
                       ),
-                    );
-                  },
-              child: Image(
-                image: AssetEntityImageProvider(
-                  widget.photo.assetEntity!,
-                  isOriginal: false,
-                  thumbnailSize: kDisplaySize,
-                ),
-                fit: BoxFit.cover,
-                alignment: widget.alignment,
-                width: double.infinity,
-                height: double.infinity,
-                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                  if (wasSynchronouslyLoaded || frame != null) return child;
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      const ShimmerThumbnail(),
-                      const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    ],
+                      fit: BoxFit.contain,
+                      alignment: widget.alignment,
+                    ),
                   );
                 },
+            child: Image(
+              image: AssetEntityImageProvider(
+                widget.photo.assetEntity!,
+                isOriginal: false,
+                thumbnailSize: kDisplaySize,
               ),
+              fit: BoxFit.contain,
+              alignment: widget.alignment,
+              width: double.infinity,
+              height: double.infinity,
+              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                if (wasSynchronouslyLoaded || frame != null) return child;
+                return const Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
+                  ),
+                );
+              },
             ),
           ),
         ),
