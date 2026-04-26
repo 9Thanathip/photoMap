@@ -1,6 +1,6 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:native_exif/native_exif.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/features/province/data/province_data.dart';
 import 'package:photo_map/core/services/geo_service.dart';
@@ -211,6 +211,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   final CacheService _cacheService = CacheService();
   final Map<String, ({String country, String province, String district})>
   _geocodingCache = {};
+  final Set<String> _deletedAssetIds = {};
 
   GalleryNotifier(this._ref)
     : super(
@@ -275,15 +276,33 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       return;
     }
 
+    // Listen for photo library changes (screenshot, new photo, deletion)
+    PhotoManager.addChangeCallback(_onPhotoLibraryChanged);
+    PhotoManager.startChangeNotify();
+
     // Attempt to load from local metadata cache first for instant UI
     final cachedData = await _cacheService.loadPhotoMetadata();
     if (cachedData != null && cachedData.isNotEmpty) {
-      // Background full scan, but show cache now
       await _loadFromCache(cachedData);
-      _loadAll(isSilent: true); // background refresh
+      _loadAll(isSilent: true);
     } else {
       await _loadAll(); // first time or no cache
     }
+  }
+
+  void _onPhotoLibraryChanged(MethodCall call) {
+    // Debounce: photo library can fire multiple events rapidly
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      silentReload();
+    });
+  }
+
+  @override
+  void dispose() {
+    PhotoManager.removeChangeCallback(_onPhotoLibraryChanged);
+    PhotoManager.stopChangeNotify();
+    super.dispose();
   }
 
   Future<void> _loadFromCache(List<Map<String, dynamic>> cachedData) async {
@@ -417,7 +436,9 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
       // Update state after each batch so map can show photos progressively
       state = state.copyWith(
-        allPhotos: List.from(withCoords),
+        allPhotos: withCoords
+            .where((p) => !_deletedAssetIds.contains(p.path))
+            .toList(),
         geocodeProcessed: end,
       );
 
@@ -600,7 +621,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       );
     }).toList();
 
-    state = state.copyWith(allPhotos: updated);
+    state = state.copyWith(
+      allPhotos: updated
+          .where((p) => !_deletedAssetIds.contains(p.path))
+          .toList(),
+    );
     _persistAll(); // Save incrementally
   }
 
@@ -684,25 +709,43 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     state = state.copyWith(allPhotos: [photo, ...state.allPhotos]);
   }
 
-  /// Remove photo by its unique path and delete it from the device.
-  Future<void> removePhoto(String photoPath) async {
-    await PhotoManager.editor.deleteWithIds([photoPath]);
+  /// Remove photo from state only (already deleted from device).
+  void removeFromState(String photoPath) {
     state = state.copyWith(
       allPhotos: state.allPhotos.where((p) => p.path != photoPath).toList(),
     );
     _persistAll();
   }
 
+  /// Remove photo by its unique path and delete it from the device.
+  /// Returns true if the photo was actually deleted (user confirmed on iOS).
+  Future<bool> removePhoto(String photoPath) async {
+    final deleted = await PhotoManager.editor.deleteWithIds([photoPath]);
+    if (deleted.isNotEmpty) {
+      _deletedAssetIds.add(photoPath);
+      state = state.copyWith(
+        allPhotos: state.allPhotos.where((p) => p.path != photoPath).toList(),
+      );
+      _persistAll();
+      return true;
+    }
+    return false;
+  }
+
   /// Remove multiple photos by their paths and delete them from the device.
-  Future<void> removePhotos(List<String> paths) async {
-    await PhotoManager.editor.deleteWithIds(paths);
-    final pathSet = paths.toSet();
-    state = state.copyWith(
-      allPhotos: state.allPhotos
-          .where((p) => !pathSet.contains(p.path))
-          .toList(),
-    );
-    _persistAll();
+  Future<List<String>> removePhotos(List<String> paths) async {
+    final deleted = await PhotoManager.editor.deleteWithIds(paths);
+    if (deleted.isNotEmpty) {
+      _deletedAssetIds.addAll(paths);
+      final pathsSet = paths.toSet();
+      state = state.copyWith(
+        allPhotos: state.allPhotos
+            .where((p) => !pathsSet.contains(p.path))
+            .toList(),
+      );
+      _persistAll();
+    }
+    return deleted;
   }
 
   /// Update country/province for a photo identified by its path.
@@ -739,7 +782,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
           .where(
             (a) =>
                 (a.type == AssetType.image || a.type == AssetType.video) &&
-                !existingPaths.contains(a.id),
+                !existingPaths.contains(a.id) &&
+                !_deletedAssetIds.contains(a.id),
           )
           .toList();
 
@@ -747,7 +791,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       if (newAssets.isNotEmpty) {
         final newPhotos = _buildPhotoItems(newAssets);
         merged = [...newPhotos, ...merged];
-        state = state.copyWith(allPhotos: merged);
+        state = state.copyWith(
+          allPhotos: merged
+              .where((p) => !_deletedAssetIds.contains(p.path))
+              .toList(),
+        );
       }
 
       // 2. Re-fetch coordinates for existing photos that have no location yet
@@ -777,7 +825,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       });
       await Future.wait(futures);
 
-      state = state.copyWith(allPhotos: updated);
+      state = state.copyWith(
+        allPhotos: updated
+            .where((p) => !_deletedAssetIds.contains(p.path))
+            .toList(),
+      );
       _geocodePhotos(updated).catchError((_) {
         state = state.copyWith(
           isGeocoding: false,

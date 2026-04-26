@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart' hide LatLng;
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:video_player/video_player.dart';
@@ -31,30 +32,27 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     with SingleTickerProviderStateMixin {
   late final PageController _pageController;
   late int _currentIndex;
+  late List<PhotoItem> _photos; // Mutable copy for deletion support
   bool _showOverlay = true;
   bool _isZoomed = false;
   bool _dragging = false;
   bool _isSliderDragging = false;
+  bool _isDeleting = false;
   VideoPlayerController? _videoController;
   bool _videoInitialized = false;
 
   // Spring controller: value = current Y offset in pixels
   late final AnimationController _spring;
 
-  double get _dy => _spring.value;
-
-  // Gesture tracking
-
   @override
   void initState() {
     super.initState();
+    _photos = List.from(widget.photos);
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    // Hold more decoded images so slides after the 3rd don't re-decode
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 256 << 20; // 256 MB
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 256 << 20;
     _initVideo(_currentIndex);
-    // Preload adjacent after first frame so context is ready
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _precacheAdjacent(_currentIndex),
     );
@@ -64,7 +62,6 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       lowerBound: -3000,
       upperBound: 3000,
       value: 0,
-      // No listener — AnimatedBuilder drives repaints without setState
     );
   }
 
@@ -77,7 +74,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     super.dispose();
   }
 
-  PhotoItem get _current => widget.photos[_currentIndex];
+  PhotoItem get _current => _photos[_currentIndex];
   bool get _isVideo => _current.assetEntity?.type == AssetType.video;
 
   Future<void> _initVideo(int index) async {
@@ -88,7 +85,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       _videoInitialized = false;
     });
 
-    final photo = widget.photos[index];
+    final photo = _photos[index];
     if (photo.assetEntity?.type != AssetType.video) return;
 
     final File? file = await photo.assetEntity!.file;
@@ -110,8 +107,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
 
   void _precacheAdjacent(int index) {
     for (final i in [index - 1, index + 1, index + 2]) {
-      if (i < 0 || i >= widget.photos.length) continue;
-      final asset = widget.photos[i].assetEntity;
+      if (i < 0 || i >= _photos.length) continue;
+      final asset = _photos[i].assetEntity;
       if (asset == null || asset.type == AssetType.video) continue;
       precacheImage(
         AssetEntityImageProvider(
@@ -203,6 +200,54 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     _spring.animateWith(simulation);
   }
 
+  Future<void> _deleteCurrentPhoto() async {
+    if (_isDeleting || _photos.isEmpty) return;
+    _isDeleting = true;
+
+    final photo = _current;
+    final photoPath = photo.path;
+
+    try {
+      // iOS shows system confirmation dialog via deleteWithIds
+      final deleted = await PhotoManager.editor.deleteWithIds([photoPath]);
+
+      if (!mounted || deleted.isEmpty) {
+        _isDeleting = false;
+        return;
+      }
+
+      // Update gallery state (already deleted from device above)
+      final container = ProviderScope.containerOf(context);
+      container.read(galleryStateProvider.notifier).removeFromState(photoPath);
+
+      final wasLast = _photos.length == 1;
+      final wasAtEnd = _currentIndex == _photos.length - 1;
+
+      if (wasLast) {
+        // Last photo deleted — close viewer
+        Navigator.of(context).pop();
+        return;
+      }
+
+      HapticFeedback.mediumImpact();
+
+      setState(() {
+        _photos.removeAt(_currentIndex);
+        if (wasAtEnd) {
+          _currentIndex = _photos.length - 1;
+        }
+        // Recreate page controller to reflect new list
+        _pageController.dispose();
+        _pageController = PageController(initialPage: _currentIndex);
+      });
+
+      _spring.value = 0;
+      _initVideo(_currentIndex);
+    } finally {
+      _isDeleting = false;
+    }
+  }
+
   void _openEditor() {
     Navigator.push(
       context,
@@ -230,7 +275,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       physics: _isZoomed || _isSliderDragging
           ? const NeverScrollableScrollPhysics()
           : const BouncingScrollPhysics(),
-      itemCount: widget.photos.length,
+      itemCount: _photos.length,
       onPageChanged: (index) {
         setState(() {
           _currentIndex = index;
@@ -242,7 +287,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
         _precacheAdjacent(index);
       },
       itemBuilder: (_, index) {
-        final photo = widget.photos[index];
+        final photo = _photos[index];
         final isCurrent = index == _currentIndex;
         final heroTag = isCurrent ? photo.path : '__no_hero_${index}_${photo.path}';
 
@@ -407,7 +452,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                 ),
                 const Spacer(),
                 Text(
-                  '${_currentIndex + 1} / ${widget.photos.length}',
+                  '${_currentIndex + 1} / ${_photos.length}',
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
                 const Spacer(),
@@ -450,7 +495,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                       }),
                       if (!_isVideo)
                         _bottomAction(Icons.tune_rounded, _openEditor),
-                      _bottomAction(Icons.delete_outline_rounded, () {}),
+                      _bottomAction(Icons.delete_outline_rounded, _deleteCurrentPhoto),
                     ],
                   ),
                 ),
