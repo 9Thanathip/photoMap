@@ -5,6 +5,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/features/province/data/province_data.dart';
 import 'package:photo_map/core/services/geo_service.dart';
 import 'package:photo_map/core/services/cache_service.dart';
+import 'package:photo_map/features/auth/presentation/providers/auth_provider.dart';
 
 class PhotoItem {
   const PhotoItem({
@@ -201,16 +202,17 @@ class GalleryState {
 
 final galleryStateProvider =
     StateNotifierProvider<GalleryNotifier, GalleryState>((ref) {
-      return GalleryNotifier();
+      return GalleryNotifier(ref);
     });
 
 class GalleryNotifier extends StateNotifier<GalleryState> {
+  final Ref _ref;
   final GeoService _geoService = GeoService();
   final CacheService _cacheService = CacheService();
   final Map<String, ({String country, String province, String district})>
   _geocodingCache = {};
 
-  GalleryNotifier()
+  GalleryNotifier(this._ref)
     : super(
         const GalleryState(
           allPhotos: [],
@@ -221,7 +223,24 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
           error: null,
         ),
       ) {
-    _initAndLoad();
+    _listenToAuth();
+  }
+
+  bool _isInitialized = false;
+
+  void _listenToAuth() {
+    _ref.listen<AuthState>(
+      authNotifierProvider,
+      (previous, next) {
+        if (next.status == AuthStatus.authenticated && !_isInitialized) {
+          _isInitialized = true;
+          _initAndLoad();
+        } else if (next.status != AuthStatus.authenticated) {
+          _isInitialized = false;
+        }
+      },
+      fireImmediately: true,
+    );
   }
   Future<void> _initAndLoad() async {
     await _geoService.initialize();
@@ -393,7 +412,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       }
       if (batchFutures.isNotEmpty) {
         await Future.wait(batchFutures);
-        await Future.delayed(const Duration(milliseconds: 150));
+        await Future.delayed(const Duration(milliseconds: 200));
       }
 
       // Update state after each batch so map can show photos progressively
@@ -667,25 +686,23 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
   /// Remove photo by its unique path and delete it from the device.
   Future<void> removePhoto(String photoPath) async {
-    final deleted = await PhotoManager.editor.deleteWithIds([photoPath]);
-    if (deleted.contains(photoPath)) {
-      state = state.copyWith(
-        allPhotos: state.allPhotos.where((p) => p.path != photoPath).toList(),
-      );
-    }
+    await PhotoManager.editor.deleteWithIds([photoPath]);
+    state = state.copyWith(
+      allPhotos: state.allPhotos.where((p) => p.path != photoPath).toList(),
+    );
+    _persistAll();
   }
 
   /// Remove multiple photos by their paths and delete them from the device.
   Future<void> removePhotos(List<String> paths) async {
-    final deleted = await PhotoManager.editor.deleteWithIds(paths);
-    if (deleted.isNotEmpty) {
-      final deletedSet = deleted.toSet();
-      state = state.copyWith(
-        allPhotos: state.allPhotos
-            .where((p) => !deletedSet.contains(p.path))
-            .toList(),
-      );
-    }
+    await PhotoManager.editor.deleteWithIds(paths);
+    final pathSet = paths.toSet();
+    state = state.copyWith(
+      allPhotos: state.allPhotos
+          .where((p) => !pathSet.contains(p.path))
+          .toList(),
+    );
+    _persistAll();
   }
 
   /// Update country/province for a photo identified by its path.

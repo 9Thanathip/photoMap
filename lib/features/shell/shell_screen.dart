@@ -18,10 +18,10 @@ class ShellScreen extends ConsumerWidget {
     final safeBot = botPad > 0 ? botPad : 16.0;
 
     return Scaffold(
-      extendBody: true,
-      body: navigationShell,
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.fromLTRB(20, 0, 20, safeBot),
+          extendBody: true,
+          body: navigationShell,
+          bottomNavigationBar: Padding(
+            padding: EdgeInsets.fromLTRB(20, 0, 20, safeBot),
         child: showDeleteBar
             ? GlassCard(
                 borderRadius: 24,

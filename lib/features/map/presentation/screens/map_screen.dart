@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../../../gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../province/data/province_data.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_actions.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_header.dart';
