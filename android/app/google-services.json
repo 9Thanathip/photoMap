@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "593468084945",
+    "project_id": "jaruek-f2b9e",
+    "storage_bucket": "jaruek-f2b9e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:593468084945:android:40fa1cf2145727a20a6bf0",
+        "android_client_info": {
+          "package_name": "com.thanathip.jaruek"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBS6rIjXhdyF52jooi-0J3ExwcPJQ6zlJk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
