@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
@@ -291,9 +292,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     await _loadAll();
   }
 
+  Timer? _changeDebounce;
+
   void _onPhotoLibraryChanged(MethodCall call) {
-    // Debounce: photo library can fire multiple events rapidly
-    Future.delayed(const Duration(milliseconds: 500), () {
+    _changeDebounce?.cancel();
+    _changeDebounce = Timer(const Duration(seconds: 1), () {
       if (!mounted) return;
       silentReload();
     });
@@ -344,7 +347,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
       final assets = await album.getAssetListRange(start: 0, end: total);
 
-      final photos = _buildPhotoItems(assets);
+      final currentMap = {for (final p in state.allPhotos) p.path: p};
+      final photos = _buildPhotoItems(assets, currentMap);
 
       state = state.copyWith(allPhotos: photos, isLoading: false);
       _geocodePhotos(photos).catchError((_) {
@@ -362,12 +366,26 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     }
   }
 
-  List<PhotoItem> _buildPhotoItems(List<AssetEntity> assets) {
+  List<PhotoItem> _buildPhotoItems(
+    List<AssetEntity> assets, [
+    Map<String, PhotoItem>? existing,
+  ]) {
     final items = <PhotoItem>[];
     for (final asset in assets) {
       if (asset.type == AssetType.image || asset.type == AssetType.video) {
-        final cachedGeo = _geocodingCache[asset.id];
-        
+        // Reuse existing item to preserve geocoding results
+        final prev = existing?[asset.id];
+        if (prev != null && prev.province.isNotEmpty) {
+          items.add(prev.copyWithAsset(asset));
+          continue;
+        }
+
+        // Check geocoding cache by coord key
+        final lat = asset.latitude ?? 0.0;
+        final lng = asset.longitude ?? 0.0;
+        final coordKey = '${lat.toStringAsFixed(4)}_${lng.toStringAsFixed(4)}';
+        final cachedGeo = _geocodingCache[coordKey];
+
         items.add(
           PhotoItem(
             path: asset.id,
@@ -375,8 +393,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
             province: cachedGeo?.province ?? '',
             district: cachedGeo?.district ?? '',
             timestamp: asset.createDateTime,
-            lat: asset.latitude ?? 0.0,
-            lng: asset.longitude ?? 0.0,
+            lat: lat,
+            lng: lng,
             assetEntity: asset,
           ),
         );
@@ -785,9 +803,12 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       }
 
       final assets = await album.getAssetListRange(start: 0, end: total);
-      final photos = _buildPhotoItems(assets);
 
-      // Deduplicate by asset ID just in case
+      // Preserve existing geocoded data
+      final currentMap = {for (final p in state.allPhotos) p.path: p};
+      final photos = _buildPhotoItems(assets, currentMap);
+
+      // Filter deleted + deduplicate
       final uniqueMap = <String, PhotoItem>{};
       for (final p in photos) {
         if (!_deletedAssetIds.contains(p.path)) {

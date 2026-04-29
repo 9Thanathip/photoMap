@@ -25,7 +25,7 @@ class MapScreen extends ConsumerStatefulWidget {
 }
 
 class _MapScreenState extends ConsumerState<MapScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late final Ticker _ticker;
   DateTime _currentTime = DateTime.now();
   late final DateTime _openTime;
@@ -44,6 +44,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _openTime = DateTime.now();
     _ticker = createTicker((_) {
       if (mounted) setState(() => _currentTime = DateTime.now());
@@ -52,9 +53,18 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _ticker.dispose();
     _transformController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // ui.Image objects may be disposed by engine while backgrounded
+      ref.read(mapProvider.notifier).invalidateImageCache();
+    }
   }
 
   void _showSettings() {

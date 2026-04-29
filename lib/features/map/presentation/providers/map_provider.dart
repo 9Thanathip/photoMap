@@ -90,6 +90,15 @@ class MapNotifier extends StateNotifier<MapState> {
   }
 
   final Map<String, ui.Image?> _imageCache = {};
+  final Set<String> _loadingProvinces = {};
+
+  /// Clear in-memory image cache — call on app resume since
+  /// ui.Image objects may be disposed by the engine while backgrounded.
+  void invalidateImageCache() {
+    _imageCache.clear();
+    _loadingProvinces.clear();
+    _updateProvincePhotos();
+  }
 
   Future<void> _updateProvincePhotos() async {
     final allPhotos = _ref.read(galleryStateProvider).allPhotos;
@@ -130,8 +139,8 @@ class MapNotifier extends StateNotifier<MapState> {
       final entity = entry.value;
       if (_imageCache.containsKey(entity.id)) {
         updatedPhotos[provinceName] = _imageCache[entity.id];
-      } else {
-        // Load async without wiping existing image first
+      } else if (!_loadingProvinces.contains(provinceName)) {
+        _loadingProvinces.add(provinceName);
         _loadAndApplySingle(provinceName, entity);
       }
     }
@@ -146,23 +155,27 @@ class MapNotifier extends StateNotifier<MapState> {
     String provinceName,
     AssetEntity entity,
   ) async {
-    final img = await _loadUiImage(entity);
-    if (img != null) {
-      _imageCache[entity.id] = img;
+    try {
+      final img = await _loadUiImage(entity);
+      if (img != null && mounted) {
+        _imageCache[entity.id] = img;
 
-      // Update state incrementally
-      final updatedPhotos = Map<String, ui.Image?>.from(state.provincePhotos);
-      updatedPhotos[provinceName] = img;
+        final updatedPhotos = Map<String, ui.Image?>.from(state.provincePhotos);
+        updatedPhotos[provinceName] = img;
 
-      final updatedLoadTimes = Map<String, DateTime>.from(state.imageLoadTimes);
-      if (!updatedLoadTimes.containsKey(provinceName)) {
-        updatedLoadTimes[provinceName] = DateTime.now();
+        final updatedLoadTimes =
+            Map<String, DateTime>.from(state.imageLoadTimes);
+        if (!updatedLoadTimes.containsKey(provinceName)) {
+          updatedLoadTimes[provinceName] = DateTime.now();
+        }
+
+        state = state.copyWith(
+          provincePhotos: updatedPhotos,
+          imageLoadTimes: updatedLoadTimes,
+        );
       }
-
-      state = state.copyWith(
-        provincePhotos: updatedPhotos,
-        imageLoadTimes: updatedLoadTimes,
-      );
+    } finally {
+      _loadingProvinces.remove(provinceName);
     }
   }
 
