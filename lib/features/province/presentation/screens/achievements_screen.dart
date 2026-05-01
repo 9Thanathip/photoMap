@@ -235,7 +235,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                           MaterialPageRoute<void>(
                             builder: (_) => ProvinceGalleryScreen(
                               provinceName: name,
-                              countryId: '',
+                              countryId: _country,
                             ),
                           ),
                         )

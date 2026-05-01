@@ -15,6 +15,7 @@ class MapState {
   final Map<String, DateTime> imageLoadTimes;
   final Map<String, ui.Rect> cropRects; // normalized crop rects per province
   final bool isLoading;
+  final double downloadProgress; // 0.0 to 1.0
 
   MapState({
     required this.provinces,
@@ -23,6 +24,7 @@ class MapState {
     required this.imageLoadTimes,
     this.cropRects = const {},
     required this.isLoading,
+    this.downloadProgress = 0.0,
   });
 
   MapState copyWith({
@@ -32,6 +34,7 @@ class MapState {
     Map<String, DateTime>? imageLoadTimes,
     Map<String, ui.Rect>? cropRects,
     bool? isLoading,
+    double? downloadProgress,
   }) => MapState(
     provinces: provinces ?? this.provinces,
     combinedPath: combinedPath ?? this.combinedPath,
@@ -39,6 +42,7 @@ class MapState {
     imageLoadTimes: imageLoadTimes ?? this.imageLoadTimes,
     cropRects: cropRects ?? this.cropRects,
     isLoading: isLoading ?? this.isLoading,
+    downloadProgress: downloadProgress ?? this.downloadProgress,
   );
 }
 
@@ -75,40 +79,54 @@ class MapNotifier extends StateNotifier<MapState> {
       if (previous?.current.id != next.current.id) {
         loadMap();
       }
+      
+      final currentId = next.current.id;
+      final progress = next.downloadProgress[currentId] ?? 0.0;
+      updateDownloadProgress(progress);
     });
   }
 
   final CountryRepository _countryRepo = CountryRepository();
 
   Future<void> loadMap() async {
+    final countryState = _ref.read(countryProvider);
+    final country = countryState.current;
+    
+    // If it's not bundled and not downloaded, we can't load it yet.
+    if (!country.isBundled && !countryState.downloadedIds.contains(country.id)) {
+      state = state.copyWith(isLoading: false, provinces: [], combinedPath: null);
+      return;
+    }
+
     state = state.copyWith(isLoading: true);
 
-    final country = _ref.read(countryProvider).current;
-    List<ProvinceShape> shapes;
     try {
       final geoJson = await _countryRepo.loadGeoJson(country);
-      shapes = parseProvincesFromGeoJson(geoJson);
-    } catch (_) {
-      shapes = await loadThailandProvinces();
+      final shapes = parseProvincesFromGeoJson(geoJson);
+
+      final combined = ui.Path();
+      for (final s in shapes) {
+        combined.addPath(s.path, ui.Offset.zero);
+      }
+
+      _imageCache.clear();
+      _loadingProvinces.clear();
+
+      state = state.copyWith(
+        provinces: shapes,
+        combinedPath: combined,
+        provincePhotos: {},
+        imageLoadTimes: {},
+        isLoading: false,
+      );
+      await _updateProvincePhotos();
+    } catch (e) {
+      state = state.copyWith(isLoading: false);
     }
+  }
 
-    final combined = ui.Path();
-    for (final s in shapes) {
-      combined.addPath(s.path, ui.Offset.zero);
-    }
-
-    // Reset image cache when country changes
-    _imageCache.clear();
-    _loadingProvinces.clear();
-
-    state = state.copyWith(
-      provinces: shapes,
-      combinedPath: combined,
-      provincePhotos: {},
-      imageLoadTimes: {},
-      isLoading: false,
-    );
-    await _updateProvincePhotos();
+  void updateDownloadProgress(double progress) {
+    state = state.copyWith(downloadProgress: progress);
   }
 
   final Map<String, ui.Image?> _imageCache = {};

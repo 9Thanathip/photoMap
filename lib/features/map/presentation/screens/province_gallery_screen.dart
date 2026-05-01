@@ -121,14 +121,16 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
               return false;
             },
             child: Positioned.fill(
-              child: photos.isEmpty
-                  ? AppEmptyState(
-                      icon: Icons.photo_library_outlined,
-                      title: 'No photos in ${widget.provinceName}',
-                      subtitle:
-                          'Photos you take in this province will appear here.',
-                    )
-                  : _buildGrid(context, topPad, theme, photos),
+              child: mapState.isLoading 
+                  ? const Center(child: CircularProgressIndicator())
+                  : photos.isEmpty
+                      ? AppEmptyState(
+                          icon: Icons.photo_library_outlined,
+                          title: 'No photos in ${widget.districtName ?? widget.provinceName}',
+                          subtitle:
+                              'Photos you take here will appear here.',
+                        )
+                      : _buildGrid(context, topPad, theme, photos),
             ),
           ),
 

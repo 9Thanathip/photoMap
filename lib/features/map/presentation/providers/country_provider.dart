@@ -110,14 +110,30 @@ class CountryNotifier extends StateNotifier<CountryState> {
     );
 
     try {
-      await _repo.download(
-        c,
-        onProgress: (p) {
+      final tasks = <String>[c.url];
+      if (c.districtsUrl != null && !c.districtsUrl!.startsWith('asset://')) {
+        tasks.add(c.districtsUrl!);
+      }
+
+      final progressMap = <String, double>{};
+      for (var url in tasks) progressMap[url] = 0.0;
+
+      await Future.wait(tasks.map((url) async {
+        final isDistrict = url == c.districtsUrl;
+        final targetFile = await _repo.getLocalFile(c.id, isDistrict ? 'districts.json' : 'map.json');
+        
+        await _repo.downloadFile(url, targetFile, onProgress: (p) {
+          progressMap[url] = p;
+          final total = progressMap.values.fold(0.0, (a, b) => a + b);
           state = state.copyWith(
-            downloadProgress: {...state.downloadProgress, c.id: p},
+            downloadProgress: {...state.downloadProgress, c.id: total / tasks.length},
           );
-        },
-      );
+        });
+      }));
+
+      // Save metadata to mark as fully downloaded
+      await _repo.saveMetadata(c);
+
       final progress = Map<String, double>.from(state.downloadProgress)
         ..remove(c.id);
       state = state.copyWith(

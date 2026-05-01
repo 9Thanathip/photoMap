@@ -277,7 +277,34 @@ class _MapScreenState extends ConsumerState<MapScreen>
       body: Stack(
         children: [
           if (state.isLoading)
-            const Center(child: CircularProgressIndicator())
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  if (state.downloadProgress > 0) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      '${(state.downloadProgress * 100).toInt()}%',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: 120,
+                      child: LinearProgressIndicator(
+                        value: state.downloadProgress,
+                        backgroundColor: Colors.grey.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            )
           else if (state.provinces.isEmpty)
             const Center(child: Text('No Map Data Found'))
           else

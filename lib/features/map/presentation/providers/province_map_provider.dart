@@ -144,23 +144,15 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
       final assetPath = country.districtsUrl!.replaceFirst('asset://', '');
       jsonString = await rootBundle.loadString(assetPath);
     } else if (country.districtsUrl != null) {
-      // Download or load from cache using CountryRepository
       final repo = _ref.read(countryProvider.notifier).repo;
-      // We need a way to load districts geojson. 
-      // Reusing loadGeoJson by creating a temporary Country object for the districts file
-      final districtsCountry = Country(
-        id: '${country.id}_districts',
-        nameEn: '', nameTh: '',
-        url: country.districtsUrl!,
-        version: country.version,
-      );
-      
-      try {
-        jsonString = await repo.loadGeoJson(districtsCountry);
-      } catch (_) {
-        // If not cached, download it
-        await repo.download(districtsCountry);
-        jsonString = await repo.loadGeoJson(districtsCountry);
+      // Check for cached file (downloaded by MapNotifier)
+      final targetFile = await repo.getLocalFile(country.id, 'districts.json');
+      if (await targetFile.exists()) {
+        jsonString = await targetFile.readAsString();
+      } else {
+        // Fallback: download if not found (should be rare now as MapNotifier handles it)
+        await repo.downloadFile(country.districtsUrl!, targetFile);
+        jsonString = await targetFile.readAsString();
       }
     } else {
       return [];

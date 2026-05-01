@@ -52,8 +52,8 @@ class CountryRepository {
   File _metaFile(Directory dir, String id) => File('${dir.path}/$id.meta.json');
 
   Future<bool> isCached(String id) async {
-    final dir = await _cacheDir();
-    return _geoFile(dir, id).exists();
+    final f = await getLocalFile(id, 'map.json');
+    return f.exists();
   }
 
   Future<int?> cachedVersion(String id) async {
@@ -92,14 +92,43 @@ class CountryRepository {
     await _metaFile(dir, c.id).writeAsString(jsonEncode(c.toJson()));
   }
 
+  Future<void> saveMetadata(Country c) async {
+    final dir = await _cacheDir();
+    await _metaFile(dir, c.id).writeAsString(jsonEncode(c.toJson()));
+  }
+
+  Future<File> getLocalFile(String countryId, String fileName) async {
+    final dir = await _cacheDir();
+    final countryDir = Directory('${dir.path}/$countryId');
+    if (!await countryDir.exists()) await countryDir.create(recursive: true);
+    return File('${countryDir.path}/$fileName');
+  }
+
+  /// General purpose downloader for any URL.
+  Future<void> downloadFile(String url, File targetFile, {void Function(double)? onProgress}) async {
+    final res = await http.Client().send(http.Request('GET', Uri.parse(url)));
+    if (res.statusCode != 200) {
+      throw Exception('HTTP ${res.statusCode}');
+    }
+
+    final sink = targetFile.openWrite();
+    final total = res.contentLength ?? 0;
+    int received = 0;
+    await for (final chunk in res.stream) {
+      sink.add(chunk);
+      received += chunk.length;
+      if (total > 0 && onProgress != null) onProgress(received / total);
+    }
+    await sink.close();
+  }
+
   /// Load geojson string for country (from asset or disk).
   Future<String> loadGeoJson(Country c) async {
     if (c.isBundled) {
       final assetPath = c.url.replaceFirst('asset://', '');
       return rootBundle.loadString(assetPath);
     }
-    final dir = await _cacheDir();
-    final file = _geoFile(dir, c.id);
+    final file = await getLocalFile(c.id, 'map.json');
     if (!await file.exists()) {
       throw StateError('Country ${c.id} not downloaded');
     }
