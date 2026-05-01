@@ -10,7 +10,6 @@ class NationalMapHeader extends ConsumerWidget {
   void _openPicker(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
-      showDragHandle: true,
       builder: (_) => const CountryPickerSheet(),
     );
   }
