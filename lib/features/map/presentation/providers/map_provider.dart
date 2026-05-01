@@ -82,14 +82,19 @@ class MapNotifier extends StateNotifier<MapState> {
     });
     _ref.listen(countryProvider, (previous, next) {
       final countryChanged = previous?.current.id != next.current.id;
-      final downloadFinished = (previous?.downloadedIds.length ?? 0) < next.downloadedIds.length;
-      final firstLoadFinished = !(previous?.loadedFromFirestore ?? false) && next.loadedFromFirestore;
 
-      if (countryChanged || downloadFinished || firstLoadFinished) {
+      // Only reload if current country becomes downloaded (was missing before).
+      // Don't reload on every download or firestore-list refresh — that flickers
+      // the map even when nothing visible changed.
+      final currentId = next.current.id;
+      final currentNowDownloaded =
+          !(previous?.downloadedIds.contains(currentId) ?? false) &&
+              next.downloadedIds.contains(currentId);
+
+      if (countryChanged || currentNowDownloaded) {
         loadMap();
       }
-      
-      final currentId = next.current.id;
+
       final progress = next.downloadProgress[currentId] ?? 0.0;
       updateDownloadProgress(progress);
     });
@@ -100,13 +105,18 @@ class MapNotifier extends StateNotifier<MapState> {
   Future<void> loadMap() async {
     final countryState = _ref.read(countryProvider);
     final country = countryState.current;
-    
+
     // If it's not bundled and not downloaded, we can't load it yet.
-    if (!country.isBundled && !countryState.downloadedIds.contains(country.id)) {
+    if (!country.isBundled &&
+        !countryState.downloadedIds.contains(country.id)) {
       if (!countryState.loadedFromFirestore) {
         state = state.copyWith(isLoading: true);
       } else {
-        state = state.copyWith(isLoading: false, provinces: [], combinedPath: null);
+        state = state.copyWith(
+          isLoading: false,
+          provinces: [],
+          combinedPath: null,
+        );
       }
       return;
     }
@@ -172,7 +182,7 @@ class MapNotifier extends StateNotifier<MapState> {
     // Build default map: first photo per province
     final Map<String, AssetEntity> provinceSelectedPhotos = {};
     final countryName = _ref.read(countryProvider).current.nameEn;
-    
+
     for (final photo in allPhotos) {
       if (photo.country == countryName &&
           photo.province.isNotEmpty &&
@@ -230,8 +240,9 @@ class MapNotifier extends StateNotifier<MapState> {
         final updatedPhotos = Map<String, ui.Image?>.from(state.provincePhotos);
         updatedPhotos[provinceName] = img;
 
-        final updatedLoadTimes =
-            Map<String, DateTime>.from(state.imageLoadTimes);
+        final updatedLoadTimes = Map<String, DateTime>.from(
+          state.imageLoadTimes,
+        );
         if (!updatedLoadTimes.containsKey(provinceName)) {
           updatedLoadTimes[provinceName] = DateTime.now();
         }

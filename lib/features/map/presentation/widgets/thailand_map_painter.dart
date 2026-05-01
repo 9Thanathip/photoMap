@@ -109,7 +109,9 @@ class ThailandMapPainter extends CustomPainter {
       final isSelected = province.name == selectedProvince;
 
       // Always draw base fill so the province shape is visible during fade-in
-      fillPaint.color = isSelected ? Colors.blue.withValues(alpha: 0.3) : baseColor;
+      fillPaint.color = isSelected
+          ? Colors.blue.withValues(alpha: 0.3)
+          : baseColor;
       canvas.drawPath(province.path, fillPaint);
 
       if (image != null) {
@@ -145,13 +147,30 @@ class ThailandMapPainter extends CustomPainter {
               cropNorm.bottom * imgH,
             );
             // Cover-fit the crop region into the province bounds to avoid stretching
-            final fitted = applyBoxFit(BoxFit.cover, cropPx.size, provinceRect.size);
+            final fitted = applyBoxFit(
+              BoxFit.cover,
+              cropPx.size,
+              provinceRect.size,
+            );
             inputRect = Alignment.center.inscribe(fitted.source, cropPx);
-            outputRect = Alignment.center.inscribe(fitted.destination, provinceRect);
+            outputRect = Alignment.center.inscribe(
+              fitted.destination,
+              provinceRect,
+            );
           } else {
-            final fittedSize = applyBoxFit(BoxFit.cover, imgSize, provinceRect.size);
-            inputRect = Alignment.center.inscribe(fittedSize.source, Offset.zero & imgSize);
-            outputRect = Alignment.center.inscribe(fittedSize.destination, provinceRect);
+            final fittedSize = applyBoxFit(
+              BoxFit.cover,
+              imgSize,
+              provinceRect.size,
+            );
+            inputRect = Alignment.center.inscribe(
+              fittedSize.source,
+              Offset.zero & imgSize,
+            );
+            outputRect = Alignment.center.inscribe(
+              fittedSize.destination,
+              provinceRect,
+            );
           }
 
           canvas.drawImageRect(image, inputRect, outputRect, imagePaint);
