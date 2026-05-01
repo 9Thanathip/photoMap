@@ -339,6 +339,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                         strokeColor: strokeColor,
                         strokeWidth: strokeWidth,
                         canvasColor: settings.canvasColor,
+                        viewBox: state.viewBox,
                       ),
                       child: const SizedBox.expand(),
                     ),

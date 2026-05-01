@@ -16,6 +16,7 @@ class MapState {
   final Map<String, ui.Rect> cropRects; // normalized crop rects per province
   final bool isLoading;
   final double downloadProgress; // 0.0 to 1.0
+  final ui.Rect? viewBox;
 
   MapState({
     required this.provinces,
@@ -25,6 +26,7 @@ class MapState {
     this.cropRects = const {},
     required this.isLoading,
     this.downloadProgress = 0.0,
+    this.viewBox,
   });
 
   MapState copyWith({
@@ -35,6 +37,8 @@ class MapState {
     Map<String, ui.Rect>? cropRects,
     bool? isLoading,
     double? downloadProgress,
+    ui.Rect? viewBox,
+    bool clearViewBox = false,
   }) => MapState(
     provinces: provinces ?? this.provinces,
     combinedPath: combinedPath ?? this.combinedPath,
@@ -43,6 +47,7 @@ class MapState {
     cropRects: cropRects ?? this.cropRects,
     isLoading: isLoading ?? this.isLoading,
     downloadProgress: downloadProgress ?? this.downloadProgress,
+    viewBox: clearViewBox ? null : (viewBox ?? this.viewBox),
   );
 }
 
@@ -120,12 +125,24 @@ class MapNotifier extends StateNotifier<MapState> {
       _imageCache.clear();
       _loadingProvinces.clear();
 
+      ui.Rect? viewBox;
+      if (country.viewBox != null && country.viewBox!.length == 4) {
+        viewBox = ui.Rect.fromLTRB(
+          country.viewBox![0],
+          country.viewBox![1],
+          country.viewBox![2],
+          country.viewBox![3],
+        );
+      }
+
       state = state.copyWith(
         provinces: shapes,
         combinedPath: combined,
         provincePhotos: {},
         imageLoadTimes: {},
         isLoading: false,
+        viewBox: viewBox,
+        clearViewBox: viewBox == null,
       );
       await _updateProvincePhotos();
     } catch (e) {

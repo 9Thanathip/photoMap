@@ -6,6 +6,7 @@ class Country {
   final int version;
   final String? districtsUrl;
   final Map<String, String>? propertyMapping;
+  final List<double>? viewBox; // [left, top, right, bottom]
 
   const Country({
     required this.id,
@@ -15,6 +16,7 @@ class Country {
     required this.version,
     this.districtsUrl,
     this.propertyMapping,
+    this.viewBox,
   });
 
   factory Country.fromMap(String id, Map<String, dynamic> data) => Country(
@@ -27,6 +29,9 @@ class Country {
     propertyMapping: data['property_mapping'] != null 
         ? Map<String, String>.from(data['property_mapping'] as Map) 
         : null,
+    viewBox: data['view_box'] != null 
+        ? List<double>.from((data['view_box'] as List).map((e) => (e as num).toDouble())) 
+        : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -37,6 +42,7 @@ class Country {
     'version': version,
     if (districtsUrl != null) 'districts_url': districtsUrl,
     if (propertyMapping != null) 'property_mapping': propertyMapping,
+    if (viewBox != null) 'view_box': viewBox,
   };
 
   factory Country.fromJson(Map<String, dynamic> j) => Country(
@@ -48,6 +54,9 @@ class Country {
     districtsUrl: j['districts_url'] as String?,
     propertyMapping: j['property_mapping'] != null 
         ? Map<String, String>.from(j['property_mapping'] as Map) 
+        : null,
+    viewBox: j['view_box'] != null 
+        ? List<double>.from((j['view_box'] as List).map((e) => (e as num).toDouble())) 
         : null,
   );
 

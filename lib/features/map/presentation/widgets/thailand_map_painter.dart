@@ -25,6 +25,7 @@ class ThailandMapPainter extends CustomPainter {
   final Color strokeColor;
   final double strokeWidth;
   final Color? canvasColor;
+  final Rect? viewBox;
 
   ThailandMapPainter({
     required this.provinces,
@@ -39,6 +40,7 @@ class ThailandMapPainter extends CustomPainter {
     this.strokeColor = Colors.white,
     this.strokeWidth = 0.8,
     this.canvasColor,
+    this.viewBox,
   });
 
   @override
@@ -51,9 +53,14 @@ class ThailandMapPainter extends CustomPainter {
     }
 
     // Calculate scaling to fit provinces into the canvas size
-    Rect totalBounds = provinces.first.bounds;
-    for (var p in provinces.skip(1)) {
-      totalBounds = totalBounds.expandToInclude(p.bounds);
+    Rect totalBounds;
+    if (viewBox != null) {
+      totalBounds = viewBox!;
+    } else {
+      totalBounds = provinces.first.bounds;
+      for (var p in provinces.skip(1)) {
+        totalBounds = totalBounds.expandToInclude(p.bounds);
+      }
     }
 
     final scaleX = size.width / totalBounds.width;
