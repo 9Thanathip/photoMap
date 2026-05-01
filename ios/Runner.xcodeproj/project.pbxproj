@@ -16,6 +16,7 @@
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
+		DDFA41452F9F7CA800F1CB57 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DDFA41442F9F7CA800F1CB56 /* GoogleService-Info.plist */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		DDFA41432F9F7C6900F1CB56 /* Runner.xcworkspace in Resources */ = {isa = PBXBuildFile; fileRef = DDFA41422F9F7C6900F1CB56 /* Runner.xcworkspace */; };
 /* End PBXBuildFile section */
@@ -272,6 +273,7 @@
 				DDFA41432F9F7C6900F1CB56 /* Runner.xcworkspace in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				DDFA41452F9F7CA800F1CB57 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

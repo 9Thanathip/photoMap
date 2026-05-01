@@ -206,6 +206,12 @@ Future<List<ProvinceShape>> loadThailandProvinces() async {
   final String jsonString = await rootBundle.loadString(
     'assets/data/thailand.json',
   );
+  return parseProvincesFromGeoJson(jsonString);
+}
+
+/// Parse GeoJSON FeatureCollection into province shapes.
+/// Supports asset shape (CHA_NE/name) and GADM shape (NAME_1).
+List<ProvinceShape> parseProvincesFromGeoJson(String jsonString) {
   final data = json.decode(jsonString);
   final List<ProvinceShape> shapes = [];
 
@@ -216,7 +222,6 @@ Future<List<ProvinceShape>> loadThailandProvinces() async {
           feature['properties']['name'] ??
           feature['properties']['NAME_1'] ??
           'Unknown';
-      // Normalize name by removing spaces, hyphens and converting to lowercase
       final name = rawName.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
       final geometry = feature['geometry'];
       final type = geometry['type'];

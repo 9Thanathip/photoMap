@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'cover_photo_provider.dart';
+import 'country_provider.dart';
+import '../../data/country_repository.dart';
 import '../widgets/thailand_map_painter.dart';
 
 class MapState {
@@ -69,21 +71,41 @@ class MapNotifier extends StateNotifier<MapState> {
         _updateProvincePhotos();
       }
     });
+    _ref.listen(countryProvider, (previous, next) {
+      if (previous?.current.id != next.current.id) {
+        loadMap();
+      }
+    });
   }
+
+  final CountryRepository _countryRepo = CountryRepository();
 
   Future<void> loadMap() async {
     state = state.copyWith(isLoading: true);
-    final shapes = await loadThailandProvinces();
 
-    // Pre-calculate combined path once to avoid expensive per-frame path creation
+    final country = _ref.read(countryProvider).current;
+    List<ProvinceShape> shapes;
+    try {
+      final geoJson = await _countryRepo.loadGeoJson(country);
+      shapes = parseProvincesFromGeoJson(geoJson);
+    } catch (_) {
+      shapes = await loadThailandProvinces();
+    }
+
     final combined = ui.Path();
     for (final s in shapes) {
       combined.addPath(s.path, ui.Offset.zero);
     }
 
+    // Reset image cache when country changes
+    _imageCache.clear();
+    _loadingProvinces.clear();
+
     state = state.copyWith(
       provinces: shapes,
       combinedPath: combined,
+      provincePhotos: {},
+      imageLoadTimes: {},
       isLoading: false,
     );
     await _updateProvincePhotos();
