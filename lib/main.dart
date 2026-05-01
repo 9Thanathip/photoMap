@@ -2,18 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:photo_map/features/map/presentation/providers/country_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  String? initialCountryId;
+
   try {
     await Firebase.initializeApp();
     
+    // Load initial country ID as early as possible
+    final prefs = await SharedPreferences.getInstance();
+    initialCountryId = prefs.getString('current_country_id');
+
     // Configure Firestore for both default and named instances
     final firestoreSettings = const Settings(
       persistenceEnabled: true,
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-      // experimentalForceLongPolling: true, // Uncomment if strictly needed for your network
     );
 
     FirebaseFirestore.instance.settings = firestoreSettings;
@@ -30,5 +37,13 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Firebase init error: $e');
   }
-  runApp(const ProviderScope(child: App()));
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        initialCountryIdProvider.overrideWithValue(initialCountryId),
+      ],
+      child: const App(),
+    ),
+  );
 }

@@ -76,7 +76,11 @@ class MapNotifier extends StateNotifier<MapState> {
       }
     });
     _ref.listen(countryProvider, (previous, next) {
-      if (previous?.current.id != next.current.id) {
+      final countryChanged = previous?.current.id != next.current.id;
+      final downloadFinished = (previous?.downloadedIds.length ?? 0) < next.downloadedIds.length;
+      final firstLoadFinished = !(previous?.loadedFromFirestore ?? false) && next.loadedFromFirestore;
+
+      if (countryChanged || downloadFinished || firstLoadFinished) {
         loadMap();
       }
       
@@ -94,7 +98,11 @@ class MapNotifier extends StateNotifier<MapState> {
     
     // If it's not bundled and not downloaded, we can't load it yet.
     if (!country.isBundled && !countryState.downloadedIds.contains(country.id)) {
-      state = state.copyWith(isLoading: false, provinces: [], combinedPath: null);
+      if (!countryState.loadedFromFirestore) {
+        state = state.copyWith(isLoading: true);
+      } else {
+        state = state.copyWith(isLoading: false, provinces: [], combinedPath: null);
+      }
       return;
     }
 

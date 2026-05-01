@@ -39,19 +39,26 @@ class CountryState {
 }
 
 class CountryNotifier extends StateNotifier<CountryState> {
-  CountryNotifier()
-    : super(const CountryState(
+  CountryNotifier(String? initialId)
+    : super(CountryState(
         current: Country.thailand,
         available: [Country.thailand],
         downloadedIds: {'thailand'},
       )) {
-    _init();
+    if (initialId != null && initialId != 'thailand') {
+      // Set temporary state to the saved country if we know it's not thailand
+      // It will be properly validated once Firestore loads
+      state = state.copyWith(
+        current: Country(id: initialId, nameEn: '', nameTh: '', url: '', version: 0),
+      );
+    }
+    _init(initialId);
   }
 
   final _repo = CountryRepository();
   static const _prefKey = 'current_country_id';
 
-  Future<void> _init() async {
+  Future<void> _init(String? initialId) async {
     try {
       debugPrint('[CountryNotifier] fetching countries from firestore...');
       List<Country> remote = [];
@@ -74,11 +81,9 @@ class CountryNotifier extends StateNotifier<CountryState> {
         if (await _repo.isCached(c.id)) downloaded.add(c.id);
       }
 
-      final prefs = await SharedPreferences.getInstance();
-      final savedId = prefs.getString(_prefKey);
       Country current = state.current;
-      if (savedId != null && downloaded.contains(savedId)) {
-        final match = all.where((c) => c.id == savedId).toList();
+      if (initialId != null && downloaded.contains(initialId)) {
+        final match = all.where((c) => c.id == initialId).toList();
         if (match.isNotEmpty) current = match.first;
       }
 
@@ -162,7 +167,10 @@ class CountryNotifier extends StateNotifier<CountryState> {
   CountryRepository get repo => _repo;
 }
 
+final initialCountryIdProvider = Provider<String?>((ref) => null);
+
 final countryProvider =
     StateNotifierProvider<CountryNotifier, CountryState>((ref) {
-  return CountryNotifier();
+  final initialId = ref.watch(initialCountryIdProvider);
+  return CountryNotifier(initialId);
 });
