@@ -4,6 +4,8 @@ class Country {
   final String nameTh;
   final String url;
   final int version;
+  final String? districtsUrl;
+  final Map<String, String>? propertyMapping;
 
   const Country({
     required this.id,
@@ -11,6 +13,8 @@ class Country {
     required this.nameTh,
     required this.url,
     required this.version,
+    this.districtsUrl,
+    this.propertyMapping,
   });
 
   factory Country.fromMap(String id, Map<String, dynamic> data) => Country(
@@ -19,6 +23,10 @@ class Country {
     nameTh: (data['name_th'] as String?) ?? id,
     url: (data['url'] as String?) ?? '',
     version: (data['version'] as num?)?.toInt() ?? 1,
+    districtsUrl: data['districts_url'] as String?,
+    propertyMapping: data['property_mapping'] != null 
+        ? Map<String, String>.from(data['property_mapping'] as Map) 
+        : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -27,6 +35,8 @@ class Country {
     'name_th': nameTh,
     'url': url,
     'version': version,
+    if (districtsUrl != null) 'districts_url': districtsUrl,
+    if (propertyMapping != null) 'property_mapping': propertyMapping,
   };
 
   factory Country.fromJson(Map<String, dynamic> j) => Country(
@@ -35,6 +45,10 @@ class Country {
     nameTh: j['name_th'] as String,
     url: j['url'] as String,
     version: (j['version'] as num).toInt(),
+    districtsUrl: j['districts_url'] as String?,
+    propertyMapping: j['property_mapping'] != null 
+        ? Map<String, String>.from(j['property_mapping'] as Map) 
+        : null,
   );
 
   /// Built-in default — bundled in app assets
@@ -44,6 +58,11 @@ class Country {
     nameTh: 'ไทย',
     url: 'asset://assets/data/thailand.json',
     version: 0,
+    districtsUrl: 'asset://assets/data/districts_full.geojson',
+    propertyMapping: {
+      'province': 'pro_en',
+      'district': 'amp_en',
+    },
   );
 
   bool get isBundled => url.startsWith('asset://');

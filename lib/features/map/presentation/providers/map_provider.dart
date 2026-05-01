@@ -128,8 +128,10 @@ class MapNotifier extends StateNotifier<MapState> {
 
     // Build default map: first photo per province
     final Map<String, AssetEntity> provinceSelectedPhotos = {};
+    final countryName = _ref.read(countryProvider).current.nameEn;
+    
     for (final photo in allPhotos) {
-      if (photo.country == 'Thailand' &&
+      if (photo.country == countryName &&
           photo.province.isNotEmpty &&
           photo.assetEntity != null) {
         final norm = photo.province

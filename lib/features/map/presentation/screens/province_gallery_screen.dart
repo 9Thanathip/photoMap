@@ -14,11 +14,13 @@ import '../providers/province_map_provider.dart';
 class ProvinceGalleryScreen extends ConsumerStatefulWidget {
   const ProvinceGalleryScreen({
     super.key,
+    required this.countryId,
     required this.provinceName,
     this.districtName,
     this.onPickCover,
   });
 
+  final String countryId;
   final String provinceName;
   final String? districtName;
 
@@ -85,7 +87,12 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
   @override
   Widget build(BuildContext context) {
     final gallery = ref.watch(galleryStateProvider);
-    final mapState = ref.watch(provinceMapProvider(widget.provinceName));
+    final mapState = ref.watch(provinceMapProvider(
+      ProvinceMapParams(
+        countryId: widget.countryId,
+        provinceName: widget.provinceName,
+      ),
+    ));
 
     final photos = widget.districtName != null
         ? (mapState.allPhotosByDistrict[widget.districtName] ?? [])

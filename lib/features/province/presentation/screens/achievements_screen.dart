@@ -8,26 +8,83 @@ import '../widgets/country_pills.dart';
 import '../widgets/gold_text.dart';
 
 const Map<String, int> _kDistrictCount = {
-  'Amnat Charoen': 7, 'Ang Thong': 7, 'Bangkok': 50, 'Bueng Kan': 8,
-  'Buriram': 23, 'Chachoengsao': 11, 'Chainat': 8, 'Chaiyaphum': 16,
-  'Chanthaburi': 10, 'Chiang Mai': 25, 'Chiang Rai': 18, 'Chonburi': 11,
-  'Chumphon': 8, 'Kalasin': 18, 'Kamphaeng Phet': 11, 'Kanchanaburi': 13,
-  'Khon Kaen': 26, 'Krabi': 8, 'Lampang': 13, 'Lamphun': 8, 'Loei': 14,
-  'Lopburi': 11, 'Mae Hong Son': 7, 'Maha Sarakham': 13, 'Mukdahan': 7,
-  'Nakhon Nayok': 4, 'Nakhon Pathom': 7, 'Nakhon Phanom': 12,
-  'Nakhon Ratchasima': 32, 'Nakhon Sawan': 15, 'Nakhon Si Thammarat': 23,
-  'Nan': 15, 'Narathiwat': 13, 'Nong Bua Lamphu': 6, 'Nong Khai': 9,
-  'Nonthaburi': 6, 'Pathum Thani': 7, 'Pattani': 12, 'Phang Nga': 8,
-  'Phatthalung': 11, 'Phayao': 9, 'Phetchabun': 11, 'Phetchaburi': 8,
-  'Phichit': 12, 'Phitsanulok': 9, 'Phra Nakhon Si Ayutthaya': 16,
-  'Phrae': 8, 'Phuket': 3, 'Prachin Buri': 7, 'Prachuap Khiri Khan': 8,
-  'Ranong': 5, 'Ratchaburi': 10, 'Rayong': 8, 'Roi Et': 20, 'Sa Kaeo': 9,
-  'Sakon Nakhon': 18, 'Samut Prakan': 6, 'Samut Sakhon': 3,
-  'Samut Songkhram': 3, 'Saraburi': 13, 'Satun': 7, 'Sing Buri': 6,
-  'Sisaket': 22, 'Songkhla': 16, 'Sukhothai': 9, 'Suphan Buri': 10,
-  'Surat Thani': 19, 'Surin': 17, 'Tak': 9, 'Trang': 10, 'Trat': 7,
-  'Ubon Ratchathani': 25, 'Udon Thani': 20, 'Uthai Thani': 8,
-  'Uttaradit': 9, 'Yala': 8, 'Yasothon': 9,
+  'Amnat Charoen': 7,
+  'Ang Thong': 7,
+  'Bangkok': 50,
+  'Bueng Kan': 8,
+  'Buriram': 23,
+  'Chachoengsao': 11,
+  'Chainat': 8,
+  'Chaiyaphum': 16,
+  'Chanthaburi': 10,
+  'Chiang Mai': 25,
+  'Chiang Rai': 18,
+  'Chonburi': 11,
+  'Chumphon': 8,
+  'Kalasin': 18,
+  'Kamphaeng Phet': 11,
+  'Kanchanaburi': 13,
+  'Khon Kaen': 26,
+  'Krabi': 8,
+  'Lampang': 13,
+  'Lamphun': 8,
+  'Loei': 14,
+  'Lopburi': 11,
+  'Mae Hong Son': 7,
+  'Maha Sarakham': 13,
+  'Mukdahan': 7,
+  'Nakhon Nayok': 4,
+  'Nakhon Pathom': 7,
+  'Nakhon Phanom': 12,
+  'Nakhon Ratchasima': 32,
+  'Nakhon Sawan': 15,
+  'Nakhon Si Thammarat': 23,
+  'Nan': 15,
+  'Narathiwat': 13,
+  'Nong Bua Lamphu': 6,
+  'Nong Khai': 9,
+  'Nonthaburi': 6,
+  'Pathum Thani': 7,
+  'Pattani': 12,
+  'Phang Nga': 8,
+  'Phatthalung': 11,
+  'Phayao': 9,
+  'Phetchabun': 11,
+  'Phetchaburi': 8,
+  'Phichit': 12,
+  'Phitsanulok': 9,
+  'Phra Nakhon Si Ayutthaya': 16,
+  'Phrae': 8,
+  'Phuket': 3,
+  'Prachin Buri': 7,
+  'Prachuap Khiri Khan': 8,
+  'Ranong': 5,
+  'Ratchaburi': 10,
+  'Rayong': 8,
+  'Roi Et': 20,
+  'Sa Kaeo': 9,
+  'Sakon Nakhon': 18,
+  'Samut Prakan': 6,
+  'Samut Sakhon': 3,
+  'Samut Songkhram': 3,
+  'Saraburi': 13,
+  'Satun': 7,
+  'Sing Buri': 6,
+  'Sisaket': 22,
+  'Songkhla': 16,
+  'Sukhothai': 9,
+  'Suphan Buri': 10,
+  'Surat Thani': 19,
+  'Surin': 17,
+  'Tak': 9,
+  'Trang': 10,
+  'Trat': 7,
+  'Ubon Ratchathani': 25,
+  'Udon Thani': 20,
+  'Uthai Thani': 8,
+  'Uttaradit': 9,
+  'Yala': 8,
+  'Yasothon': 9,
 };
 
 class ProvinceScreen extends ConsumerStatefulWidget {
@@ -53,14 +110,16 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
         ? stats.visitedProvinces
         : (stats.countriesVisited[_country] ?? {});
 
-    final allProvinces = (_country == 'Thailand'
-            ? _kDistrictCount.keys.toList()
-            : visitedSet.toList())
-        ..sort((a, b) {
-          final diff = (visitedSet.contains(a) ? 0 : 1)
-              .compareTo(visitedSet.contains(b) ? 0 : 1);
-          return diff != 0 ? diff : a.compareTo(b);
-        });
+    final allProvinces =
+        (_country == 'Thailand'
+              ? _kDistrictCount.keys.toList()
+              : visitedSet.toList())
+          ..sort((a, b) {
+            final diff = (visitedSet.contains(a) ? 0 : 1).compareTo(
+              visitedSet.contains(b) ? 0 : 1,
+            );
+            return diff != 0 ? diff : a.compareTo(b);
+          });
 
     final visitedCount = allProvinces.where(visitedSet.contains).length;
     final total = allProvinces.length;
@@ -117,7 +176,9 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 24),
+                      horizontal: 20,
+                      vertical: 24,
+                    ),
                     decoration: BoxDecoration(
                       color: cardBg,
                       borderRadius: BorderRadius.circular(16),
@@ -170,25 +231,26 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
 
                 return GestureDetector(
                   onTap: visited
-                      ? () =>
-                          Navigator.of(context, rootNavigator: true).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) =>
-                                  ProvinceGalleryScreen(provinceName: name),
+                      ? () => Navigator.of(context, rootNavigator: true).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => ProvinceGalleryScreen(
+                              provinceName: name,
+                              countryId: '',
                             ),
-                          )
+                          ),
+                        )
                       : null,
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 13),
+                      horizontal: 14,
+                      vertical: 13,
+                    ),
                     margin: const EdgeInsets.only(bottom: 6),
                     decoration: BoxDecoration(
                       color: visited ? cardBg : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
-                      border: visited
-                          ? Border.all(color: borderC)
-                          : null,
+                      border: visited ? Border.all(color: borderC) : null,
                     ),
                     child: Row(
                       children: [
@@ -198,23 +260,16 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                           height: 22,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: visited
-                                ? tp
-                                : Colors.transparent,
+                            color: visited ? tp : Colors.transparent,
                             border: visited
                                 ? null
-                                : Border.all(
-                                    color: tt,
-                                    width: 1.5,
-                                  ),
+                                : Border.all(color: tt, width: 1.5),
                           ),
                           child: visited
                               ? Icon(
                                   Icons.check_rounded,
                                   size: 14,
-                                  color: dark
-                                      ? Colors.black
-                                      : Colors.white,
+                                  color: dark ? Colors.black : Colors.white,
                                 )
                               : null,
                         ),
@@ -234,10 +289,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                         if (visited && count > 0) ...[
                           Text(
                             '$count',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: ts,
-                            ),
+                            style: GoogleFonts.inter(fontSize: 12, color: ts),
                           ),
                           const SizedBox(width: 4),
                           Icon(

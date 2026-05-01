@@ -8,8 +8,13 @@ import 'package:photo_map/features/map/presentation/screens/province_district_sc
 import 'package:photo_map/features/map/presentation/screens/province_gallery_screen.dart';
 
 class ProvinceMenuSheet extends ConsumerWidget {
-  const ProvinceMenuSheet({super.key, required this.provinceName});
+  const ProvinceMenuSheet({
+    super.key,
+    required this.countryId,
+    required this.provinceName,
+  });
 
+  final String countryId;
   final String provinceName;
 
   String get _normalized =>
@@ -33,8 +38,10 @@ class ProvinceMenuSheet extends ConsumerWidget {
             Navigator.pop(context);
             Navigator.of(context, rootNavigator: true).push(
               MaterialPageRoute<void>(
-                builder: (_) =>
-                    ProvinceDistrictScreen(provinceName: provinceName),
+                builder: (_) => ProvinceDistrictScreen(
+                  countryId: countryId,
+                  provinceName: provinceName,
+                ),
               ),
             );
           },
@@ -47,8 +54,10 @@ class ProvinceMenuSheet extends ConsumerWidget {
             Navigator.pop(context);
             Navigator.of(context, rootNavigator: true).push(
               MaterialPageRoute<void>(
-                builder: (_) =>
-                    ProvinceGalleryScreen(provinceName: provinceName),
+                builder: (_) => ProvinceGalleryScreen(
+                  countryId: countryId,
+                  provinceName: provinceName,
+                ),
               ),
             );
           },
@@ -76,6 +85,7 @@ class ProvinceMenuSheet extends ConsumerWidget {
     final photo = await nav.push<PhotoItem>(
       MaterialPageRoute<PhotoItem>(
         builder: (ctx) => ProvinceGalleryScreen(
+          countryId: countryId,
           provinceName: provinceName,
           onPickCover: (p) => Navigator.of(ctx).pop(p),
         ),

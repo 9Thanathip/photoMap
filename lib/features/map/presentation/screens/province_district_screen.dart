@@ -19,8 +19,13 @@ import '../widgets/map_settings_widgets.dart';
 import '../widgets/map_ui_components.dart';
 
 class ProvinceDistrictScreen extends ConsumerStatefulWidget {
+  final String countryId;
   final String provinceName;
-  const ProvinceDistrictScreen({super.key, required this.provinceName});
+  const ProvinceDistrictScreen({
+    super.key,
+    required this.countryId,
+    required this.provinceName,
+  });
 
   @override
   ConsumerState<ProvinceDistrictScreen> createState() =>
@@ -48,7 +53,12 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
     })..start();
 
     Future.microtask(() {
-      ref.read(provinceMapProvider(widget.provinceName).notifier).loadMap();
+      ref.read(provinceMapProvider(
+        ProvinceMapParams(
+          countryId: widget.countryId,
+          provinceName: widget.provinceName,
+        ),
+      ).notifier).loadMap();
     });
   }
 
@@ -176,6 +186,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => ProvinceGalleryScreen(
+          countryId: widget.countryId,
           provinceName: widget.provinceName,
           districtName: districtName,
         ),
@@ -185,7 +196,12 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
 
   @override
   Widget build(BuildContext context) {
-    final mapState = ref.watch(provinceMapProvider(widget.provinceName));
+    final mapState = ref.watch(provinceMapProvider(
+      ProvinceMapParams(
+        countryId: widget.countryId,
+        provinceName: widget.provinceName,
+      ),
+    ));
     final byDistrict = mapState.allPhotosByDistrict;
     final settings = ref.watch(mapSettingsProvider);
 
@@ -206,6 +222,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                 ? RepaintBoundary(
                     key: _repaintKey,
                     child: DistrictsMap(
+                      countryId: widget.countryId,
                       provinceName: widget.provinceName,
                       transformController: _transformController,
                       baseColor: settings.provinceColor,

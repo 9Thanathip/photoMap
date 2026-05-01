@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:photo_map/features/map/presentation/providers/country_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -206,9 +207,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
   }
 
   void _showProvinceMenu(BuildContext context, String provinceName) {
+    final countryId = ref.read(countryProvider).current.id;
     showModalBottomSheet<void>(
       context: context,
-      builder: (_) => ProvinceMenuSheet(provinceName: provinceName),
+      builder: (_) =>
+          ProvinceMenuSheet(countryId: countryId, provinceName: provinceName),
     );
   }
 

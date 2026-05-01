@@ -7,6 +7,7 @@ import 'package:photo_map/features/map/presentation/widgets/province_map_painter
 class DistrictsMap extends ConsumerStatefulWidget {
   const DistrictsMap({
     super.key,
+    required this.countryId,
     required this.provinceName,
     required this.transformController,
     required this.onSelectDistrict,
@@ -18,6 +19,7 @@ class DistrictsMap extends ConsumerStatefulWidget {
     required this.openTime,
   });
 
+  final String countryId;
   final String provinceName;
   final TransformationController transformController;
   final ValueChanged<String> onSelectDistrict;
@@ -80,7 +82,12 @@ class _DistrictsMapState extends ConsumerState<DistrictsMap> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(provinceMapProvider(widget.provinceName));
+    final state = ref.watch(provinceMapProvider(
+      ProvinceMapParams(
+        countryId: widget.countryId,
+        provinceName: widget.provinceName,
+      ),
+    ));
 
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -98,7 +105,12 @@ class _DistrictsMapState extends ConsumerState<DistrictsMap> {
             AppButton(
               label: 'Retry',
               onPressed: () => ref
-                  .read(provinceMapProvider(widget.provinceName).notifier)
+                  .read(provinceMapProvider(
+                    ProvinceMapParams(
+                      countryId: widget.countryId,
+                      provinceName: widget.provinceName,
+                    ),
+                  ).notifier)
                   .loadMap(),
             ),
           ],
