@@ -30,7 +30,7 @@ class ImageViewerPage extends StatefulWidget {
 }
 
 class _ImageViewerPageState extends State<ImageViewerPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   final _controller = TransformationController();
   late AnimationController _animationController;
   Animation<Matrix4>? _animation;
@@ -103,7 +103,11 @@ class _ImageViewerPageState extends State<ImageViewerPage>
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (widget.photo.assetEntity == null) {
       return const Center(
         child: Icon(Icons.broken_image, color: Colors.white, size: 64),

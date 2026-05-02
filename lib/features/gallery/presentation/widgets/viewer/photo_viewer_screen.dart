@@ -29,7 +29,7 @@ class PhotoViewerScreen extends StatefulWidget {
 }
 
 class _PhotoViewerScreenState extends State<PhotoViewerScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final PageController _pageController;
   late int _currentIndex;
   late List<PhotoItem> _photos; // Mutable copy for deletion support
@@ -63,15 +63,32 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       upperBound: 3000,
       value: 0,
     );
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _spring.dispose();
     _pageController.dispose();
     _videoController?.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (mounted) {
+        setState(() {
+          // Force a rebuild to re-trigger image loading and route visibility
+        });
+        // Re-play video if it was playing
+        if (_isVideo && _videoInitialized && _videoController != null) {
+          _videoController!.play();
+        }
+      }
+    }
   }
 
   PhotoItem get _current => _photos[_currentIndex];
@@ -271,6 +288,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
 
     // PageView is built once and reused — AnimatedBuilder won't rebuild it
     final pageView = PageView.builder(
+      key: const PageStorageKey('photo_viewer_pageview'),
       controller: _pageController,
       physics: _isZoomed || _isSliderDragging
           ? const NeverScrollableScrollPhysics()
@@ -289,7 +307,9 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       itemBuilder: (_, index) {
         final photo = _photos[index];
         final isCurrent = index == _currentIndex;
-        final heroTag = isCurrent ? photo.path : '__no_hero_${index}_${photo.path}';
+        final heroTag = isCurrent
+            ? photo.path
+            : '__no_hero_${index}_${photo.path}';
 
         final page = photo.assetEntity?.type == AssetType.video
             ? VideoViewerPage(
@@ -367,8 +387,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     );
 
     final overlay = _buildOverlay();
+    final photoPath = _photos.isNotEmpty ? _current.path : 'empty';
 
     return Scaffold(
+      key: ValueKey('viewer_$photoPath'),
       backgroundColor: Colors.transparent,
       body: AnimatedBuilder(
         animation: widget.routeAnimation != null
@@ -377,7 +399,12 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
         builder: (context, child) {
           final dy = _spring.value;
           final screenH = MediaQuery.sizeOf(context).height;
-          final routeAlpha = widget.routeAnimation?.value ?? 1.0;
+          
+          // Real Fix: Ensure routeAlpha is 1.0 after transition completes, 
+          // avoiding the "disappearing on resume" bug on iOS.
+          final routeAlpha = widget.routeAnimation?.isCompleted == true 
+              ? 1.0 
+              : (widget.routeAnimation?.value ?? 1.0);
 
           // Dismissal progress (0 to 1) only when dragging down
           final dismissProgress = dy > 0
@@ -396,9 +423,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
               .clamp(0.0, 1.0);
 
           return ColoredBox(
-            color: dy <= 0
-                ? Colors.black.withOpacity(routeAlpha)
-                : Colors.black.withOpacity(bgOpacity),
+            color: Colors.black.withOpacity(routeAlpha),
             child: Stack(
               children: [
                 GestureDetector(
@@ -495,7 +520,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                       }),
                       if (!_isVideo)
                         _bottomAction(Icons.tune_rounded, _openEditor),
-                      _bottomAction(Icons.delete_outline_rounded, _deleteCurrentPhoto),
+                      _bottomAction(
+                        Icons.delete_outline_rounded,
+                        _deleteCurrentPhoto,
+                      ),
                     ],
                   ),
                 ),

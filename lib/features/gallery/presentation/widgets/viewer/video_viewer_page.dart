@@ -30,7 +30,8 @@ class VideoViewerPage extends StatefulWidget {
   State<VideoViewerPage> createState() => _VideoViewerPageState();
 }
 
-class _VideoViewerPageState extends State<VideoViewerPage> {
+class _VideoViewerPageState extends State<VideoViewerPage>
+    with AutomaticKeepAliveClientMixin {
   bool _showControls = true;
   bool _muted = false;
   Timer? _hideTimer;
@@ -70,9 +71,9 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
   void _togglePlay() {
     final c = widget.controller;
     if (c == null) return;
-    
+
     HapticFeedback.lightImpact();
-    
+
     if (c.value.isPlaying) {
       c.pause();
       _hideTimer?.cancel();
@@ -89,7 +90,11 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (!widget.initialized || widget.controller == null) {
       return GestureDetector(
         onTap: widget.onTap,
@@ -110,9 +115,7 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
               )
             else
               const ColoredBox(color: Colors.black),
-            const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
+            const Center(child: CircularProgressIndicator(color: Colors.white)),
           ],
         ),
       );
@@ -129,21 +132,22 @@ class _VideoViewerPageState extends State<VideoViewerPage> {
           Center(
             child: Hero(
               tag: widget.tag,
-              flightShuttleBuilder: (
-                BuildContext flightContext,
-                Animation<double> animation,
-                HeroFlightDirection flightDirection,
-                BuildContext fromHeroContext,
-                BuildContext toHeroContext,
-              ) {
-                return Material(
-                  color: Colors.transparent,
-                  child: AspectRatio(
-                    aspectRatio: c.value.aspectRatio,
-                    child: VideoPlayer(c),
-                  ),
-                );
-              },
+              flightShuttleBuilder:
+                  (
+                    BuildContext flightContext,
+                    Animation<double> animation,
+                    HeroFlightDirection flightDirection,
+                    BuildContext fromHeroContext,
+                    BuildContext toHeroContext,
+                  ) {
+                    return Material(
+                      color: Colors.transparent,
+                      child: AspectRatio(
+                        aspectRatio: c.value.aspectRatio,
+                        child: VideoPlayer(c),
+                      ),
+                    );
+                  },
               child: AspectRatio(
                 aspectRatio: c.value.aspectRatio,
                 child: VideoPlayer(c),
@@ -307,7 +311,7 @@ class _VideoControls extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Minimal Scrubber
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
@@ -329,8 +333,9 @@ class _VideoControls extends StatelessWidget {
                 onChangeEnd: (_) => onSliderDragEnd(),
                 onChanged: (v) {
                   onSeeking();
-                  controller.seekTo(Duration(
-                      milliseconds: (v * dur.inMilliseconds).round()));
+                  controller.seekTo(
+                    Duration(milliseconds: (v * dur.inMilliseconds).round()),
+                  );
                 },
               ),
             ),
@@ -384,7 +389,8 @@ class _CustomTrackShape extends RoundedRectSliderTrackShape {
   }) {
     final double trackHeight = sliderTheme.trackHeight!;
     final double trackLeft = offset.dx + 20;
-    final double trackTop = offset.dy + (parentBox.size.height - trackHeight) / 2;
+    final double trackTop =
+        offset.dy + (parentBox.size.height - trackHeight) / 2;
     final double trackWidth = parentBox.size.width - 40;
     return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
   }
