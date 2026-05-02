@@ -315,10 +315,14 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   }
 
   Future<void> _loadAll({bool isSilent = false}) async {
-    if (!isSilent) state = state.copyWith(isLoading: true, error: null);
+    // Only show loading spinner if we have no photos yet. 
+    // If we already have photos, do a silent update to prevent flickering.
+    final shouldShowSpinner = !isSilent && state.allPhotos.isEmpty;
+    if (shouldShowSpinner) {
+      state = state.copyWith(isLoading: true, error: null);
+    }
+    
     try {
-      // Retry up to 3 times with delay — iOS may not expose photos immediately
-      // after the permission dialog is dismissed for the first time.
       List<AssetPathEntity> albums = [];
       for (int attempt = 0; attempt < 3; attempt++) {
         albums = await PhotoManager.getAssetPathList(
@@ -347,6 +351,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
       final assets = await album.getAssetListRange(start: 0, end: total);
 
+      // Preserve existing geocoding data by matching with current state
       final currentMap = {for (final p in state.allPhotos) p.path: p};
       final photos = _buildPhotoItems(assets, currentMap);
 
@@ -373,16 +378,19 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     final items = <PhotoItem>[];
     for (final asset in assets) {
       if (asset.type == AssetType.image || asset.type == AssetType.video) {
-        // Reuse existing item to preserve geocoding results
+        // 1. Try to reuse exactly same object from previous state (preserves geocoding)
         final prev = existing?[asset.id];
         if (prev != null && prev.province.isNotEmpty) {
           items.add(prev.copyWithAsset(asset));
           continue;
         }
 
-        // Check geocoding cache by coord key
+        // 2. If new asset, try to find geocoding in our in-memory cache by coordinates
+        // This is the KEY FIX for the "No photos in" issue on resume.
         final lat = asset.latitude ?? 0.0;
         final lng = asset.longitude ?? 0.0;
+        
+        // Match coord key with 4 decimal precision (standard for our cache)
         final coordKey = '${lat.toStringAsFixed(4)}_${lng.toStringAsFixed(4)}';
         final cachedGeo = _geocodingCache[coordKey];
 
@@ -415,7 +423,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     final List<PhotoItem> withCoords = List.from(photos);
 
     // Batch process coordinates to avoid overloading the platform channel
-    const int batchSize = 100;
+    const int batchSize = 200;
     for (int i = 0; i < withCoords.length; i += batchSize) {
       final int end = (i + batchSize < withCoords.length)
           ? i + batchSize
@@ -443,7 +451,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       }
       if (batchFutures.isNotEmpty) {
         await Future.wait(batchFutures);
-        await Future.delayed(const Duration(milliseconds: 200));
+        // Small delay to keep the UI responsive
+        await Future.delayed(const Duration(milliseconds: 100));
       }
 
       // Update state after each batch so map can show photos progressively

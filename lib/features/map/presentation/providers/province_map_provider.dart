@@ -219,8 +219,8 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
         .replaceAll(RegExp(r'[\s-]'), '')
         .toLowerCase();
 
+    // 1. Filter photos for this province immediately (Synchronous part)
     final provincePhotos = allGalleryPhotos.where((p) {
-      // Filter by country AND province to be safe
       if (p.country.replaceAll(RegExp(r'[\s-]'), '').toLowerCase() != 
           state.countryId.replaceAll(RegExp(r'[\s-]'), '').toLowerCase()) {
         return false;
@@ -230,7 +230,6 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
     }).toList();
 
     final Map<String, List<PhotoItem>> photosByDistrict = {};
-
     final Map<String, String> normalizedToRealDistrict = {};
     for (final d in state.districts) {
       final normalized = d.name.replaceAll(RegExp(r'[\s-]'), '').toLowerCase();
@@ -239,7 +238,6 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
 
     for (final photo in provincePhotos) {
       String? matchedDistrict;
-
       if (photo.hasLocation) {
         final point = ui.Offset(photo.lng, -photo.lat);
         for (final district in state.districts) {
@@ -249,7 +247,6 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
           }
         }
       }
-
       if (matchedDistrict == null && photo.district.isNotEmpty) {
         final photoDistNormalized = photo.district
             .replaceAll(RegExp(r'[\s-]'), '')
@@ -263,15 +260,19 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
           }
         }
       }
-
       final districtKey = matchedDistrict ?? 'Unknown';
       photosByDistrict.putIfAbsent(districtKey, () => []).add(photo);
     }
 
+    // UPDATE STATE IMMEDIATELY with the new photo list to prevent flickers
+    // This ensures photos.isEmpty check in UI is accurate right away.
+    state = state.copyWith(allPhotosByDistrict: photosByDistrict);
+
+    // 2. Load images for the map in the background (Asynchronous part)
     final Map<String, ui.Image?> newPhotos = {};
     final newLoadTimes = Map<String, DateTime>.from(state.imageLoadTimes);
-
     final Map<String, AssetEntity> districtSelectedPhotos = {};
+
     for (var entry in photosByDistrict.entries) {
       final districtName = entry.key;
       final photos = List<PhotoItem>.from(entry.value)
@@ -290,12 +291,10 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
       futures.add(() async {
         final districtName = entry.key;
         final entity = entry.value;
-
         if (_imageCache.containsKey(entity.id)) {
           newPhotos[districtName] = _imageCache[entity.id];
           return;
         }
-
         final img = await _loadUiImage(entity);
         if (img != null) {
           _imageCache[entity.id] = img;
@@ -317,7 +316,6 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
 
     state = state.copyWith(
       districtPhotos: newPhotos,
-      allPhotosByDistrict: photosByDistrict,
       imageLoadTimes: newLoadTimes,
     );
   }

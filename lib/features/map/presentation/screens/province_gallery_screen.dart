@@ -121,9 +121,9 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
               return false;
             },
             child: Positioned.fill(
-              child: mapState.isLoading 
+              child: (mapState.isLoading || (gallery.isLoading && photos.isEmpty))
                   ? const Center(child: CircularProgressIndicator())
-                  : photos.isEmpty
+                  : (photos.isEmpty && !gallery.isGeocoding)
                       ? AppEmptyState(
                           icon: Icons.photo_library_outlined,
                           title: 'No photos in ${widget.districtName ?? widget.provinceName}',
