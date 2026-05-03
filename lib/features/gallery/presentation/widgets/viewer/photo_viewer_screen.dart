@@ -323,7 +323,11 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                 asset: photo.assetEntity,
                 controller: isCurrent ? _videoController : null,
                 initialized: isCurrent && _videoInitialized,
+                showControls: _showOverlay,
                 onTap: _toggleOverlay,
+                onAutoHide: () {
+                  if (_showOverlay) setState(() => _showOverlay = false);
+                },
                 onSliderDragStart: () =>
                     setState(() => _isSliderDragging = true),
                 onSliderDragEnd: () =>
