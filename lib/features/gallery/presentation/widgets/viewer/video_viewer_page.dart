@@ -130,38 +130,39 @@ class _VideoViewerPageState extends State<VideoViewerPage>
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Center(
-            child: Hero(
-              tag: widget.tag,
-              flightShuttleBuilder:
-                  (
-                    BuildContext flightContext,
-                    Animation<double> animation,
-                    HeroFlightDirection flightDirection,
-                    BuildContext fromHeroContext,
-                    BuildContext toHeroContext,
-                  ) {
-                    if (widget.asset == null) {
-                      return const SizedBox.shrink();
-                    }
-                    return Material(
-                      color: Colors.transparent,
-                      child: AspectRatio(
-                        aspectRatio: c.value.aspectRatio,
+          // Mirror ImageViewerPage layout (Align → AspectRatio → Hero)
+          // so the Hero rect tween matches the image dismiss animation —
+          // smooth shrink back to the gallery grid thumbnail.
+          Align(
+            alignment: Alignment.center,
+            child: AspectRatio(
+              aspectRatio: c.value.aspectRatio,
+              child: Hero(
+                tag: widget.tag,
+                flightShuttleBuilder:
+                    (
+                      BuildContext flightContext,
+                      Animation<double> animation,
+                      HeroFlightDirection flightDirection,
+                      BuildContext fromHeroContext,
+                      BuildContext toHeroContext,
+                    ) {
+                      if (widget.asset == null) {
+                        return const SizedBox.shrink();
+                      }
+                      return Material(
+                        color: Colors.transparent,
                         child: Image(
                           image: AssetEntityImageProvider(
                             widget.asset!,
                             isOriginal: false,
                             thumbnailSize: const ThumbnailSize(800, 800),
                           ),
-                          fit: BoxFit.contain,
+                          fit: BoxFit.cover,
                           gaplessPlayback: true,
                         ),
-                      ),
-                    );
-                  },
-              child: AspectRatio(
-                aspectRatio: c.value.aspectRatio,
+                      );
+                    },
                 child: VideoPlayer(c),
               ),
             ),

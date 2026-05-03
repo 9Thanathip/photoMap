@@ -196,7 +196,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       if (dy > 0) {
         // Dragging down (Dismissal behavior)
         if (vel > 700 || dy > screenH * 0.15) {
-          // If swipe-down is fast or far enough, close the whole viewer
+          // If swipe-down is fast or far enough, close the whole viewer.
+          // Pause the video first so the Hero flight uses the thumbnail
+          // shuttle (no live texture jumping during shrink).
+          _videoController?.pause();
           if (mounted) Navigator.of(context).pop();
         } else {
           // Otherwise, snap back to center
