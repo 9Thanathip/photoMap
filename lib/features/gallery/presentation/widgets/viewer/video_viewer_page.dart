@@ -128,7 +128,10 @@ class _VideoViewerPageState extends State<VideoViewerPage>
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Video - Don't rebuild this on every frame
+          // Video — single VideoPlayer texture/platform-view.
+          // Hero flight uses the thumbnail (not another VideoPlayer) to avoid
+          // two video surfaces rendering the same controller during transition,
+          // which caused a doubled overlay.
           Center(
             child: Hero(
               tag: widget.tag,
@@ -140,11 +143,22 @@ class _VideoViewerPageState extends State<VideoViewerPage>
                     BuildContext fromHeroContext,
                     BuildContext toHeroContext,
                   ) {
+                    if (widget.asset == null) {
+                      return const SizedBox.shrink();
+                    }
                     return Material(
                       color: Colors.transparent,
                       child: AspectRatio(
                         aspectRatio: c.value.aspectRatio,
-                        child: VideoPlayer(c),
+                        child: Image(
+                          image: AssetEntityImageProvider(
+                            widget.asset!,
+                            isOriginal: false,
+                            thumbnailSize: const ThumbnailSize(800, 800),
+                          ),
+                          fit: BoxFit.contain,
+                          gaplessPlayback: true,
+                        ),
                       ),
                     );
                   },

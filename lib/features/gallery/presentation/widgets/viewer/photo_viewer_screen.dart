@@ -108,7 +108,13 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     final File? file = await photo.assetEntity!.file;
     if (file == null || !mounted) return;
 
-    final controller = VideoPlayerController.file(file);
+    final controller = VideoPlayerController.file(
+      file,
+      // Use platform view (AVPlayerLayer) on iOS so HDR videos
+      // (HLG / HDR10 / Dolby Vision) render with full HDR pass-through
+      // instead of being tone-mapped to SDR by the texture path.
+      viewType: VideoViewType.platformView,
+    );
     await controller.initialize();
     if (!mounted) {
       controller.dispose();
