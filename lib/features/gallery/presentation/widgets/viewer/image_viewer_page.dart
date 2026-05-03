@@ -49,7 +49,7 @@ class _ImageViewerPageState extends State<ImageViewerPage>
 
   void _onTransform() {
     final scale = _controller.value.getMaxScaleOnAxis();
-    final zoomed = scale > 1.05;
+    final zoomed = scale > 1.1;
     if (zoomed != _isZoomed) {
       _isZoomed = zoomed;
       widget.onZoomChanged(zoomed);

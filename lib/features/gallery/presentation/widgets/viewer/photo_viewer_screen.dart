@@ -403,7 +403,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     final photoPath = _photos.isNotEmpty ? _current.path : 'empty';
 
     return Scaffold(
-      key: ValueKey('viewer_$photoPath'),
+      key: const ValueKey('photo_viewer_scaffold'),
       backgroundColor: Colors.transparent,
       body: AnimatedBuilder(
         animation: widget.routeAnimation != null
