@@ -268,6 +268,13 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       state = state.copyWith(isFirstTimeNoCache: true);
     }
 
+    // Restore photo metadata from disk so UI has data instantly on resume
+    // Prevents "no photo" / 0% achievement flash while PhotoManager re-scans.
+    final cachedPhotos = await _cacheService.loadPhotoMetadata();
+    if (cachedPhotos != null && cachedPhotos.isNotEmpty) {
+      await _loadFromCache(cachedPhotos);
+    }
+
     final permission = await PhotoManager.requestPermissionExtend(
       requestOption: const PermissionRequestOption(
         androidPermission: AndroidPermission(
@@ -344,8 +351,14 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       final album = albums.first;
       final total = await album.assetCountAsync;
 
+      // Don't wipe existing photos if PhotoManager transiently reports 0 on resume.
+      // Real "no photos" only matters on first load (state.allPhotos is empty).
       if (total == 0) {
-        state = state.copyWith(allPhotos: [], isLoading: false);
+        if (state.allPhotos.isEmpty) {
+          state = state.copyWith(allPhotos: [], isLoading: false);
+        } else {
+          state = state.copyWith(isLoading: false);
+        }
         return;
       }
 
@@ -354,6 +367,14 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       // Preserve existing geocoding data by matching with current state
       final currentMap = {for (final p in state.allPhotos) p.path: p};
       final photos = _buildPhotoItems(assets, currentMap);
+
+      // Guard: if scanner returned far fewer items than current state, treat as
+      // a transient partial scan and keep the existing list to avoid flicker.
+      if (state.allPhotos.isNotEmpty &&
+          photos.length < state.allPhotos.length * 0.5) {
+        state = state.copyWith(isLoading: false);
+        return;
+      }
 
       state = state.copyWith(allPhotos: photos, isLoading: false);
       _geocodePhotos(photos).catchError((_) {
@@ -806,8 +827,11 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
 
       final album = albums.first;
       final total = await album.assetCountAsync;
+      // Don't wipe state if PhotoManager transiently reports 0 on resume.
       if (total == 0) {
-        state = state.copyWith(allPhotos: []);
+        if (state.allPhotos.isEmpty) {
+          state = state.copyWith(allPhotos: []);
+        }
         return;
       }
 
@@ -825,6 +849,12 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         }
       }
       final finalPhotos = uniqueMap.values.toList();
+
+      // Guard against partial scans on resume — don't shrink the list drastically.
+      if (state.allPhotos.isNotEmpty &&
+          finalPhotos.length < state.allPhotos.length * 0.5) {
+        return;
+      }
 
       state = state.copyWith(allPhotos: finalPhotos);
 
