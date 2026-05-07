@@ -174,63 +174,75 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
               ),
             ),
 
-          // Top gradient protection (always-on, deepens on scroll)
+          // Top gradient protection (always-on, deepens on scroll).
+          // Light theme → black scrim (matches map_screen).
+          // Dark theme → surface-tinted scrim that solidifies on scroll.
           Positioned(
             top: 0,
             left: 0,
             right: 0,
             height: topPad + 110,
             child: IgnorePointer(
-              child: Stack(
-                children: [
-                  // Persistent base scrim for header readability.
-                  // Light theme → black scrim (matches map_screen).
-                  // Dark theme → surface-tinted scrim.
-                  Positioned.fill(
-                    child: DecoratedBox(
+              child: context.isDark
+                  ? Stack(
+                      children: [
+                        Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  theme.colorScheme.surface.withValues(alpha: 0.85),
+                                  theme.colorScheme.surface.withValues(alpha: 0.55),
+                                  theme.colorScheme.surface.withValues(alpha: 0.0),
+                                ],
+                                stops: const [0.0, 0.55, 1.0],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: AnimatedOpacity(
+                            opacity: _isScrolled ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 200),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    theme.colorScheme.surface,
+                                    theme.colorScheme.surface,
+                                    theme.colorScheme.surface.withAlpha(0),
+                                  ],
+                                  stops: const [0.0, 0.72, 1.0],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: context.isDark
-                              ? [
-                                  theme.colorScheme.surface.withValues(alpha: 0.85),
-                                  theme.colorScheme.surface.withValues(alpha: 0.55),
-                                  theme.colorScheme.surface.withValues(alpha: 0.0),
-                                ]
-                              : [
-                                  Colors.black.withValues(alpha: 0.32),
-                                  Colors.black.withValues(alpha: 0.12),
-                                  Colors.black.withValues(alpha: 0.0),
-                                ],
+                          colors: [
+                            Colors.black.withValues(
+                              alpha: _isScrolled ? 0.55 : 0.32,
+                            ),
+                            Colors.black.withValues(
+                              alpha: _isScrolled ? 0.25 : 0.12,
+                            ),
+                            Colors.black.withValues(alpha: 0.0),
+                          ],
                           stops: const [0.0, 0.55, 1.0],
                         ),
                       ),
                     ),
-                  ),
-                  // Solid overlay deepens once content scrolls under header
-                  Positioned.fill(
-                    child: AnimatedOpacity(
-                      opacity: _isScrolled ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 200),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              theme.colorScheme.surface,
-                              theme.colorScheme.surface,
-                              theme.colorScheme.surface.withAlpha(0),
-                            ],
-                            stops: const [0.0, 0.72, 1.0],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
 
