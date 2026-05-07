@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
+import 'app_tokens.dart';
 
 abstract final class AppTheme {
   static ThemeData light() => _build(
         ColorScheme.fromSeed(seedColor: AppColors.seed, brightness: Brightness.light),
+        AppTokens.light(),
       );
 
   static ThemeData dark() => _build(
         ColorScheme.fromSeed(seedColor: AppColors.seed, brightness: Brightness.dark),
+        AppTokens.dark(),
       );
 
-  static ThemeData _build(ColorScheme cs) {
+  static ThemeData _build(ColorScheme cs, AppTokens tokens) {
     final base = ThemeData(useMaterial3: true, colorScheme: cs);
     return base.copyWith(
+      extensions: <ThemeExtension<dynamic>>[tokens],
       textTheme: GoogleFonts.poppinsTextTheme(base.textTheme),
       appBarTheme: AppBarTheme(
         backgroundColor: cs.surface,

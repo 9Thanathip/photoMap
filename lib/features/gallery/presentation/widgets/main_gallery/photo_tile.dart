@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../providers/gallery_notifier.dart';
 
 class PhotoTile extends StatefulWidget {
@@ -145,10 +146,10 @@ class ShimmerThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final t = context.tokens;
     return Shimmer.fromColors(
-      baseColor: isDark ? Colors.white.withAlpha(10) : Colors.grey[200]!,
-      highlightColor: isDark ? Colors.white.withAlpha(25) : Colors.grey[100]!,
+      baseColor: t.shimmerBase,
+      highlightColor: t.shimmerHighlight,
       child: Container(color: Colors.white),
     );
   }

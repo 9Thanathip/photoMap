@@ -5,6 +5,7 @@ import 'package:photo_manager/photo_manager.dart' hide LatLng;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:native_exif/native_exif.dart';
+import 'package:photo_map/core/theme/app_palette.dart';
 import '../../providers/gallery_notifier.dart';
 
 class PhotoInfoContent extends StatefulWidget {
@@ -287,7 +288,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
 
               return Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
+                  color: Palette.photoInfoBg,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 padding: const EdgeInsets.all(16),
@@ -397,8 +398,8 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: const [
-                            Color(0xFF2C2C2E),
-                            Color(0xFF1C1C1E),
+                            Palette.photoMapTile1,
+                            Palette.photoMapTile2,
                           ],
                         ),
                       ),

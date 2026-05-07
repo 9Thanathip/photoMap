@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:photo_map/core/theme/app_palette.dart';
 
-const kGold1 = Color(0xFFFFD060);
-const kGold2 = Color(0xFFB8860B);
-const kGold3 = Color(0xFFFFF0A0);
+// Aliases kept for `const` usage sites (AlwaysStoppedAnimation, BoxDecoration).
+const kGold1 = Palette.gold400;
+const kGold2 = Palette.gold700;
+const kGold3 = Palette.gold300;
 const kGoldGrad = LinearGradient(colors: [kGold2, kGold1]);
 
 class GoldText extends StatelessWidget {
@@ -30,12 +32,4 @@ class GoldText extends StatelessWidget {
       ),
     );
   }
-}
-
-// Shared BuildContext helpers used across achievement widgets
-extension AchievementContextX on BuildContext {
-  bool get isDark => Theme.of(this).brightness == Brightness.dark;
-  Color dimW(double a) => Colors.white.withValues(alpha: a);
-  Color dimB(double a) => Colors.black.withValues(alpha: a);
-  Color dim(double light, double dark) => isDark ? dimW(dark) : dimB(light);
 }

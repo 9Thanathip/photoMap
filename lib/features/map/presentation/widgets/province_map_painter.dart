@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_palette.dart';
 
 class DistrictShape {
   final String name;
@@ -31,7 +32,7 @@ class ProvinceMapPainter extends CustomPainter {
     required this.currentTime,
     required this.openTime,
     this.selectedDistrict,
-    this.baseColor = const Color(0xFFE0E0E0),
+    this.baseColor = Palette.mapLight,
     this.strokeColor = Colors.white,
     this.strokeWidth = 0.8,
     this.canvasColor,

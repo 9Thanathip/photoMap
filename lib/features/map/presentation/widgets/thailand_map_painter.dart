@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:photo_map/core/theme/app_palette.dart';
 import 'dart:ui' as ui;
 
 class ProvinceShape {
@@ -36,7 +37,7 @@ class ThailandMapPainter extends CustomPainter {
     required this.currentTime,
     required this.openTime,
     this.selectedProvince,
-    this.baseColor = const Color(0xFFE0E0E0),
+    this.baseColor = Palette.mapLight,
     this.strokeColor = Colors.white,
     this.strokeWidth = 0.8,
     this.canvasColor,

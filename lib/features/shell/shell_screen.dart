@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_select_provider.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
+import 'package:photo_map/core/theme/app_tokens.dart';
 
 class ShellScreen extends ConsumerWidget {
   const ShellScreen({super.key, required this.navigationShell});
@@ -128,9 +129,9 @@ class _NavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final activeColor = isDark ? Colors.white : Colors.black;
-    final inactiveColor = isDark
+    final t = context.tokens;
+    final activeColor = t.textPrimary;
+    final inactiveColor = context.isDark
         ? Colors.white.withValues(alpha: 0.35)
         : Colors.black.withValues(alpha: 0.3);
 

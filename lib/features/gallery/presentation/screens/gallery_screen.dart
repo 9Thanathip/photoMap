@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:photo_map/core/theme/app_tokens.dart';
 import '../providers/gallery_notifier.dart';
 import '../providers/gallery_select_provider.dart';
 import '../widgets/main_gallery/albums_tab.dart';
@@ -329,13 +330,11 @@ class ShimmerPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final t = context.tokens;
     return Shimmer.fromColors(
-      baseColor: isDark ? Colors.white.withAlpha(15) : Colors.grey[200]!,
-      highlightColor: isDark ? Colors.white.withAlpha(30) : Colors.grey[50]!,
-      child: Container(
-        color: Colors.white,
-      ),
+      baseColor: t.shimmerBase,
+      highlightColor: t.shimmerHighlight,
+      child: Container(color: Colors.white),
     );
   }
 }

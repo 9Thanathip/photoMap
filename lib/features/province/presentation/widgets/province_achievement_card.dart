@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_map/core/theme/app_palette.dart';
+import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'gold_text.dart';
 
@@ -25,9 +27,10 @@ class ProvinceAchievementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     final borderColor = visited
-        ? kGold2.withValues(alpha: context.isDark ? 0.55 : 0.42)
-        : (context.isDark ? const Color(0xFF2A2A3A) : const Color(0xFFE5E5EA));
+        ? t.accentGoldDeep.withValues(alpha: context.isDark ? 0.55 : 0.42)
+        : t.borderStrong;
 
     return GestureDetector(
       onTap: onTap,
@@ -36,19 +39,13 @@ class ProvinceAchievementCard extends StatelessWidget {
         curve: Curves.easeInOut,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          gradient: visited
-              ? (context.isDark
-                  ? const LinearGradient(
-                      colors: [Color(0xFF251C00), Color(0xFF3A2A00), Color(0xFF251C00)])
-                  : const LinearGradient(
-                      colors: [Color(0xFFFFFAEC), Color(0xFFFFF3C0), Color(0xFFFFFAEC)]))
-              : null,
-          color: visited ? null : (context.isDark ? const Color(0xFF1A1A26) : Colors.white),
+          gradient: visited ? LinearGradient(colors: t.goldRowGradient) : null,
+          color: visited ? null : (context.isDark ? t.surfaceCard : Colors.white),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: borderColor),
           boxShadow: visited && isExpanded
               ? [BoxShadow(
-                  color: kGold1.withValues(alpha: context.isDark ? 0.08 : 0.14),
+                  color: t.accentGold.withValues(alpha: context.isDark ? 0.08 : 0.14),
                   blurRadius: 12,
                   offset: const Offset(0, 3))]
               : null,
@@ -120,7 +117,7 @@ class _CardRow extends StatelessWidget {
               child: const Icon(Icons.star_rounded, size: 14, color: Colors.black),
             )
           else
-            Icon(Icons.lock_outline_rounded, size: 15, color: context.dim(0.15, 0.15)),
+            Icon(Icons.lock_outline_rounded, size: 15, color: context.tokens.textTertiary),
           const SizedBox(width: 10),
           Expanded(
             child: visited && context.isDark
@@ -131,7 +128,7 @@ class _CardRow extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: visited ? FontWeight.w600 : FontWeight.w400,
                       color: visited
-                          ? (context.isDark ? null : const Color(0xFF5A3A00))
+                          ? (context.isDark ? null : Palette.goldTextOnLight)
                           : context.dim(0.28, 0.25),
                     ),
                   ),
@@ -144,7 +141,9 @@ class _CardRow extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: context.isDark ? kGold1.withValues(alpha: 0.7) : kGold2,
+                  color: context.isDark
+                      ? context.tokens.accentGold.withValues(alpha: 0.7)
+                      : context.tokens.accentGoldDeep,
                 ),
               ),
             ),
@@ -156,9 +155,9 @@ class _CardRow extends StatelessWidget {
               size: 18,
               color: visited
                   ? (context.isDark
-                      ? kGold1.withValues(alpha: 0.6)
-                      : kGold2.withValues(alpha: 0.7))
-                  : context.dim(0.15, 0.15),
+                      ? context.tokens.accentGold.withValues(alpha: 0.6)
+                      : context.tokens.accentGoldDeep.withValues(alpha: 0.7))
+                  : context.tokens.textTertiary,
             ),
           ),
           const SizedBox(width: 10),
@@ -203,7 +202,7 @@ class _CardExpanded extends StatelessWidget {
 
     return Column(
       children: [
-        Divider(height: 1, color: context.dim(0.06, 0.07)),
+        Divider(height: 1, color: context.tokens.dividerSoft),
         Padding(
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
           child: Column(
@@ -237,18 +236,14 @@ class _CardExpanded extends StatelessWidget {
                         child: Container(
                           width: 72,
                           height: 72,
-                          color: context.isDark
-                              ? const Color(0xFF2A2040)
-                              : const Color(0xFFEEEAFF),
+                          color: context.tokens.accentVioletSurface,
                           alignment: Alignment.center,
                           child: Text(
                             '+${photos.length - 5}',
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: context.isDark
-                                  ? context.dimW(0.7)
-                                  : const Color(0xFF5A50A0),
+                              color: context.tokens.accentVioletText,
                             ),
                           ),
                         ),
@@ -301,6 +296,6 @@ class _Placeholder extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         width: 72,
         height: 72,
-        color: context.isDark ? const Color(0xFF2A2A3A) : const Color(0xFFE5E5EA),
+        color: context.tokens.surfaceMuted,
       );
 }

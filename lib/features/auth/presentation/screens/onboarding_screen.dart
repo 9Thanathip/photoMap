@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:photo_map/core/theme/app_palette.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -17,21 +18,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   static const _pages = [
     _PageData(
       icon: Icons.photo_library_rounded,
-      color: Color(0xFF6C63FF),
+      color: Palette.violet500,
       title: 'Capture Your\nMoments',
       description:
           'Organize and edit your photos with a beautiful, intuitive gallery experience.',
     ),
     _PageData(
       icon: Icons.map_rounded,
-      color: Color(0xFF2D3250),
+      color: Palette.indigo900,
       title: 'Map Your\nJourney',
       description:
           'Pin your photos to locations and explore your memories on an interactive map.',
     ),
     _PageData(
       icon: Icons.emoji_events_rounded,
-      color: Color(0xFFE94560),
+      color: Palette.coral500,
       title: 'Explore\nThailand',
       description:
           'Discover all 77 provinces and unlock achievements as you travel the kingdom.',

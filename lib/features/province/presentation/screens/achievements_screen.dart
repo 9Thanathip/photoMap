@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/features/map/presentation/screens/province_gallery_screen.dart';
 import '../widgets/achievements_stats.dart';
 import '../widgets/country_pills.dart';
-import '../widgets/gold_text.dart';
 
 const Map<String, int> _kDistrictCount = {
   'Amnat Charoen': 7,
@@ -101,6 +101,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
     final photos = ref.watch(galleryStateProvider).allPhotos;
     final topPad = MediaQuery.paddingOf(context).top;
     final dark = context.isDark;
+    final t = context.tokens;
 
     final stats = AchievementsStats.from(photos);
     final countries = <String>{'Thailand', ...stats.countriesVisited.keys};
@@ -126,15 +127,12 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
     final progress = total == 0 ? 0.0 : visitedCount / total;
     final pct = (progress * 100).toStringAsFixed(0);
 
-    // ── Black & white theme ──
-    final bgColor = dark ? const Color(0xFF0A0A0A) : const Color(0xFFF5F5F5);
-    final cardBg = dark ? const Color(0xFF161616) : Colors.white;
-    final borderC = dark
-        ? Colors.white.withValues(alpha: 0.08)
-        : Colors.black.withValues(alpha: 0.06);
-    final tp = dark ? Colors.white : const Color(0xFF111111);
-    final ts = dark ? Colors.white54 : const Color(0xFF777777);
-    final tt = dark ? Colors.white24 : const Color(0xFFBBBBBB);
+    final bgColor = t.surfaceBase;
+    final cardBg = t.surfaceCard;
+    final borderC = t.borderSubtle;
+    final tp = t.textPrimary;
+    final ts = t.textSecondary;
+    final tt = t.textTertiary;
 
     return Scaffold(
       backgroundColor: bgColor,

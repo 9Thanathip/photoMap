@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_map/core/theme/app_palette.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MapSettings {
@@ -41,8 +42,8 @@ final mapSettingsProvider =
 class MapSettingsNotifier extends StateNotifier<MapSettings> {
   MapSettingsNotifier()
       : super(MapSettings(
-          provinceColor: const Color(0xFFD9D9D9),
-          canvasColor: const Color(0xFFF0F0F5),
+          provinceColor: Palette.mapStone,
+          canvasColor: Palette.mapCanvasLight,
           strokeColor: Colors.white,
           strokeWidth: 0.8,
         )) {

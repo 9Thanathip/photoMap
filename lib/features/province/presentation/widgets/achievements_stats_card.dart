@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_tokens.dart';
 import 'gold_text.dart';
 
 class AchievementsStatsCard extends StatelessWidget {
@@ -15,12 +16,13 @@ class AchievementsStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: context.isDark ? const Color(0xFF141420) : Colors.white,
+        color: t.surfaceCardAlt,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: kGold2.withValues(alpha: 0.35)),
+        border: Border.all(color: t.accentGoldDeep.withValues(alpha: 0.35)),
         boxShadow: context.isDark
             ? null
             : [BoxShadow(color: context.dimB(0.05), blurRadius: 8, offset: const Offset(0, 2))],
@@ -29,7 +31,7 @@ class AchievementsStatsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Icon(Icons.emoji_events_rounded, color: kGold1, size: 16),
+            Icon(Icons.emoji_events_rounded, color: t.accentGold, size: 16),
             const SizedBox(width: 6),
             GoldText('Thailand Explorer', fontSize: 12, fontWeight: FontWeight.w600),
           ]),
@@ -54,7 +56,7 @@ class AchievementsStatsCard extends StatelessWidget {
               value: progress,
               minHeight: 4,
               backgroundColor: context.dim(0.07, 0.08),
-              valueColor: const AlwaysStoppedAnimation(kGold1),
+              valueColor: AlwaysStoppedAnimation(t.accentGold),
             ),
           ),
           const SizedBox(height: 10),

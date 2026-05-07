@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:photo_map/core/theme/app_tokens.dart';
 import 'achievements_stats.dart';
 import 'gold_text.dart';
 
@@ -37,9 +38,7 @@ class CountryPills extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
                 gradient: sel ? kGoldGrad : null,
-                color: sel
-                    ? null
-                    : (context.isDark ? const Color(0xFF1C1C28) : const Color(0xFFE5E5EA)),
+                color: sel ? null : context.tokens.surfaceElevated,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -47,7 +46,7 @@ class CountryPills extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: sel ? FontWeight.w600 : FontWeight.w500,
-                  color: sel ? Colors.black : context.dim(0.55, 0.55),
+                  color: sel ? context.tokens.textOnAccent : context.dim(0.55, 0.55),
                 ),
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_map/core/theme/app_palette.dart';
 import 'package:photo_map/features/map/presentation/providers/map_settings_provider.dart';
 
 class ColorPreset {
@@ -12,32 +13,32 @@ class ColorPreset {
 
 const kStrokePresets = [
   ColorPreset('White', Colors.white),
-  ColorPreset('Light', Color(0xFFE0E0E0)),
-  ColorPreset('Silver', Color(0xFFAAAAAA)),
-  ColorPreset('Warm', Color(0xFFD4B896)),
-  ColorPreset('Gold', Color(0xFFFFD060)),
-  ColorPreset('Black', Color(0xFF1A1A1A)),
-  ColorPreset('Dark', Color(0xFF444444)),
+  ColorPreset('Light', Palette.mapLight),
+  ColorPreset('Silver', Palette.mapSilver),
+  ColorPreset('Warm', Palette.mapWarm),
+  ColorPreset('Gold', Palette.gold400),
+  ColorPreset('Black', Palette.mapBlack),
+  ColorPreset('Dark', Palette.mapDark),
 ];
 
 const kProvincePresets = [
-  ColorPreset('Stone', Color(0xFFD9D9D9)),
-  ColorPreset('Warm Sand', Color(0xFFE8D5B7)),
-  ColorPreset('Sage', Color(0xFFB2C9AD)),
-  ColorPreset('Sky', Color(0xFFB8D4E8)),
-  ColorPreset('Slate', Color(0xFF7A8BA0)),
-  ColorPreset('Charcoal', Color(0xFF3A3A3A)),
-  ColorPreset('Ink', Color(0xFF1A1A2E)),
+  ColorPreset('Stone', Palette.mapStone),
+  ColorPreset('Warm Sand', Palette.mapWarmSand),
+  ColorPreset('Sage', Palette.mapSage),
+  ColorPreset('Sky', Palette.mapSky),
+  ColorPreset('Slate', Palette.mapSlate),
+  ColorPreset('Charcoal', Palette.mapCharcoal),
+  ColorPreset('Ink', Palette.mapInk),
 ];
 
 const kCanvasPresets = [
-  ColorPreset('Light', Color(0xFFF0F0F5)),
-  ColorPreset('Cream', Color(0xFFF5F0E8)),
-  ColorPreset('Mint', Color(0xFFEDF5EF)),
-  ColorPreset('Ice', Color(0xFFEAF2F8)),
-  ColorPreset('Blush', Color(0xFFF8EEF0)),
-  ColorPreset('Dark', Color(0xFF1C1C1E)),
-  ColorPreset('Midnight', Color(0xFF0D1B2A)),
+  ColorPreset('Light', Palette.mapCanvasLight),
+  ColorPreset('Cream', Palette.mapCanvasCream),
+  ColorPreset('Mint', Palette.mapCanvasMint),
+  ColorPreset('Ice', Palette.mapCanvasIce),
+  ColorPreset('Blush', Palette.mapCanvasBlush),
+  ColorPreset('Dark', Palette.mapCanvasDark),
+  ColorPreset('Midnight', Palette.mapCanvasMidnight),
 ];
 
 class SettingsSheet extends ConsumerWidget {
@@ -392,7 +393,7 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
               child: FilledButton(
                 onPressed: _apply,
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFFD5D5D5),
+                  backgroundColor: Palette.mapPickerBg,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
