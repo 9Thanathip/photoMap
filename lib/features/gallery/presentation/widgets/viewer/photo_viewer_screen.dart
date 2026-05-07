@@ -357,39 +357,26 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
             animation: _spring,
             builder: (context, child) {
               final dy = _spring.value;
-              final screenH = MediaQuery.sizeOf(context).height;
 
               // Smoothly interpolate alignment from center (0,0) to bottom (0,1)
               // as the info panel opens (dy from 0 to -520)
               final alignmentT = (dy / -520.0).clamp(0.0, 1.0);
               final alignment = Alignment(0, alignmentT);
 
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Transform.translate(
-                    offset: Offset(0, dy),
-                    child: RepaintBoundary(
-                      child: photo.assetEntity?.type == AssetType.video
-                          ? page
-                          : ImageViewerPage(
-                              photo: photo,
-                              onZoomChanged: _onZoomChanged,
-                              onTap: _toggleOverlay,
-                              alignment: alignment,
-                            ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: Transform.translate(
-                      offset: Offset(0, screenH + dy),
-                      child: PhotoInfoContent(photo: photo),
-                    ),
-                  ),
-                ],
+              // Info panel is rendered once in the outer Scaffold stack so
+              // its screen position doesn't depend on per-page layout.
+              return Transform.translate(
+                offset: Offset(0, dy),
+                child: RepaintBoundary(
+                  child: photo.assetEntity?.type == AssetType.video
+                      ? page
+                      : ImageViewerPage(
+                          photo: photo,
+                          onZoomChanged: _onZoomChanged,
+                          onTap: _toggleOverlay,
+                          alignment: alignment,
+                        ),
+                ),
               );
             },
             child: page,
@@ -437,14 +424,28 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
           return ColoredBox(
             color: Colors.black.withOpacity(routeAlpha),
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
                 GestureDetector(
-                  onVerticalDragStart: _onVerticalDragStart,
-                  onVerticalDragUpdate: _onVerticalDragUpdate,
-                  onVerticalDragEnd: _onVerticalDragEnd,
+                  // Detach handlers while zoomed so the InteractiveViewer's
+                  // pan wins the gesture arena instead of competing here.
+                  onVerticalDragStart:
+                      _isZoomed ? null : _onVerticalDragStart,
+                  onVerticalDragUpdate:
+                      _isZoomed ? null : _onVerticalDragUpdate,
+                  onVerticalDragEnd:
+                      _isZoomed ? null : _onVerticalDragEnd,
                   behavior: HitTestBehavior.opaque,
                   child: child, // This is the PageView
                 ),
+                // ── Info panel (single instance, screen-anchored) ──
+                if (_photos.isNotEmpty)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: screenH + dy,
+                    child: PhotoInfoContent(photo: _current),
+                  ),
                 // ── Overlay ──
                 IgnorePointer(
                   ignoring: !_showOverlay || _dragging || dy < -20,
