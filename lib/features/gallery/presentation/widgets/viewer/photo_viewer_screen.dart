@@ -368,26 +368,24 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                 children: [
                   Transform.translate(
                     offset: Offset(0, dy),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        RepaintBoundary(
-                          child: photo.assetEntity?.type == AssetType.video
-                              ? page
-                              : ImageViewerPage(
-                                  photo: photo,
-                                  onZoomChanged: _onZoomChanged,
-                                  onTap: _toggleOverlay,
-                                  alignment: alignment,
-                                ),
-                        ),
-                        Positioned(
-                          top: screenH,
-                          left: 0,
-                          right: 0,
-                          child: PhotoInfoContent(photo: photo),
-                        ),
-                      ],
+                    child: RepaintBoundary(
+                      child: photo.assetEntity?.type == AssetType.video
+                          ? page
+                          : ImageViewerPage(
+                              photo: photo,
+                              onZoomChanged: _onZoomChanged,
+                              onTap: _toggleOverlay,
+                              alignment: alignment,
+                            ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Transform.translate(
+                      offset: Offset(0, screenH + dy),
+                      child: PhotoInfoContent(photo: photo),
                     ),
                   ),
                 ],

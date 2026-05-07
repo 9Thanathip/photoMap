@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart' hide LatLng;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:native_exif/native_exif.dart';
 import '../../providers/gallery_notifier.dart';
 
@@ -158,25 +156,25 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
     }
   }
 
-  Future<void> _launchMap(double lat, double lng) async {
-    debugPrint('Attempting to launch map for: $lat, $lng');
-    final googleMapsUrl = Uri.parse(
-      "https://www.google.com/maps/search/?api=1&query=$lat,$lng",
+  Future<void> _launchMap(double lat, double lng, String label) async {
+    final encoded = Uri.encodeComponent(label.isNotEmpty ? label : 'Photo');
+    final appleMapsUrl = Uri.parse(
+      'https://maps.apple.com/?ll=$lat,$lng&q=$encoded',
     );
-    final appleMapsUrl = Uri.parse("maps://?q=$lat,$lng");
+    final geoIntent = Uri.parse('geo:$lat,$lng?q=$lat,$lng($encoded)');
+    final googleMapsWeb = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+    );
 
     try {
       if (Platform.isIOS) {
-        if (await canLaunchUrl(appleMapsUrl)) {
-          debugPrint('Launching Apple Maps');
-          await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
-        } else {
-          debugPrint('Apple Maps not available, trying Google Maps');
-          await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-        }
+        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
       } else {
-        debugPrint('Launching Google Maps');
-        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+        if (await canLaunchUrl(geoIntent)) {
+          await launchUrl(geoIntent, mode: LaunchMode.externalApplication);
+        } else {
+          await launchUrl(googleMapsWeb, mode: LaunchMode.externalApplication);
+        }
       }
     } catch (e) {
       debugPrint('Error launching map: $e');
@@ -373,134 +371,115 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
             },
           ),
           const SizedBox(height: 20),
-          // Location Section
+          // Location Section — tap to open native Maps app
           if (photo.hasLocation) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: Container(
-                height: 200,
-                width: double.infinity,
-                color: const Color(0xFF1E1E1E),
-                child: Stack(
-                  children: [
-                    // Real Flutter Map
-                    Positioned.fill(
-                      child: RepaintBoundary(
-                        child: IgnorePointer(
-                          child: FlutterMap(
-                          options: MapOptions(
-                            initialCenter: LatLng(photo.lat, photo.lng),
-                            initialZoom: 14,
-                            interactionOptions: const InteractionOptions(
-                              flags: InteractiveFlag.none,
-                            ),
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate:
-                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName: 'com.photo_map.app',
-                            ),
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  point: LatLng(photo.lat, photo.lng),
-                                  width: 80,
-                                  height: 80,
-                                  child: const Icon(
-                                    Icons.location_on_rounded,
-                                    color: Colors.red,
-                                    size: 40,
-                                  ),
-                                ),
-                              ],
-                            ),
+            Builder(builder: (context) {
+              final title = photo.district.isNotEmpty
+                  ? photo.district
+                  : photo.province;
+              final subtitle = [photo.province, photo.country]
+                  .where((s) => s.isNotEmpty)
+                  .join(', ');
+              final hint = Platform.isIOS
+                  ? 'Open in Apple Maps'
+                  : 'Open in Google Maps';
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _launchMap(photo.lat, photo.lng, title),
+                  onVerticalDragStart: (_) {},
+                  onVerticalDragUpdate: (_) {},
+                  onVerticalDragEnd: (_) {},
+                  child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: const [
+                            Color(0xFF2C2C2E),
+                            Color(0xFF1C1C1E),
                           ],
                         ),
                       ),
-                    ),
-                    ),
-                    // Map Overlay like Apple (IgnorePointer so taps pass through)
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: IgnorePointer(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [
-                                Colors.black.withOpacity(0.7),
-                                Colors.transparent,
-                              ],
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.location_on_rounded,
+                              color: Colors.red,
+                              size: 32,
                             ),
                           ),
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.location_on_rounded,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      photo.district.isNotEmpty
-                                          ? photo.district
-                                          : photo.province,
-                                      style: GoogleFonts.inter(
-                                        color: Colors.white,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  title.isNotEmpty ? title : 'Location',
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (subtitle.isNotEmpty) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    subtitle,
+                                    style: GoogleFonts.inter(
+                                      color: Colors.white70,
+                                      fontSize: 13,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.map_rounded,
+                                      size: 12,
+                                      color: Colors.white54,
+                                    ),
+                                    const SizedBox(width: 4),
                                     Text(
-                                      [
-                                        photo.province,
-                                        photo.country,
-                                      ].where((s) => s.isNotEmpty).join(', '),
+                                      hint,
                                       style: GoogleFonts.inter(
-                                        color: Colors.white70,
-                                        fontSize: 12,
+                                        color: Colors.white54,
+                                        fontSize: 11,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                              const Icon(
-                                Icons.chevron_right_rounded,
-                                color: Colors.white54,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Colors.white54,
+                          ),
+                        ],
                       ),
                     ),
-                    // Tap layer on top — absorbs vertical drags so the
-                    // outer dismiss-gesture doesn't steal from taps.
-                    Positioned.fill(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _launchMap(photo.lat, photo.lng),
-                        onVerticalDragStart: (_) {},
-                        onVerticalDragUpdate: (_) {},
-                        onVerticalDragEnd: (_) {},
-                        child: const SizedBox.expand(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
+                );
+            }),
             SizedBox(
               height: 48 + MediaQuery.paddingOf(context).bottom,
-            ), // More space at the very bottom
+            ),
           ],
         ],
       ),
