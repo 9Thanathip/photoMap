@@ -56,6 +56,23 @@ class CountryRepository {
     return f.exists();
   }
 
+  /// Reads every persisted `*.meta.json` and returns the Country objects.
+  /// Used at app start so the map can render before firestore responds.
+  Future<List<Country>> loadCachedCountries() async {
+    final dir = await _cacheDir();
+    final out = <Country>[];
+    await for (final entity in dir.list()) {
+      if (entity is! File) continue;
+      if (!entity.path.endsWith('.meta.json')) continue;
+      try {
+        final data =
+            jsonDecode(await entity.readAsString()) as Map<String, dynamic>;
+        out.add(Country.fromJson(data));
+      } catch (_) {}
+    }
+    return out;
+  }
+
   Future<int?> cachedVersion(String id) async {
     final dir = await _cacheDir();
     final f = _metaFile(dir, id);

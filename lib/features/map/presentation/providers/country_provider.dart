@@ -39,20 +39,27 @@ class CountryState {
 }
 
 class CountryNotifier extends StateNotifier<CountryState> {
-  CountryNotifier(String? initialId)
-    : super(CountryState(
-        current: Country.thailand,
-        available: [Country.thailand],
-        downloadedIds: {'thailand'},
-      )) {
-    if (initialId != null && initialId != 'thailand') {
-      // Set temporary state to the saved country if we know it's not thailand
-      // It will be properly validated once Firestore loads
-      state = state.copyWith(
-        current: Country(id: initialId, nameEn: '', nameTh: '', url: '', version: 0),
-      );
-    }
+  CountryNotifier(String? initialId, List<Country> cachedCountries)
+    : super(_buildInitialState(initialId, cachedCountries)) {
     _init(initialId);
+  }
+
+  static CountryState _buildInitialState(
+    String? initialId,
+    List<Country> cached,
+  ) {
+    final all = [Country.thailand, ...cached];
+    final downloaded = <String>{Country.thailand.id, ...cached.map((c) => c.id)};
+    Country current = Country.thailand;
+    if (initialId != null && initialId != 'thailand') {
+      final match = cached.where((c) => c.id == initialId).toList();
+      if (match.isNotEmpty) current = match.first;
+    }
+    return CountryState(
+      current: current,
+      available: all,
+      downloadedIds: downloaded,
+    );
   }
 
   final _repo = CountryRepository();
@@ -121,7 +128,9 @@ class CountryNotifier extends StateNotifier<CountryState> {
       }
 
       final progressMap = <String, double>{};
-      for (var url in tasks) progressMap[url] = 0.0;
+      for (var url in tasks) {
+        progressMap[url] = 0.0;
+      }
 
       await Future.wait(tasks.map((url) async {
         final isDistrict = url == c.districtsUrl;
@@ -168,9 +177,11 @@ class CountryNotifier extends StateNotifier<CountryState> {
 }
 
 final initialCountryIdProvider = Provider<String?>((ref) => null);
+final cachedCountriesProvider = Provider<List<Country>>((ref) => const []);
 
 final countryProvider =
     StateNotifierProvider<CountryNotifier, CountryState>((ref) {
   final initialId = ref.watch(initialCountryIdProvider);
-  return CountryNotifier(initialId);
+  final cached = ref.watch(cachedCountriesProvider);
+  return CountryNotifier(initialId, cached);
 });

@@ -155,6 +155,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     BuildContext context,
     Offset globalPosition,
     List<ProvinceShape> provinces,
+    Rect? viewBox,
   ) {
     if (provinces.isEmpty) return;
 
@@ -165,9 +166,17 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final canvasPos = renderBox.globalToLocal(globalPosition);
     final canvasSize = renderBox.size;
 
-    Rect totalBounds = provinces.first.bounds;
-    for (final p in provinces.skip(1)) {
-      totalBounds = totalBounds.expandToInclude(p.bounds);
+    // Must mirror painter's bounds choice: viewBox if present, else union of
+    // province bounds. Otherwise tap coords misalign for countries that ship
+    // a viewBox (firestore-loaded), making provinces untappable.
+    Rect totalBounds;
+    if (viewBox != null) {
+      totalBounds = viewBox;
+    } else {
+      totalBounds = provinces.first.bounds;
+      for (final p in provinces.skip(1)) {
+        totalBounds = totalBounds.expandToInclude(p.bounds);
+      }
     }
 
     final scaleX = canvasSize.width / totalBounds.width;
@@ -241,6 +250,13 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(countryProvider.select((s) => s.current.id), (prev, next) {
+      if (prev != null && prev != next) {
+        _firstSeenTimes.clear();
+        _transformController.value = Matrix4.identity();
+      }
+    });
+
     final state = ref.watch(mapProvider);
     final settings = ref.watch(mapSettingsProvider);
     final gallery = ref.watch(galleryStateProvider);
@@ -314,7 +330,12 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 final down = _tapDownPosition;
                 _tapDownPosition = null;
                 if (down != null && (e.position - down).distance < 18) {
-                  _handleMapTap(context, e.position, state.provinces);
+                  _handleMapTap(
+                    context,
+                    e.position,
+                    state.provinces,
+                    state.viewBox,
+                  );
                 }
               },
               child: InteractiveViewer(

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:photo_map/features/map/data/country_repository.dart';
+import 'package:photo_map/features/map/domain/models/country.dart';
 import 'package:photo_map/features/map/presentation/providers/country_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
@@ -9,13 +11,22 @@ import 'app.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   String? initialCountryId;
+  List<Country> cachedCountries = const [];
 
   try {
     await Firebase.initializeApp();
-    
+
     // Load initial country ID as early as possible
     final prefs = await SharedPreferences.getInstance();
     initialCountryId = prefs.getString('current_country_id');
+
+    // Pre-load cached country metadata so the map can render immediately
+    // without waiting for firestore.
+    try {
+      cachedCountries = await CountryRepository().loadCachedCountries();
+    } catch (e) {
+      debugPrint('Cached countries load failed: $e');
+    }
 
     // Configure Firestore for both default and named instances
     final firestoreSettings = const Settings(
@@ -42,6 +53,7 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         initialCountryIdProvider.overrideWithValue(initialCountryId),
+        cachedCountriesProvider.overrideWithValue(cachedCountries),
       ],
       child: const App(),
     ),
