@@ -300,6 +300,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   }
 
   Timer? _changeDebounce;
+  Timer? _rescanTimer;
+  int _rescanAttempt = 0;
 
   void _onPhotoLibraryChanged(MethodCall call) {
     _changeDebounce?.cancel();
@@ -309,8 +311,29 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     });
   }
 
+  /// Retry a silentReload with backoff when PhotoManager returned a partial
+  /// scan or missing assetEntity refs. Caps at 3 attempts.
+  void _scheduleRescan() {
+    if (_rescanAttempt >= 3) return;
+    _rescanAttempt++;
+    _rescanTimer?.cancel();
+    final delay = Duration(seconds: _rescanAttempt * 2);
+    _rescanTimer = Timer(delay, () async {
+      if (!mounted) return;
+      await silentReload();
+      // Reset counter once any photo with null assetEntity is gone.
+      if (state.allPhotos.every((p) => p.assetEntity != null)) {
+        _rescanAttempt = 0;
+      } else if (_rescanAttempt < 3) {
+        _scheduleRescan();
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _changeDebounce?.cancel();
+    _rescanTimer?.cancel();
     PhotoManager.removeChangeCallback(_onPhotoLibraryChanged);
     PhotoManager.stopChangeNotify();
     super.dispose();
@@ -368,11 +391,33 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       final currentMap = {for (final p in state.allPhotos) p.path: p};
       final photos = _buildPhotoItems(assets, currentMap);
 
-      // Guard: if scanner returned far fewer items than current state, treat as
-      // a transient partial scan and keep the existing list to avoid flicker.
+      // Guard: if scanner returned fewer items than current state, treat as
+      // a transient partial scan (common on resume). Don't drop cached
+      // photos — instead merge: photos from scan get fresh assetEntity,
+      // missing-from-scan photos keep their previous PhotoItem (with
+      // existing assetEntity if any). This way location data + thumbnails
+      // remain usable even when PhotoManager returns a partial list.
+      // Then schedule a retry so missing assetEntity refs get filled in.
       if (state.allPhotos.isNotEmpty &&
-          photos.length < state.allPhotos.length * 0.5) {
-        state = state.copyWith(isLoading: false);
+          photos.length < state.allPhotos.length * 0.9) {
+        final scannedIds = photos.map((p) => p.path).toSet();
+        final merged = <PhotoItem>[
+          ...photos,
+          ...state.allPhotos.where(
+            (p) =>
+                !scannedIds.contains(p.path) &&
+                !_deletedAssetIds.contains(p.path),
+          ),
+        ];
+        state = state.copyWith(allPhotos: merged, isLoading: false);
+        _geocodePhotos(merged).catchError((_) {
+          state = state.copyWith(
+            isGeocoding: false,
+            geocodeProcessed: 0,
+            geocodeTotal: 0,
+          );
+        });
+        _scheduleRescan();
         return;
       }
 
@@ -384,6 +429,12 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
           geocodeTotal: 0,
         );
       });
+
+      // If any photo still has a null assetEntity (came from cache and scan
+      // didn't return it), retry scanning shortly to fill in refs.
+      if (photos.any((p) => p.assetEntity == null)) {
+        _scheduleRescan();
+      }
     } catch (e) {
       final msg = e.toString().contains('Permission')
           ? 'Photo permission denied. Please allow access in Settings.'
@@ -399,21 +450,39 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     final items = <PhotoItem>[];
     for (final asset in assets) {
       if (asset.type == AssetType.image || asset.type == AssetType.video) {
-        // 1. Try to reuse exactly same object from previous state (preserves geocoding)
         final prev = existing?[asset.id];
-        if (prev != null && prev.province.isNotEmpty) {
-          items.add(prev.copyWithAsset(asset));
+
+        // Reuse prev whenever it exists — preserve lat/lng + geocoding.
+        // Previous guard "prev.province.isNotEmpty" wiped coords for photos
+        // whose online geocode hadn't completed last session (province still
+        // empty), because asset.latitude is often null on iOS until latlngAsync().
+        if (prev != null) {
+          // Prefer fresh asset coords if non-zero, else keep cached coords.
+          final freshLat = asset.latitude ?? 0.0;
+          final freshLng = asset.longitude ?? 0.0;
+          final useFresh = freshLat != 0.0 && freshLng != 0.0;
+          items.add(
+            PhotoItem(
+              path: prev.path,
+              country: prev.country,
+              province: prev.province,
+              district: prev.district,
+              timestamp: prev.timestamp,
+              lat: useFresh ? freshLat : prev.lat,
+              lng: useFresh ? freshLng : prev.lng,
+              assetEntity: asset,
+            ),
+          );
           continue;
         }
 
-        // 2. If new asset, try to find geocoding in our in-memory cache by coordinates
-        // This is the KEY FIX for the "No photos in" issue on resume.
+        // New asset — try in-memory geocoding cache by coord key.
         final lat = asset.latitude ?? 0.0;
         final lng = asset.longitude ?? 0.0;
-        
-        // Match coord key with 4 decimal precision (standard for our cache)
         final coordKey = '${lat.toStringAsFixed(4)}_${lng.toStringAsFixed(4)}';
-        final cachedGeo = _geocodingCache[coordKey];
+        final cachedGeo = (lat != 0.0 || lng != 0.0)
+            ? _geocodingCache[coordKey]
+            : null;
 
         items.add(
           PhotoItem(
@@ -850,18 +919,33 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       }
       final finalPhotos = uniqueMap.values.toList();
 
-      // Guard against partial scans on resume — don't shrink the list drastically.
+      // Guard against partial scans on resume — merge instead of replacing
+      // when scan returns fewer items than current state. Photos missing
+      // from this scan keep their previous PhotoItem (preserves assetEntity
+      // + geocoding) so location/thumbnails remain usable.
+      List<PhotoItem> nextPhotos = finalPhotos;
       if (state.allPhotos.isNotEmpty &&
-          finalPhotos.length < state.allPhotos.length * 0.5) {
-        return;
+          finalPhotos.length < state.allPhotos.length * 0.9) {
+        final scannedIds = finalPhotos.map((p) => p.path).toSet();
+        nextPhotos = <PhotoItem>[
+          ...finalPhotos,
+          ...state.allPhotos.where(
+            (p) =>
+                !scannedIds.contains(p.path) &&
+                !_deletedAssetIds.contains(p.path),
+          ),
+        ];
       }
 
-      state = state.copyWith(allPhotos: finalPhotos);
+      state = state.copyWith(allPhotos: nextPhotos);
 
-      // Geocode any items that don't have location yet
-      final pendingGeocode = finalPhotos.where((p) => !p.hasLocation).toList();
-      if (pendingGeocode.isNotEmpty) {
-        _geocodePhotos(pendingGeocode).catchError((_) {
+      // Geocode any items that don't have location yet.
+      // Pass full list — _geocodePhotos overwrites state.allPhotos with the
+      // input list, so passing a subset would wipe geocoded photos.
+      // Internal loop already skips photos that have location.
+      final hasPending = nextPhotos.any((p) => !p.hasLocation);
+      if (hasPending) {
+        _geocodePhotos(nextPhotos).catchError((_) {
           state = state.copyWith(
             isGeocoding: false,
             geocodeProcessed: 0,
