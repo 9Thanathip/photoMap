@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
+import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../gallery/presentation/providers/gallery_notifier.dart';
 import '../../../gallery/presentation/widgets/main_gallery/photo_tile.dart';
 import '../../../gallery/presentation/widgets/viewer/photo_viewer_screen.dart';
@@ -173,30 +174,62 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
               ),
             ),
 
-          // Top gradient protection
+          // Top gradient protection (always-on, deepens on scroll)
           Positioned(
             top: 0,
             left: 0,
             right: 0,
             height: topPad + 110,
             child: IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: _isScrolled ? 0.6 : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        theme.colorScheme.surface,
-                        theme.colorScheme.surface,
-                        theme.colorScheme.surface.withAlpha(0),
-                      ],
-                      stops: const [0.0, 0.72, 1.0],
+              child: Stack(
+                children: [
+                  // Persistent base scrim for header readability.
+                  // Light theme → black scrim (matches map_screen).
+                  // Dark theme → surface-tinted scrim.
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: context.isDark
+                              ? [
+                                  theme.colorScheme.surface.withValues(alpha: 0.85),
+                                  theme.colorScheme.surface.withValues(alpha: 0.55),
+                                  theme.colorScheme.surface.withValues(alpha: 0.0),
+                                ]
+                              : [
+                                  Colors.black.withValues(alpha: 0.32),
+                                  Colors.black.withValues(alpha: 0.12),
+                                  Colors.black.withValues(alpha: 0.0),
+                                ],
+                          stops: const [0.0, 0.55, 1.0],
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  // Solid overlay deepens once content scrolls under header
+                  Positioned.fill(
+                    child: AnimatedOpacity(
+                      opacity: _isScrolled ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              theme.colorScheme.surface,
+                              theme.colorScheme.surface,
+                              theme.colorScheme.surface.withAlpha(0),
+                            ],
+                            stops: const [0.0, 0.72, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -279,6 +312,17 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
 
     final sortedKeys = sections.keys.toList()..sort((a, b) => b.compareTo(a));
 
+    // Flatten in display order so the viewer can swipe across sections.
+    final flat = <PhotoItem>[
+      for (final key in sortedKeys) ...sections[key]!,
+    ];
+    final offsets = <String, int>{};
+    var running = 0;
+    for (final key in sortedKeys) {
+      offsets[key] = running;
+      running += sections[key]!.length;
+    }
+
     return CustomScrollView(
       slivers: [
         SliverPadding(padding: EdgeInsets.only(top: topPad + 60 + extraTop)),
@@ -300,9 +344,10 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
             gridDelegate: photoGridDelegate,
             delegate: SliverChildBuilderDelegate((_, i) {
               final sectionPhotos = sections[key]!;
+              final globalIndex = offsets[key]! + i;
               return PhotoTile(
                 photo: sectionPhotos[i],
-                onTap: () => onTap(sectionPhotos, i),
+                onTap: () => onTap(flat, globalIndex),
                 onLongPress: () {},
               );
             }, childCount: sections[key]!.length),

@@ -125,6 +125,18 @@ class PhotosTab extends StatelessWidget {
       String Function(String) label, BuildContext context) {
     final theme = Theme.of(context);
     final sortedKeys = sections.keys.toList()..sort((a, b) => b.compareTo(a));
+
+    // Flatten in display order so the viewer can swipe across sections.
+    final flat = <PhotoItem>[
+      for (final key in sortedKeys) ...sections[key]!,
+    ];
+    final offsets = <String, int>{};
+    var running = 0;
+    for (final key in sortedKeys) {
+      offsets[key] = running;
+      running += sections[key]!.length;
+    }
+
     return CustomScrollView(
       slivers: [
         SliverPadding(padding: EdgeInsets.only(top: contentTopPad)),
@@ -145,13 +157,14 @@ class PhotosTab extends StatelessWidget {
               (_, i) {
                 final sectionPhotos = sections[key]!;
                 final item = sectionPhotos[i];
+                final globalIndex = offsets[key]! + i;
                 return PhotoTile(
                   photo: item,
                   isSelectMode: isSelectMode,
                   isSelected: selectedPaths.contains(item.path),
                   onTap: isSelectMode
                       ? () => onToggleSelect!(item)
-                      : () => onTap(sectionPhotos, i),
+                      : () => onTap(flat, globalIndex),
                   onLongPress: isSelectMode
                       ? () {}
                       : () => onLongPress(item),
