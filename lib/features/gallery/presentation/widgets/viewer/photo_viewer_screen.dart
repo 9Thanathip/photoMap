@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart' hide LatLng;
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:video_player/video_player.dart';
@@ -466,39 +467,48 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
   Widget _buildOverlay() {
     return Column(
       children: [
-        // Top bar
+        // Top bar — minimal: chevron, counter, ghost slot
         Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.black54, Colors.transparent],
+              colors: [
+                Colors.black.withValues(alpha: 0.55),
+                Colors.transparent,
+              ],
             ),
           ),
           child: SafeArea(
             bottom: false,
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 6, 8, 14),
+              child: Row(
+                children: [
+                  _ViewerIconButton(
+                    icon: Icons.arrow_back_ios_new_rounded,
+                    size: 18,
+                    onTap: () => Navigator.pop(context),
                   ),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                const Spacer(),
-                Text(
-                  '${_currentIndex + 1} / ${_photos.length}',
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                ),
-                const Spacer(),
-                const SizedBox(width: 48),
-              ],
+                  const Spacer(),
+                  Text(
+                    '${_currentIndex + 1} / ${_photos.length}',
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  const Spacer(),
+                  const SizedBox(width: 40),
+                ],
+              ),
             ),
           ),
         ),
         const Spacer(),
-        // Bottom bar - Apple Style
+        // Bottom bar — minimal action row
         IgnorePointer(
           ignoring: !_showOverlay || _dragging,
           child: AnimatedOpacity(
@@ -510,30 +520,40 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    Colors.black.withOpacity(0.9),
-                    Colors.black.withOpacity(0.5),
+                    Colors.black.withValues(alpha: 0.7),
+                    Colors.black.withValues(alpha: 0.35),
                     Colors.transparent,
                   ],
-                  stops: const [0, 0.4, 1.0],
+                  stops: const [0, 0.5, 1.0],
                 ),
               ),
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _bottomAction(Icons.ios_share, () {}),
-                      _bottomAction(Icons.favorite_border_rounded, () {}),
-                      _bottomAction(Icons.info_outline_rounded, () {
-                        _snapTo(-520, 0);
-                      }),
+                      _ViewerIconButton(
+                        icon: Icons.ios_share_rounded,
+                        onTap: () {},
+                      ),
+                      _ViewerIconButton(
+                        icon: Icons.favorite_border_rounded,
+                        onTap: () {},
+                      ),
+                      _ViewerIconButton(
+                        icon: Icons.info_outline_rounded,
+                        onTap: () => _snapTo(-520, 0),
+                      ),
                       if (!_isVideo)
-                        _bottomAction(Icons.tune_rounded, _openEditor),
-                      _bottomAction(
-                        Icons.delete_outline_rounded,
-                        _deleteCurrentPhoto,
+                        _ViewerIconButton(
+                          icon: Icons.tune_rounded,
+                          onTap: _openEditor,
+                        ),
+                      _ViewerIconButton(
+                        icon: Icons.delete_outline_rounded,
+                        onTap: _deleteCurrentPhoto,
                       ),
                     ],
                   ),
@@ -545,12 +565,35 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       ],
     );
   }
+}
 
-  Widget _bottomAction(IconData icon, VoidCallback onTap) {
-    return IconButton(
-      icon: Icon(icon, color: Colors.white, size: 26),
-      onPressed: onTap,
-      splashRadius: 24,
+class _ViewerIconButton extends StatelessWidget {
+  const _ViewerIconButton({
+    required this.icon,
+    required this.onTap,
+    this.size = 22,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: Colors.white.withValues(alpha: 0.10),
+        highlightColor: Colors.white.withValues(alpha: 0.05),
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(icon, color: Colors.white, size: size),
+        ),
+      ),
     );
   }
 }
