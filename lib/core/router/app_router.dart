@@ -58,7 +58,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (_, state) => _fade(state, const RegisterScreen()),
       ),
       StatefulShellRoute.indexedStack(
-        builder: (_, _, shell) => ShellScreen(navigationShell: shell),
+        pageBuilder: (_, state, shell) =>
+            _fade(state, ShellScreen(navigationShell: shell)),
         branches: [
           StatefulShellBranch(routes: [
             GoRoute(
