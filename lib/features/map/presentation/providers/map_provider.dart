@@ -211,6 +211,11 @@ class MapNotifier extends StateNotifier<MapState> {
     // Start from existing photos so we never flash empty — only update changed entries
     final updatedPhotos = Map<String, ui.Image?>.from(state.provincePhotos);
 
+    // Drop provinces that no longer have any photos (e.g. user deleted them all).
+    updatedPhotos.removeWhere(
+      (province, _) => !provinceSelectedPhotos.containsKey(province),
+    );
+
     for (final entry in provinceSelectedPhotos.entries) {
       final provinceName = entry.key;
       final entity = entry.value;
@@ -222,8 +227,13 @@ class MapNotifier extends StateNotifier<MapState> {
       }
     }
 
+    // Also drop stale first-seen times so re-added provinces fade in cleanly.
+    final updatedLoadTimes = Map<String, DateTime>.from(state.imageLoadTimes)
+      ..removeWhere((p, _) => !provinceSelectedPhotos.containsKey(p));
+
     state = state.copyWith(
       provincePhotos: updatedPhotos,
+      imageLoadTimes: updatedLoadTimes,
       cropRects: Map.from(coverState.cropRects),
     );
   }
