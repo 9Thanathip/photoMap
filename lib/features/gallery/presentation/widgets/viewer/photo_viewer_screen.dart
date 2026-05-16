@@ -109,11 +109,12 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     final File? file = await photo.assetEntity!.file;
     if (file == null || !mounted) return;
 
+    // Platform view (AVPlayerLayer) for full HDR pass-through. HDR (HLG/PQ)
+    // clips are color-managed HDR->SDR tone-mapped on the AVPlayerItem by the
+    // vendored video_player_avfoundation fork, so they no longer blow out in
+    // Flutter's SDR window — no per-clip routing needed here.
     final controller = VideoPlayerController.file(
       file,
-      // Use platform view (AVPlayerLayer) on iOS so HDR videos
-      // (HLG / HDR10 / Dolby Vision) render with full HDR pass-through
-      // instead of being tone-mapped to SDR by the texture path.
       viewType: VideoViewType.platformView,
     );
     await controller.initialize();

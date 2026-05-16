@@ -40,6 +40,14 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
 
+# Vendored fork of video_player_avfoundation 2.9.4. Patched to force a
+# color-managed HDR (HLG/PQ) -> SDR Rec.709 tone-map on the AVPlayerItem so
+# HDR clips don't blow out under AVPlayerLayer in Flutter's SDR window.
+# See FVPVideoPlayer.m (FVPVideoTrackIsHDR). Re-apply patch on plugin bumps.
+dependency_overrides:
+  video_player_avfoundation:
+    path: packages/video_player_avfoundation
+
 flutter_launcher_icons:
   ios: true
   android: true
