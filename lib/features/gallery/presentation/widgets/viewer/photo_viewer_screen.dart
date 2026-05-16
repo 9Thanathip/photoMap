@@ -321,22 +321,27 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
             ? photo.path
             : '__no_hero_${index}_${photo.path}';
 
-        final page = photo.assetEntity?.type == AssetType.video
-            ? VideoViewerPage(
-                tag: heroTag,
-                asset: photo.assetEntity,
-                controller: isCurrent ? _videoController : null,
-                initialized: isCurrent && _videoInitialized,
-                showControls: _showOverlay,
-                onTap: _toggleOverlay,
-                onAutoHide: () {
-                  if (_showOverlay) setState(() => _showOverlay = false);
-                },
-                onSliderDragStart: () =>
-                    setState(() => _isSliderDragging = true),
-                onSliderDragEnd: () =>
-                    setState(() => _isSliderDragging = false),
-              )
+        final isVideo = photo.assetEntity?.type == AssetType.video;
+
+        VideoViewerPage buildVideo(Alignment alignment) => VideoViewerPage(
+              tag: heroTag,
+              asset: photo.assetEntity,
+              controller: isCurrent ? _videoController : null,
+              initialized: isCurrent && _videoInitialized,
+              showControls: _showOverlay,
+              alignment: alignment,
+              onTap: _toggleOverlay,
+              onAutoHide: () {
+                if (_showOverlay) setState(() => _showOverlay = false);
+              },
+              onSliderDragStart: () =>
+                  setState(() => _isSliderDragging = true),
+              onSliderDragEnd: () =>
+                  setState(() => _isSliderDragging = false),
+            );
+
+        final page = isVideo
+            ? buildVideo(Alignment.center)
             : ImageViewerPage(
                 photo: photo,
                 onZoomChanged: _onZoomChanged,
@@ -368,8 +373,8 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
               return Transform.translate(
                 offset: Offset(0, dy),
                 child: RepaintBoundary(
-                  child: photo.assetEntity?.type == AssetType.video
-                      ? page
+                  child: isVideo
+                      ? buildVideo(alignment)
                       : ImageViewerPage(
                           photo: photo,
                           onZoomChanged: _onZoomChanged,

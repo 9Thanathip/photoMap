@@ -18,6 +18,7 @@ class VideoViewerPage extends StatefulWidget {
     required this.onAutoHide,
     required this.onSliderDragStart,
     required this.onSliderDragEnd,
+    this.alignment = Alignment.center,
   });
 
   final String tag;
@@ -25,6 +26,7 @@ class VideoViewerPage extends StatefulWidget {
   final VideoPlayerController? controller;
   final bool initialized;
   final bool showControls;
+  final Alignment alignment;
   final VoidCallback onTap;
   final VoidCallback onAutoHide;
   final VoidCallback onSliderDragStart;
@@ -134,7 +136,7 @@ class _VideoViewerPageState extends State<VideoViewerPage>
           // so the Hero rect tween matches the image dismiss animation —
           // smooth shrink back to the gallery grid thumbnail.
           Align(
-            alignment: Alignment.center,
+            alignment: widget.alignment,
             child: AspectRatio(
               aspectRatio: c.value.aspectRatio,
               child: Hero(
