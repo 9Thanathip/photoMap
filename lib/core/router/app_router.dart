@@ -5,6 +5,7 @@ import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/verify_email_screen.dart';
 import '../../features/gallery/presentation/screens/gallery_screen.dart';
 import '../../features/map/presentation/screens/map_screen.dart';
 import '../../features/province/presentation/screens/achievements_screen.dart';
@@ -35,8 +36,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         case AuthStatus.unauthenticated:
           const authPaths = ['/onboarding', '/login', '/register'];
           return authPaths.contains(loc) ? null : '/onboarding';
+        case AuthStatus.awaitingVerification:
+          return loc == '/verify-email' ? null : '/verify-email';
         case AuthStatus.authenticated:
-          const unauthPaths = ['/splash', '/onboarding', '/login', '/register'];
+          const unauthPaths = [
+            '/splash',
+            '/onboarding',
+            '/login',
+            '/register',
+            '/verify-email',
+          ];
           return unauthPaths.contains(loc) ? '/gallery' : null;
       }
     },
@@ -56,6 +65,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         pageBuilder: (_, state) => _fade(state, const RegisterScreen()),
+      ),
+      GoRoute(
+        path: '/verify-email',
+        pageBuilder: (_, state) => _fade(state, const VerifyEmailScreen()),
       ),
       StatefulShellRoute.indexedStack(
         pageBuilder: (_, state, shell) =>

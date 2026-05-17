@@ -11,8 +11,14 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final auth = ref.watch(authNotifierProvider);
     final t = context.tokens;
     final topPad = MediaQuery.paddingOf(context).top;
+
+    final email = auth.email ?? '';
+    final name = (auth.displayName?.trim().isNotEmpty ?? false)
+        ? auth.displayName!.trim()
+        : (email.contains('@') ? email.split('@').first : 'User');
 
     return Scaffold(
       backgroundColor: t.surfaceBase,
@@ -102,13 +108,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 10),
           _SettingsCard(
             children: [
-              _SettingsTile(
-                icon: Icons.person_outline_rounded,
-                iconColor: t.accentGold,
-                title: 'Profile',
-                subtitle: 'user@example.com',
-                onTap: () {},
-              ),
+              _ProfileTile(name: name, email: email),
               _Divider(),
               _SettingsTile(
                 icon: Icons.logout_rounded,
@@ -251,7 +251,6 @@ class _SettingsTile extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.title,
-    this.subtitle,
     this.titleColor,
     this.trailing,
     this.onTap,
@@ -260,7 +259,6 @@ class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String title;
-  final String? subtitle;
   final Color? titleColor;
   final Widget? trailing;
   final VoidCallback? onTap;
@@ -288,16 +286,6 @@ class _SettingsTile extends StatelessWidget {
                       color: titleColor ?? t.textPrimary,
                     ),
                   ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle!,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: t.textSecondary,
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -312,6 +300,74 @@ class _SettingsTile extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProfileTile extends StatelessWidget {
+  const _ProfileTile({required this.name, required this.email});
+
+  final String name;
+  final String email;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: t.accentGold.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              initial,
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: t.accentGold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: t.textPrimary,
+                  ),
+                ),
+                if (email.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    email,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: t.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

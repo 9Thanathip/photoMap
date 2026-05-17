@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../common_widgets/app_button.dart';
 import '../../../../common_widgets/app_text_field.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/google_sign_in_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -129,6 +130,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   loading: isLoading,
                   onPressed: _submit,
                 ),
+                const Gap(20),
+                const GoogleSignInButton(),
                 const Gap(16),
                 Center(
                   child: TextButton(

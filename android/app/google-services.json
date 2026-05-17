@@ -12,7 +12,20 @@
           "package_name": "com.thanathip.jaruek"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "593468084945-sadcpklem5ihlnhb19gv32pc1c6i78rd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.thanathip.jaruek",
+            "certificate_hash": "0e67a37bda1a0e7fb0370a079a25276cf5167fe6"
+          }
+        },
+        {
+          "client_id": "593468084945-m6u4veipt4q0blvo4126sir7obq9nf4t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBS6rIjXhdyF52jooi-0J3ExwcPJQ6zlJk"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "593468084945-m6u4veipt4q0blvo4126sir7obq9nf4t.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "593468084945-bk36mm8ljnedv38e6p7d1r419uvlb2h9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.thanathip.jaruek"
+              }
+            }
+          ]
         }
       }
     }
