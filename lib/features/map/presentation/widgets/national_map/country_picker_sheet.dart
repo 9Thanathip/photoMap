@@ -167,60 +167,67 @@ class _CountryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    Widget trailing;
+    Widget trailingChild;
     if (progress != null) {
       final pct = (progress! * 100).clamp(0, 100).toInt();
-      trailing = SizedBox(
-        width: 40,
-        height: 40,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(
-                value: progress! > 0 ? progress : null,
-                strokeWidth: 2.5,
-                color: theme.colorScheme.primary,
-                backgroundColor:
-                    theme.colorScheme.primary.withOpacity(0.15),
-              ),
+      trailingChild = Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: 30,
+            height: 30,
+            child: CircularProgressIndicator(
+              value: progress! > 0 ? progress : null,
+              strokeWidth: 2.5,
+              color: theme.colorScheme.primary,
+              backgroundColor: theme.colorScheme.primary.withOpacity(0.15),
             ),
-            Text(
-              '$pct',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 10,
-              ),
+          ),
+          Text(
+            '$pct',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w700,
+              fontSize: 9,
             ),
-          ],
-        ),
+          ),
+        ],
       );
     } else if (!downloaded) {
-      trailing = IconButton(
-        icon: const Icon(Icons.download_rounded),
+      trailingChild = IconButton(
+        icon: const Icon(Icons.download_rounded, size: 22),
         color: theme.colorScheme.primary,
         onPressed: onDownload,
         tooltip: 'Download',
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+        visualDensity: VisualDensity.compact,
       );
     } else if (isCurrent) {
-      trailing = Icon(
+      trailingChild = Icon(
         Icons.check_circle_rounded,
         color: theme.colorScheme.primary,
         size: 22,
       );
     } else if (!country.isBundled) {
-      trailing = IconButton(
+      trailingChild = IconButton(
         icon: Icon(Icons.delete_outline_rounded,
-            color: theme.colorScheme.onSurfaceVariant),
+            size: 22, color: theme.colorScheme.onSurfaceVariant),
         onPressed: onDelete,
         tooltip: 'Delete',
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+        visualDensity: VisualDensity.compact,
       );
     } else {
-      trailing = const SizedBox(width: 40);
+      trailingChild = const SizedBox.shrink();
     }
+
+    final trailing = SizedBox(
+      width: 40,
+      height: 40,
+      child: Center(child: trailingChild),
+    );
 
     return Material(
       color: isCurrent
