@@ -14,7 +14,18 @@ abstract final class AppTheme {
         AppTokens.dark(),
       );
 
-  static ThemeData _build(ColorScheme cs, AppTokens tokens) {
+  static ThemeData _build(ColorScheme seeded, AppTokens tokens) {
+    // No purple in this app — primary actions are monochrome:
+    // black on light, white on dark (matches the splash brand).
+    final isDark = seeded.brightness == Brightness.dark;
+    final mono = isDark ? Colors.white : Colors.black;
+    final onMono = isDark ? Colors.black : Colors.white;
+    final cs = seeded.copyWith(
+      primary: mono,
+      onPrimary: onMono,
+      secondary: mono,
+      onSecondary: onMono,
+    );
     final base = ThemeData(useMaterial3: true, colorScheme: cs);
     return base.copyWith(
       extensions: <ThemeExtension<dynamic>>[tokens],

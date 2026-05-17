@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../core/providers/theme_provider.dart';
@@ -88,7 +89,7 @@ class SettingsScreen extends ConsumerWidget {
             children: [
               _SettingsTile(
                 icon: Icons.language_outlined,
-                iconColor: t.accentViolet,
+                iconColor: t.accentGold,
                 title: 'Language',
                 trailing: Text(
                   'English',
@@ -108,21 +109,10 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 10),
           _SettingsCard(
             children: [
-              _ProfileTile(name: name, email: email),
-              _Divider(),
-              _SettingsTile(
-                icon: Icons.logout_rounded,
-                iconColor: t.textSecondary,
-                title: 'Sign Out',
-                onTap: () => _confirmSignOut(context, ref),
-              ),
-              _Divider(),
-              _SettingsTile(
-                icon: Icons.delete_forever_rounded,
-                iconColor: t.accentCoral,
-                title: 'Delete Account',
-                titleColor: t.accentCoral,
-                onTap: () => _confirmDelete(context, ref),
+              _ProfileTile(
+                name: name,
+                email: email,
+                onTap: () => context.push('/profile'),
               ),
             ],
           ),
@@ -146,57 +136,6 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmSignOut(BuildContext context, WidgetRef ref) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              ref.read(authNotifierProvider.notifier).signOut();
-            },
-            child: const Text('Sign Out'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, WidgetRef ref) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: const Text(
-          'This action is permanent and cannot be undone. All your data will be deleted.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: ctx.tokens.accentCoral,
-            ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              ref.read(authNotifierProvider.notifier).deleteAccount();
-            },
-            child: const Text('Delete'),
           ),
         ],
       ),
@@ -251,7 +190,6 @@ class _SettingsTile extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.title,
-    this.titleColor,
     this.trailing,
     this.onTap,
   });
@@ -259,7 +197,6 @@ class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String title;
-  final Color? titleColor;
   final Widget? trailing;
   final VoidCallback? onTap;
 
@@ -283,7 +220,7 @@ class _SettingsTile extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: titleColor ?? t.textPrimary,
+                      color: t.textPrimary,
                     ),
                   ),
                 ],
@@ -306,68 +243,84 @@ class _SettingsTile extends StatelessWidget {
 }
 
 class _ProfileTile extends StatelessWidget {
-  const _ProfileTile({required this.name, required this.email});
+  const _ProfileTile({
+    required this.name,
+    required this.email,
+    this.onTap,
+  });
 
   final String name;
   final String email;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: t.accentGold.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Text(
-              initial,
-              style: GoogleFonts.inter(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: t.accentGold,
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: t.accentGold.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                initial,
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: t.accentGold,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: t.textPrimary,
-                  ),
-                ),
-                if (email.isNotEmpty) ...[
-                  const SizedBox(height: 2),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    email,
+                    name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: t.textSecondary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: t.textPrimary,
                     ),
                   ),
+                  if (email.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      email,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: t.textSecondary,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+            if (onTap != null) ...[
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: t.textTertiary,
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -388,18 +341,6 @@ class _IconBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(icon, size: 18, color: color),
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      height: 1,
-      indent: 62,
-      endIndent: 0,
-      color: context.tokens.dividerSoft,
     );
   }
 }

@@ -9,6 +9,8 @@ import '../../features/auth/presentation/screens/verify_email_screen.dart';
 import '../../features/gallery/presentation/screens/gallery_screen.dart';
 import '../../features/map/presentation/screens/map_screen.dart';
 import '../../features/province/presentation/screens/achievements_screen.dart';
+import '../../features/settings/presentation/screens/delete_account_screen.dart';
+import '../../features/settings/presentation/screens/profile_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/shell/shell_screen.dart';
 import '../../features/splash/view/splash_view.dart';
@@ -69,6 +71,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/verify-email',
         pageBuilder: (_, state) => _fade(state, const VerifyEmailScreen()),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (_, _) => const ProfileScreen(),
+        routes: [
+          GoRoute(
+            path: 'delete-account',
+            builder: (_, _) => const DeleteAccountScreen(),
+          ),
+        ],
       ),
       StatefulShellRoute.indexedStack(
         pageBuilder: (_, state, shell) =>

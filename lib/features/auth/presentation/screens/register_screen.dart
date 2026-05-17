@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../common_widgets/app_button.dart';
 import '../../../../common_widgets/app_text_field.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/auth_brand_mark.dart';
 import '../widgets/google_sign_in_button.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -47,9 +49,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final auth = ref.watch(authNotifierProvider);
     final isLoading = auth.status == AuthStatus.loading;
     final theme = Theme.of(context);
+    final t = context.tokens;
 
     return Scaffold(
+      backgroundColor: t.surfaceBase,
       appBar: AppBar(
+        backgroundColor: t.surfaceBase,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => context.go('/login'),
@@ -63,20 +68,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Gap(16),
+                const Gap(8),
+                const AuthBrandMark(),
+                const Gap(32),
                 Text(
                   'Create\nAccount',
                   style: GoogleFonts.poppins(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
                     height: 1.1,
+                    color: t.textPrimary,
                   ),
                 ),
                 const Gap(8),
                 Text(
                   'Start mapping your memories today',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    color: t.textSecondary,
                   ),
                 ),
                 const Gap(32),
@@ -187,13 +196,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: RichText(
                       text: TextSpan(
                         text: 'Already have an account? ',
-                        style: theme.textTheme.bodyMedium,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: t.textSecondary,
+                        ),
                         children: [
                           TextSpan(
                             text: 'Sign In',
-                            style: TextStyle(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w600,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: t.accentGoldDeep,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ],

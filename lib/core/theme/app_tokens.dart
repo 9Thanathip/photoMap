@@ -103,9 +103,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
         accentGold: Palette.gold400,
         accentGoldDeep: Palette.gold700,
         accentGoldLight: Palette.gold300,
-        accentViolet: Palette.violet500,
-        accentVioletText: Palette.violet700,
-        accentVioletSurface: Palette.violetTintLight,
+        // No purple in this app — violet roles fold into the gold brand.
+        accentViolet: Palette.gold400,
+        accentVioletText: Palette.goldTextOnLight,
+        accentVioletSurface: Palette.goldBgLight2,
         accentCoral: Palette.coral500,
         goldRowGradient: const [
           Palette.goldBgLight1,
@@ -139,9 +140,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
         accentGold: Palette.gold400,
         accentGoldDeep: Palette.gold700,
         accentGoldLight: Palette.gold300,
-        accentViolet: Palette.violet500,
-        accentVioletText: Colors.white.withValues(alpha: 0.7),
-        accentVioletSurface: Palette.violetTintDark,
+        // No purple in this app — violet roles fold into the gold brand.
+        accentViolet: Palette.gold400,
+        accentVioletText: Palette.gold300,
+        accentVioletSurface: Palette.goldBgDark2,
         accentCoral: Palette.coral500,
         goldRowGradient: const [
           Palette.goldBgDark1,
