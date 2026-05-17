@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/local_session_cleaner.dart';
 import '../../data/firebase_auth_repository.dart';
 import '../../domain/auth_repository.dart';
 
@@ -57,7 +58,9 @@ final authRepositoryProvider = Provider<AuthRepository>(
 );
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier(this._repo) : super(AuthState.initial()) {
+  AuthNotifier(this._repo, {Future<void> Function()? onLocalReset})
+      : _onLocalReset = onLocalReset,
+        super(AuthState.initial()) {
     _sub = _repo.userChanges().listen((user) {
       if (!mounted) return;
       // Keep a freshly-set form error visible instead of letting a
@@ -72,6 +75,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   final AuthRepository _repo;
+  final Future<void> Function()? _onLocalReset;
   late final StreamSubscription<AuthUser?> _sub;
 
   AuthState _resolve(AuthUser? user) {
@@ -144,6 +148,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = AuthState.loading();
     try {
       await _repo.signOut();
+      await _onLocalReset?.call();
     } catch (e) {
       if (mounted) state = AuthState.unauthenticated(_clean(e));
     }
@@ -153,6 +158,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = AuthState.loading();
     try {
       await _repo.deleteAccount();
+      await _onLocalReset?.call();
     } catch (e) {
       if (mounted) state = AuthState.unauthenticated(_clean(e));
     }
@@ -169,5 +175,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
 final authNotifierProvider =
     StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier(ref.watch(authRepositoryProvider));
+  return AuthNotifier(
+    ref.watch(authRepositoryProvider),
+    onLocalReset: () => ref.read(localSessionCleanerProvider).clearMapData(),
+  );
 });

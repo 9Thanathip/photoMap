@@ -159,4 +159,10 @@ class CountryRepository {
     if (await f.exists()) await f.delete();
     if (await m.exists()) await m.delete();
   }
+
+  /// Wipes every downloaded country map + metadata from disk.
+  Future<void> clearAllCache() async {
+    final dir = await _cacheDir();
+    if (await dir.exists()) await dir.delete(recursive: true);
+  }
 }

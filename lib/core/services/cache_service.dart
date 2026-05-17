@@ -42,6 +42,19 @@ class CacheService {
     }
   }
 
+  /// Deletes the on-disk photo metadata + geocoding caches. Used on
+  /// sign-out so a new account doesn't inherit the previous map state.
+  Future<void> clear() async {
+    for (final name in const [_photoCacheFile, _geoCacheFile]) {
+      try {
+        final file = await _getFile(name);
+        if (await file.exists()) await file.delete();
+      } catch (e) {
+        print('Error clearing cache $name: $e');
+      }
+    }
+  }
+
   Future<Map<String, dynamic>?> loadGeoCache() async {
     try {
       final file = await _getFile(_geoCacheFile);
