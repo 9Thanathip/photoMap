@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 
 class GalleryHeader extends StatelessWidget {
   const GalleryHeader({
@@ -43,15 +44,17 @@ class GalleryHeader extends StatelessWidget {
 
   bool get _showBack => inAlbumsTab && inCountry;
 
-  String get _title {
+  String _titleText(AppLocalizations l10n) {
     if (inAlbumsTab && inProvince) return selectedProvince;
     if (inAlbumsTab && inCountry) return selectedCountry;
-    return 'Gallery';
+    return l10n.galleryTitle;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final title = _titleText(l10n);
 
     if (isSelectMode) {
       return Padding(
@@ -66,15 +69,15 @@ class GalleryHeader extends StatelessWidget {
                   onPressed: onSelectAll,
                   child: Text(
                     selectedCount == totalCount && totalCount > 0
-                        ? 'Deselect All'
-                        : 'Select All',
+                        ? l10n.deselectAll
+                        : l10n.selectAll,
                   ),
                 ),
                 Expanded(
                   child: Text(
                     selectedCount == 0
-                        ? 'Select Items'
-                        : '$selectedCount Selected',
+                        ? l10n.selectItems
+                        : l10n.selectedCount(selectedCount),
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 16,
@@ -84,7 +87,7 @@ class GalleryHeader extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: onCancelSelect,
-                  child: const Text('Cancel'),
+                  child: Text(l10n.commonCancel),
                 ),
               ],
             ),
@@ -133,8 +136,8 @@ class GalleryHeader extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    _title,
-                    key: ValueKey(_title),
+                    title,
+                    key: ValueKey(title),
                     style: GoogleFonts.poppins(
                       fontSize: 26,
                       fontWeight: FontWeight.w700,
@@ -174,7 +177,7 @@ class GalleryHeader extends StatelessWidget {
                               vertical: 10,
                             ),
                             child: Text(
-                              'Select',
+                              l10n.commonSelect,
                               style: GoogleFonts.poppins(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -193,13 +196,13 @@ class GalleryHeader extends StatelessWidget {
             children: [
               const SizedBox(width: 2),
               _TabToggle(
-                label: 'Photos',
+                label: l10n.tabPhotos,
                 selected: !inAlbumsTab,
                 onTap: onPhotoTab,
               ),
               const SizedBox(width: 18),
               _TabToggle(
-                label: 'Albums',
+                label: l10n.tabAlbums,
                 selected: inAlbumsTab,
                 onTap: onAlbumTab,
               ),

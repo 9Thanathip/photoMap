@@ -75,7 +75,7 @@ class FirebaseAuthRepository implements AuthRepository {
       final account = await GoogleSignIn.instance.authenticate();
       final idToken = account.authentication.idToken;
       if (idToken == null) {
-        throw Exception('Google sign-in failed: no ID token returned.');
+        throw Exception('authFailed');
       }
       final credential = GoogleAuthProvider.credential(idToken: idToken);
       final cred = await _auth.signInWithCredential(credential);
@@ -84,9 +84,7 @@ class FirebaseAuthRepository implements AuthRepository {
       if (e.code == GoogleSignInExceptionCode.canceled) {
         throw const AuthCancelledException();
       }
-      throw Exception(
-        'Google sign-in failed: ${e.description ?? e.code.name}',
-      );
+      throw Exception('authFailed');
     } on FirebaseAuthException catch (e) {
       throw Exception(_message(e));
     }
@@ -122,28 +120,30 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
+  /// Returns a stable error *code* (not a display string). The UI layer maps
+  /// these to localized text — see `localizedAuthError`.
   String _message(FirebaseAuthException e) {
     switch (e.code) {
       case 'invalid-email':
-        return 'Invalid email address.';
+        return 'authInvalidEmail';
       case 'user-disabled':
-        return 'This account has been disabled.';
+        return 'authUserDisabled';
       case 'user-not-found':
       case 'wrong-password':
       case 'invalid-credential':
-        return 'Incorrect email or password.';
+        return 'authInvalidCredentials';
       case 'email-already-in-use':
-        return 'This email is already registered.';
+        return 'authEmailInUse';
       case 'weak-password':
-        return 'Password is too weak (min 6 characters).';
+        return 'authWeakPassword';
       case 'network-request-failed':
-        return 'Network error. Check your connection.';
+        return 'authNetworkError';
       case 'requires-recent-login':
-        return 'Please sign in again to continue.';
+        return 'authRequiresRecentLogin';
       case 'too-many-requests':
-        return 'Too many attempts. Try again later.';
+        return 'authTooManyRequests';
       default:
-        return e.message ?? 'Authentication failed.';
+        return 'authFailed';
     }
   }
 }

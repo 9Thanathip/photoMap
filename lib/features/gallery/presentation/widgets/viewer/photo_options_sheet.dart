@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
 
 class PhotoOptionsSheet extends StatelessWidget {
@@ -48,7 +49,7 @@ class PhotoOptionsSheet extends StatelessWidget {
         // Menu items
         _OptionTile(
           icon: Icons.delete_outline_rounded,
-          label: 'Remove',
+          label: AppLocalizations.of(context).commonRemove,
           color: theme.colorScheme.error,
           onTap: onDelete,
         ),

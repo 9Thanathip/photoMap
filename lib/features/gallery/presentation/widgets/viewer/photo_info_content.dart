@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:photo_map/core/theme/app_palette.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
+import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
 
 class PhotoInfoContent extends StatefulWidget {
@@ -30,9 +32,8 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
     if (asset == null) return {};
     try {
       if (asset.type == AssetType.video) {
+        // Camera/lens are localized at display time via the fallback below.
         return {
-          'camera': 'Video Recording',
-          'lens': 'Main Camera — 4K 60fps',
           'iso': '—',
           'exposure': '—',
         };
@@ -81,7 +82,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
       } else if (make.isNotEmpty) {
         cameraName = make;
       } else {
-        cameraName = 'Unknown Camera';
+        cameraName = ''; // localized at display time
       }
 
       final focalLength = (attr['FocalLength'] ?? attr['focalLength'])?.toString() ?? '';
@@ -137,7 +138,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
       } else if (fNumberStr.isNotEmpty) {
         lensInfo = 'f/$fNumberStr';
       } else {
-        lensInfo = 'Standard Lens';
+        lensInfo = ''; // localized at display time
       }
 
       // Strip potential bracket formatting like [50] from ISO values
@@ -182,44 +183,20 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
     }
   }
 
-  String _getWeekday(int day) {
-    return [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ][day - 1];
-  }
-
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
+  String _formatDate(DateTime date, AppLocalizations l10n) {
     final day = date.day.toString();
-    final month = months[date.month - 1];
+    final month = l10n.monthsShort[date.month - 1];
     final year = date.year.toString();
     final hour = date.hour.toString().padLeft(2, '0');
     final minute = date.minute.toString().padLeft(2, '0');
-    return '${_getWeekday(date.weekday)} • $day $month $year • $hour:$minute';
+    final weekday = l10n.weekdaysFull[date.weekday - 1];
+    return '$weekday • $day $month $year • $hour:$minute';
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final asset = photo.assetEntity;
     final mp = asset != null
@@ -246,7 +223,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _formatDate(photo.timestamp),
+                      _formatDate(photo.timestamp, l10n),
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -275,14 +252,15 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
             future: _exifFuture,
             builder: (context, snapshot) {
               final info = snapshot.data ?? {};
-              final camera = info['camera'] ??
-                  (asset?.type == AssetType.video
-                      ? 'Video Recording'
-                      : 'Unknown Camera');
-              final lens = info['lens'] ??
-                  (asset?.type == AssetType.video
-                      ? 'Main Video'
-                      : 'Standard Lens');
+              final isVideo = asset?.type == AssetType.video;
+              final rawCamera = info['camera'];
+              final camera = (rawCamera != null && rawCamera.isNotEmpty)
+                  ? rawCamera
+                  : (isVideo ? l10n.exifVideoRecording : l10n.exifUnknownCamera);
+              final rawLens = info['lens'];
+              final lens = (rawLens != null && rawLens.isNotEmpty)
+                  ? rawLens
+                  : (isVideo ? l10n.exifMainVideo : l10n.exifStandardLens);
               final iso = info['iso'] ?? '—';
               final exposure = info['exposure'] ?? '—';
 
@@ -353,17 +331,15 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _infoDetail(
-                          asset?.type == AssetType.video
-                              ? 'Quality'
-                              : 'Resolution',
-                          asset?.type == AssetType.video
+                          isVideo ? l10n.infoQuality : l10n.infoResolution,
+                          isVideo
                               ? '4K • 60 fps'
                               : '$mp MP • ${asset?.width} × ${asset?.height}',
                           isDark,
                           flex: 2,
                         ),
-                        _infoDetail('ISO', iso, isDark),
-                        _infoDetail('Exposure', exposure, isDark),
+                        _infoDetail(l10n.infoIso, iso, isDark),
+                        _infoDetail(l10n.infoExposure, exposure, isDark),
                       ],
                     ),
                   ],
@@ -382,8 +358,8 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                   .where((s) => s.isNotEmpty)
                   .join(', ');
               final hint = Platform.isIOS
-                  ? 'Open in Apple Maps'
-                  : 'Open in Google Maps';
+                  ? l10n.openInAppleMaps
+                  : l10n.openInGoogleMaps;
               return ClipRRect(
                 borderRadius: BorderRadius.circular(14),
                 child: GestureDetector(
@@ -426,7 +402,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  title.isNotEmpty ? title : 'Location',
+                                  title.isNotEmpty ? title : l10n.locationLabel,
                                   style: GoogleFonts.inter(
                                     color: Colors.white,
                                     fontSize: 16,

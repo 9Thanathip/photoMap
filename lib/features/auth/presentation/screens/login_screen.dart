@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../common_widgets/app_button.dart';
 import '../../../../common_widgets/app_text_field.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../auth_error_l10n.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_brand_mark.dart';
 import '../widgets/google_sign_in_button.dart';
@@ -39,6 +41,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final auth = ref.watch(authNotifierProvider);
     final isLoading = auth.status == AuthStatus.loading;
     final t = context.tokens;
@@ -57,7 +60,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const AuthBrandMark(),
                 const Gap(36),
                 Text(
-                  'Welcome\nBack',
+                  l10n.loginWelcomeBack,
                   style: GoogleFonts.poppins(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
@@ -67,7 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const Gap(8),
                 Text(
-                  'Sign in to continue your journey',
+                  l10n.loginSubtitle,
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     color: t.textSecondary,
@@ -76,24 +79,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const Gap(36),
                 if (auth.status == AuthStatus.unauthenticated &&
                     auth.error != null) ...[
-                  _ErrorBanner(message: auth.error!),
+                  _ErrorBanner(message: localizedAuthError(l10n, auth.error)),
                   const Gap(16),
                 ],
                 AppTextField(
-                  label: 'Email',
+                  label: l10n.fieldEmail,
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   prefixIcon: const Icon(Icons.email_outlined),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Email is required';
-                    if (!v.contains('@')) return 'Enter a valid email';
+                    if (v == null || v.isEmpty) {
+                      return l10n.validationEmailRequired;
+                    }
+                    if (!v.contains('@')) return l10n.validationEmailInvalid;
                     return null;
                   },
                 ),
                 const Gap(16),
                 AppTextField(
-                  label: 'Password',
+                  label: l10n.fieldPassword,
                   controller: _passwordCtrl,
                   obscureText: _obscure,
                   textInputAction: TextInputAction.done,
@@ -108,13 +113,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   onFieldSubmitted: (_) => _submit(),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Password is required';
+                    if (v == null || v.isEmpty) {
+                      return l10n.validationPasswordRequired;
+                    }
                     return null;
                   },
                 ),
                 const Gap(28),
                 AppButton(
-                  label: 'Sign In',
+                  label: l10n.buttonSignIn,
                   loading: isLoading,
                   onPressed: _submit,
                 ),
@@ -126,14 +133,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: () => context.go('/register'),
                     child: RichText(
                       text: TextSpan(
-                        text: "Don't have an account? ",
+                        text: l10n.loginNoAccount,
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color: t.textSecondary,
                         ),
                         children: [
                           TextSpan(
-                            text: 'Register',
+                            text: l10n.buttonRegister,
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               color: t.accentGoldDeep,

@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../../../gallery/presentation/providers/gallery_notifier.dart';
 import '../../../province/data/province_data.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_actions.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_header.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/province_menu_sheet.dart';
@@ -104,7 +105,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Saved to Photos'),
+            content: Text(AppLocalizations.of(context).mapSavedToPhotos),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -116,7 +117,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Failed to save image'),
+            content: Text(AppLocalizations.of(context).mapSaveFailed),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -322,7 +323,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
               ),
             )
           else if (state.provinces.isEmpty)
-            const Center(child: Text('No Map Data Found'))
+            Center(child: Text(AppLocalizations.of(context).mapNoData))
           else
             Listener(
               onPointerDown: (e) => _tapDownPosition = e.position,

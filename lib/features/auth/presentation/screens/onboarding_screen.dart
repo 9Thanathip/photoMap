@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../widgets/auth_brand_mark.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -16,26 +17,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _page = 0;
 
-  static const _pages = [
-    _PageData(
-      icon: Icons.photo_library_rounded,
-      title: 'Capture Your\nMoments',
-      description:
-          'Organize and edit your photos with a beautiful, intuitive gallery experience.',
-    ),
-    _PageData(
-      icon: Icons.map_rounded,
-      title: 'Map Your\nJourney',
-      description:
-          'Pin your photos to locations and explore your memories on an interactive map.',
-    ),
-    _PageData(
-      icon: Icons.emoji_events_rounded,
-      title: 'Explore\nThailand',
-      description:
-          'Discover all 77 provinces and unlock achievements as you travel the kingdom.',
-    ),
-  ];
+  static const _pageCount = 3;
+
+  List<_PageData> _pages(AppLocalizations l10n) => [
+        _PageData(
+          icon: Icons.photo_library_rounded,
+          title: l10n.onboard1Title,
+          description: l10n.onboard1Body,
+        ),
+        _PageData(
+          icon: Icons.map_rounded,
+          title: l10n.onboard2Title,
+          description: l10n.onboard2Body,
+        ),
+        _PageData(
+          icon: Icons.emoji_events_rounded,
+          title: l10n.onboard3Title,
+          description: l10n.onboard3Body,
+        ),
+      ];
 
   @override
   void dispose() {
@@ -44,7 +44,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _next() {
-    if (_page < _pages.length - 1) {
+    if (_page < _pageCount - 1) {
       _controller.nextPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
@@ -56,10 +56,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final pages = _pages(l10n);
     final t = context.tokens;
     final bottom = MediaQuery.paddingOf(context).bottom;
     final top = MediaQuery.paddingOf(context).top;
-    final isLast = _page == _pages.length - 1;
+    final isLast = _page == _pageCount - 1;
 
     return Scaffold(
       backgroundColor: t.surfaceBase,
@@ -67,9 +69,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           PageView.builder(
             controller: _controller,
-            itemCount: _pages.length,
+            itemCount: pages.length,
             onPageChanged: (i) => setState(() => _page = i),
-            itemBuilder: (_, i) => _OnboardingPage(data: _pages[i]),
+            itemBuilder: (_, i) => _OnboardingPage(data: pages[i]),
           ),
 
           // ── Brand mark ──
@@ -87,7 +89,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: TextButton(
                 onPressed: () => context.go('/login'),
                 child: Text(
-                  'Skip',
+                  l10n.buttonSkip,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -109,7 +111,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      _pages.length,
+                      _pageCount,
                       (i) => AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -129,7 +131,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () => context.go('/login'),
-                            child: const Text('Skip'),
+                            child: Text(l10n.buttonSkip),
                           ),
                         ),
                         const Gap(12),
@@ -138,7 +140,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         flex: 2,
                         child: ElevatedButton(
                           onPressed: _next,
-                          child: Text(isLast ? 'Get Started' : 'Next'),
+                          child: Text(
+                            isLast ? l10n.buttonGetStarted : l10n.buttonNext,
+                          ),
                         ),
                       ),
                     ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 import '../../../domain/models/country.dart';
 import '../../providers/country_provider.dart';
 
@@ -34,6 +35,7 @@ class _CountryPickerSheetState extends ConsumerState<CountryPickerSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final state = ref.watch(countryProvider);
     final notifier = ref.read(countryProvider.notifier);
     final filtered = _filter(state.available);
@@ -43,7 +45,7 @@ class _CountryPickerSheetState extends ConsumerState<CountryPickerSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const AppSheetHandle(title: 'Country'),
+          AppSheetHandle(title: l10n.countryTitle),
           // Search bar
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
@@ -52,7 +54,7 @@ class _CountryPickerSheetState extends ConsumerState<CountryPickerSheet> {
               autofocus: false,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                hintText: 'Search countries',
+                hintText: l10n.searchCountries,
                 prefixIcon: const Icon(Icons.search_rounded, size: 20),
                 suffixIcon: _query.isEmpty
                     ? null
@@ -101,8 +103,8 @@ class _CountryPickerSheetState extends ConsumerState<CountryPickerSheet> {
                     child: Center(
                       child: Text(
                         _query.isEmpty
-                            ? 'No countries available'
-                            : 'No results for "$_query"',
+                            ? l10n.noCountriesAvailable
+                            : l10n.noResultsFor(_query),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -198,7 +200,7 @@ class _CountryRow extends StatelessWidget {
         icon: const Icon(Icons.download_rounded, size: 22),
         color: theme.colorScheme.primary,
         onPressed: onDownload,
-        tooltip: 'Download',
+        tooltip: AppLocalizations.of(context).tooltipDownload,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
         visualDensity: VisualDensity.compact,
@@ -214,7 +216,7 @@ class _CountryRow extends StatelessWidget {
         icon: Icon(Icons.delete_outline_rounded,
             size: 22, color: theme.colorScheme.onSurfaceVariant),
         onPressed: onDelete,
-        tooltip: 'Delete',
+        tooltip: AppLocalizations.of(context).tooltipDelete,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
         visualDensity: VisualDensity.compact,

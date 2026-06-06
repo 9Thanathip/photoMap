@@ -6,6 +6,7 @@ import 'package:photo_map/features/map/presentation/providers/cover_photo_provid
 import 'package:photo_map/features/map/presentation/screens/cover_crop_screen.dart';
 import 'package:photo_map/features/map/presentation/screens/province_district_screen.dart';
 import 'package:photo_map/features/map/presentation/screens/province_gallery_screen.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 
 class ProvinceMenuSheet extends ConsumerWidget {
   const ProvinceMenuSheet({
@@ -22,6 +23,7 @@ class ProvinceMenuSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -32,8 +34,8 @@ class ProvinceMenuSheet extends ConsumerWidget {
         ),
         ListTile(
           leading: const Icon(Icons.map_outlined),
-          title: const Text('View by Districts'),
-          subtitle: const Text('Browse photos by district'),
+          title: Text(l10n.menuViewDistricts),
+          subtitle: Text(l10n.menuViewDistrictsSub),
           onTap: () {
             Navigator.pop(context);
             Navigator.of(context, rootNavigator: true).push(
@@ -48,8 +50,8 @@ class ProvinceMenuSheet extends ConsumerWidget {
         ),
         ListTile(
           leading: const Icon(Icons.photo_library_outlined),
-          title: const Text('View Gallery'),
-          subtitle: const Text('All photos in this province'),
+          title: Text(l10n.menuViewGallery),
+          subtitle: Text(l10n.menuViewGallerySub),
           onTap: () {
             Navigator.pop(context);
             Navigator.of(context, rootNavigator: true).push(
@@ -64,8 +66,8 @@ class ProvinceMenuSheet extends ConsumerWidget {
         ),
         ListTile(
           leading: const Icon(Icons.image_outlined),
-          title: const Text('Change Cover Photo'),
-          subtitle: const Text('Pick which photo appears on the map'),
+          title: Text(l10n.menuChangeCover),
+          subtitle: Text(l10n.menuChangeCoverSub),
           onTap: () {
             // Capture both nav and notifier BEFORE popping — the sheet's
             // context and ref become invalid after it is dismissed.

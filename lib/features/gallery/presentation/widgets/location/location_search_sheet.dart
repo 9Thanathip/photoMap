@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
 
 // ── Nominatim place model ─────────────────────────────────────────────────────
@@ -158,7 +159,7 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = 'Cannot connect. Check internet connection.';
+          _error = AppLocalizations.of(context).cannotConnect;
         });
       }
     }
@@ -178,12 +179,13 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
 
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final errorColor = Theme.of(context).colorScheme.error;
+    final l10n = AppLocalizations.of(context);
 
     Navigator.pop(context);
 
     scaffoldMessenger.showSnackBar(
       SnackBar(
-        content: Text('Setting location to ${place.shortName}…'),
+        content: Text(l10n.settingLocationTo(place.shortName)),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -197,7 +199,7 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
       } else {
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: const Text('Failed to write GPS to photo file'),
+            content: Text(l10n.failedWriteGps),
             behavior: SnackBarBehavior.floating,
             backgroundColor: errorColor,
             shape: RoundedRectangleBorder(
@@ -241,7 +243,7 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
                 child: Row(
                   children: [
                     Text(
-                      'Set Location',
+                      AppLocalizations.of(context).setLocation,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -261,7 +263,7 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
                   textInputAction: TextInputAction.search,
                   onSubmitted: _search,
                   decoration: InputDecoration(
-                    hintText: 'Search place…',
+                    hintText: AppLocalizations.of(context).searchPlaceHint,
                     prefixIcon: const Icon(Icons.search_rounded),
                     suffixIcon: _controller.text.isNotEmpty
                         ? IconButton(
@@ -332,8 +334,8 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
                             const SizedBox(height: 12),
                             Text(
                               _controller.text.isEmpty
-                                  ? 'Search for a place'
-                                  : 'No results found',
+                                  ? AppLocalizations.of(context).searchForPlace
+                                  : AppLocalizations.of(context).noResultsFound,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),

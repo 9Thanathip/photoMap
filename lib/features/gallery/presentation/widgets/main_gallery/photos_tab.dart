@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
+import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
 import 'photo_tile.dart';
 
 enum ViewMode { all, year, month, day }
-
-extension ViewModeLabel on ViewMode {
-  String get label => switch (this) {
-        ViewMode.all => 'All',
-        ViewMode.year => 'Year',
-        ViewMode.month => 'Month',
-        ViewMode.day => 'Day',
-      };
-}
 
 const photoGridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
   crossAxisCount: 3,
@@ -45,19 +38,16 @@ class PhotosTab extends StatelessWidget {
   final Set<String> selectedPaths;
   final void Function(PhotoItem)? onToggleSelect;
 
-  static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (isEmpty) {
-      return const AppEmptyState(
+      return AppEmptyState(
           icon: Icons.photo_library_outlined,
-          title: 'No photos found',
-          subtitle: 'Your photo library is empty');
+          title: l10n.noPhotosFound,
+          subtitle: l10n.libraryEmpty);
     }
+    final months = l10n.monthsShort;
     return switch (viewMode) {
       ViewMode.all => _flatGrid(photos),
       ViewMode.year => _sectionedGrid(
@@ -72,7 +62,7 @@ class PhotosTab extends StatelessWidget {
           }),
           (k) {
             final parts = k.split('-');
-            return '${_months[int.parse(parts[1]) - 1]} ${parts[0]}';
+            return '${months[int.parse(parts[1]) - 1]} ${parts[0]}';
           },
           context,
         ),
@@ -83,7 +73,7 @@ class PhotosTab extends StatelessWidget {
           }),
           (k) {
             final parts = k.split('-');
-            return '${int.parse(parts[2])} ${_months[int.parse(parts[1]) - 1]} ${parts[0]}';
+            return '${int.parse(parts[2])} ${months[int.parse(parts[1]) - 1]} ${parts[0]}';
           },
           context,
         ),

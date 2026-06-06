@@ -287,7 +287,7 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     if (!permission.hasAccess) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Photo permission denied. Please allow access in Settings.',
+        error: 'permissionDenied',
       );
       return;
     }
@@ -436,10 +436,9 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
         _scheduleRescan();
       }
     } catch (e) {
-      final msg = e.toString().contains('Permission')
-          ? 'Photo permission denied. Please allow access in Settings.'
-          : 'Failed to load photos: ${e.toString().replaceFirst('Exception: ', '')}';
-      state = state.copyWith(isLoading: false, error: msg);
+      final code =
+          e.toString().contains('Permission') ? 'permissionDenied' : 'loadFailed';
+      state = state.copyWith(isLoading: false, error: code);
     }
   }
 

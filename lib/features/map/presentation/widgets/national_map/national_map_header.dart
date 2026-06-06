@@ -17,6 +17,10 @@ class NationalMapHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final country = ref.watch(countryProvider).current;
+    final isThai = Localizations.localeOf(context).languageCode == 'th';
+    final countryName = isThai && country.nameTh.isNotEmpty
+        ? country.nameTh
+        : country.nameEn;
 
     return GestureDetector(
       onTap: () => _openPicker(context),
@@ -32,7 +36,7 @@ class NationalMapHeader extends ConsumerWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              country.nameEn,
+              countryName,
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

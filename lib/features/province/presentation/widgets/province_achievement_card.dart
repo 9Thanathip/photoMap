@@ -5,6 +5,7 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/core/theme/app_palette.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 import 'gold_text.dart';
 
 class ProvinceAchievementCard extends StatelessWidget {
@@ -189,7 +190,7 @@ class _CardExpanded extends StatelessWidget {
           children: [
             Icon(Icons.explore_outlined, size: 14, color: context.dim(0.2, 0.2)),
             const SizedBox(width: 6),
-            Text('No photos yet — start exploring!',
+            Text(AppLocalizations.of(context).noPhotosYet,
                 style: TextStyle(fontSize: 12, color: context.dim(0.3, 0.25))),
           ],
         ),
@@ -255,7 +256,7 @@ class _CardExpanded extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    '${photos.length} photo${photos.length == 1 ? '' : 's'}',
+                    AppLocalizations.of(context).photoCount(photos.length),
                     style: TextStyle(fontSize: 12, color: context.dim(0.35, 0.35)),
                   ),
                   const Spacer(),
@@ -270,7 +271,7 @@ class _CardExpanded extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('View All',
+                          Text(AppLocalizations.of(context).viewAll,
                               style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,

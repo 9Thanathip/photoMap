@@ -5,6 +5,7 @@ import 'package:photo_map/features/gallery/presentation/providers/gallery_notifi
 import 'package:photo_map/features/gallery/presentation/providers/gallery_select_provider.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 
 class ShellScreen extends ConsumerWidget {
   const ShellScreen({super.key, required this.navigationShell});
@@ -13,6 +14,7 @@ class ShellScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final select = ref.watch(gallerySelectProvider);
     final showDeleteBar = select.isSelectMode && navigationShell.currentIndex == 0;
     final botPad = MediaQuery.paddingOf(context).bottom;
@@ -44,28 +46,28 @@ class ShellScreen extends ConsumerWidget {
                       isSelected: navigationShell.currentIndex == 0,
                       icon: Icons.photo_library_outlined,
                       selectedIcon: Icons.photo_library,
-                      label: 'Gallery',
+                      label: l10n.galleryTitle,
                       onTap: () => _onTabSelected(0),
                     ),
                     _NavIcon(
                       isSelected: navigationShell.currentIndex == 1,
                       icon: Icons.map_outlined,
                       selectedIcon: Icons.map,
-                      label: 'Map',
+                      label: l10n.navMap,
                       onTap: () => _onTabSelected(1),
                     ),
                     _NavIcon(
                       isSelected: navigationShell.currentIndex == 2,
                       icon: Icons.location_city_outlined,
                       selectedIcon: Icons.location_city,
-                      label: 'Achievements',
+                      label: l10n.navAchievements,
                       onTap: () => _onTabSelected(2),
                     ),
                     _NavIcon(
                       isSelected: navigationShell.currentIndex == 3,
                       icon: Icons.settings_outlined,
                       selectedIcon: Icons.settings,
-                      label: 'Settings',
+                      label: l10n.settingsTitle,
                       onTap: () => _onTabSelected(3),
                     ),
                   ],
@@ -84,15 +86,16 @@ class ShellScreen extends ConsumerWidget {
 
   void _confirmDelete(
       BuildContext context, WidgetRef ref, GallerySelectState select) {
+    final l10n = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Delete Photos'),
-        content: Text('Delete ${select.selectedCount} photos?'),
+        title: Text(l10n.deletePhotosTitle),
+        content: Text(l10n.deletePhotosBody(select.selectedCount)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dlg),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -104,7 +107,7 @@ class ShellScreen extends ConsumerWidget {
                   .removePhotos(select.selectedPaths.toList());
               ref.read(gallerySelectProvider.notifier).exit();
             },
-            child: const Text('Delete'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),

@@ -4,6 +4,7 @@ import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/core/theme/app_palette.dart';
 import 'package:photo_map/features/map/presentation/providers/map_settings_provider.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 
 class ColorPreset {
   const ColorPreset(this.label, this.color);
@@ -70,6 +71,7 @@ class SettingsSheet extends ConsumerWidget {
     final notifier = ref.read(mapSettingsProvider.notifier);
     final botPad = MediaQuery.paddingOf(context).bottom;
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       margin: EdgeInsets.fromLTRB(16, 0, 16, botPad + 16),
@@ -88,11 +90,11 @@ class SettingsSheet extends ConsumerWidget {
               children: [
                 Expanded(
                   child: ColorCard(
-                    label: 'Province',
+                    label: l10n.mapSettingsProvince,
                     color: settings.provinceColor,
                     onTap: () => _openColorPicker(
                       context,
-                      title: 'Province Color',
+                      title: l10n.mapSettingsProvinceColor,
                       current: settings.provinceColor,
                       presets: kProvincePresets,
                       onSelect: notifier.updateProvinceColor,
@@ -102,11 +104,11 @@ class SettingsSheet extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ColorCard(
-                    label: 'Background',
+                    label: l10n.mapSettingsBackground,
                     color: settings.canvasColor,
                     onTap: () => _openColorPicker(
                       context,
-                      title: 'Background Color',
+                      title: l10n.mapSettingsBackgroundColor,
                       current: settings.canvasColor,
                       presets: kCanvasPresets,
                       onSelect: notifier.updateCanvasColor,
@@ -129,7 +131,7 @@ class SettingsSheet extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Border',
+                    l10n.mapSettingsBorder,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -142,7 +144,7 @@ class SettingsSheet extends ConsumerWidget {
                   Row(
                     children: [
                       Text(
-                        'Color',
+                        l10n.mapSettingsColor,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -153,7 +155,7 @@ class SettingsSheet extends ConsumerWidget {
                       GestureDetector(
                         onTap: () => _openColorPicker(
                           context,
-                          title: 'Border Color',
+                          title: l10n.mapSettingsBorderColor,
                           current: settings.strokeColor,
                           presets: kStrokePresets,
                           onSelect: notifier.updateStrokeColor,
@@ -185,7 +187,7 @@ class SettingsSheet extends ConsumerWidget {
                   Row(
                     children: [
                       Text(
-                        'Width',
+                        l10n.mapSettingsWidth,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -399,9 +401,9 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text(
-                  'Apply',
-                  style: TextStyle(color: Colors.black87),
+                child: Text(
+                  AppLocalizations.of(context).mapSettingsApply,
+                  style: const TextStyle(color: Colors.black87),
                 ),
               ),
             ),
@@ -471,7 +473,7 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
         ),
         TextButton(
           onPressed: () => setState(() => _showHuePicker = false),
-          child: const Text('Back to presets'),
+          child: Text(AppLocalizations.of(context).mapBackToPresets),
         ),
       ],
     );

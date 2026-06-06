@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
+import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -11,7 +13,9 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
     final auth = ref.watch(authNotifierProvider);
     final t = context.tokens;
     final topPad = MediaQuery.paddingOf(context).top;
@@ -19,7 +23,7 @@ class SettingsScreen extends ConsumerWidget {
     final email = auth.email ?? '';
     final name = (auth.displayName?.trim().isNotEmpty ?? false)
         ? auth.displayName!.trim()
-        : (email.contains('@') ? email.split('@').first : 'User');
+        : (email.contains('@') ? email.split('@').first : l10n.defaultUserName);
 
     return Scaffold(
       backgroundColor: t.surfaceBase,
@@ -28,7 +32,7 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           // ── Header ──
           Text(
-            'Settings',
+            l10n.settingsTitle,
             style: GoogleFonts.inter(
               fontSize: 32,
               fontWeight: FontWeight.w700,
@@ -37,13 +41,13 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            'Customize your experience',
+            l10n.settingsSubtitle,
             style: GoogleFonts.inter(fontSize: 14, color: t.textSecondary),
           ),
           const SizedBox(height: 28),
 
           // ── Appearance ──
-          _SectionLabel('Appearance'),
+          _SectionLabel(l10n.sectionAppearance),
           const SizedBox(height: 10),
           _SettingsCard(
             children: [
@@ -60,7 +64,7 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'App Theme',
+                          l10n.appTheme,
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -72,6 +76,9 @@ class SettingsScreen extends ConsumerWidget {
                     const SizedBox(height: 14),
                     _ThemeSelector(
                       value: themeMode,
+                      lightLabel: l10n.themeLight,
+                      systemLabel: l10n.themeSystem,
+                      darkLabel: l10n.themeDark,
                       onChanged: (m) =>
                           ref.read(themeModeProvider.notifier).setTheme(m),
                     ),
@@ -83,29 +90,29 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 22),
 
           // ── General ──
-          _SectionLabel('General'),
+          _SectionLabel(l10n.sectionGeneral),
           const SizedBox(height: 10),
           _SettingsCard(
             children: [
               _SettingsTile(
                 icon: Icons.language_outlined,
                 iconColor: t.accentGold,
-                title: 'Language',
+                title: l10n.settingsLanguage,
                 trailing: Text(
-                  'English',
+                  _localeLabel(l10n, locale),
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: t.textSecondary,
                   ),
                 ),
-                onTap: () {},
+                onTap: () => _showLanguageSheet(context, ref, locale),
               ),
             ],
           ),
           const SizedBox(height: 22),
 
           // ── Account ──
-          _SectionLabel('Account'),
+          _SectionLabel(l10n.sectionAccount),
           const SizedBox(height: 10),
           _SettingsCard(
             children: [
@@ -119,14 +126,14 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 22),
 
           // ── About ──
-          _SectionLabel('About'),
+          _SectionLabel(l10n.sectionAbout),
           const SizedBox(height: 10),
           _SettingsCard(
             children: [
               _SettingsTile(
                 icon: Icons.info_outline_rounded,
                 iconColor: t.textSecondary,
-                title: 'Version',
+                title: l10n.settingsVersion,
                 trailing: Text(
                   '1.0.0',
                   style: GoogleFonts.inter(
@@ -139,6 +146,74 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  String _localeLabel(AppLocalizations l10n, Locale? locale) {
+    switch (locale?.languageCode) {
+      case 'en':
+        return l10n.languageEnglish;
+      case 'th':
+        return l10n.languageThai;
+      default:
+        return l10n.languageSystemDefault;
+    }
+  }
+
+  void _showLanguageSheet(BuildContext context, WidgetRef ref, Locale? current) {
+    final l10n = AppLocalizations.of(context);
+    final t = context.tokens;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: t.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        final options = <(String, Locale?)>[
+          (l10n.languageSystemDefault, null),
+          (l10n.languageEnglish, const Locale('en')),
+          (l10n.languageThai, const Locale('th')),
+        ];
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                child: Text(
+                  l10n.settingsLanguage,
+                  style: GoogleFonts.inter(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: t.textPrimary,
+                  ),
+                ),
+              ),
+              for (final (label, value) in options)
+                ListTile(
+                  title: Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: t.textPrimary,
+                    ),
+                  ),
+                  trailing: current?.languageCode == value?.languageCode
+                      ? Icon(Icons.check_rounded, color: t.accentGold)
+                      : null,
+                  onTap: () {
+                    ref.read(localeProvider.notifier).setLocale(value);
+                    Navigator.of(sheetContext).pop();
+                  },
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -346,9 +421,18 @@ class _IconBadge extends StatelessWidget {
 }
 
 class _ThemeSelector extends StatelessWidget {
-  const _ThemeSelector({required this.value, required this.onChanged});
+  const _ThemeSelector({
+    required this.value,
+    required this.onChanged,
+    required this.lightLabel,
+    required this.systemLabel,
+    required this.darkLabel,
+  });
   final ThemeMode value;
   final ValueChanged<ThemeMode> onChanged;
+  final String lightLabel;
+  final String systemLabel;
+  final String darkLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -363,19 +447,19 @@ class _ThemeSelector extends StatelessWidget {
         children: [
           _ThemeOption(
             icon: Icons.light_mode_outlined,
-            label: 'Light',
+            label: lightLabel,
             selected: value == ThemeMode.light,
             onTap: () => onChanged(ThemeMode.light),
           ),
           _ThemeOption(
             icon: Icons.auto_mode_outlined,
-            label: 'System',
+            label: systemLabel,
             selected: value == ThemeMode.system,
             onTap: () => onChanged(ThemeMode.system),
           ),
           _ThemeOption(
             icon: Icons.dark_mode_outlined,
-            label: 'Dark',
+            label: darkLabel,
             selected: value == ThemeMode.dark,
             onTap: () => onChanged(ThemeMode.dark),
           ),

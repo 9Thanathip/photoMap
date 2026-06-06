@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../common_widgets/app_button.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../auth_error_l10n.dart';
 import '../providers/auth_provider.dart';
 
 class VerifyEmailScreen extends ConsumerStatefulWidget {
@@ -61,7 +63,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     if (!mounted) return;
     setState(() => _checking = false);
     if (!verified) {
-      _snack('Not verified yet. Open the link in your email first.');
+      _snack(AppLocalizations.of(context).verifyNotVerifiedYet);
     }
   }
 
@@ -69,11 +71,12 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     final err =
         await ref.read(authNotifierProvider.notifier).resendVerification();
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
     if (err == null) {
       _startCooldown();
-      _snack('Verification email sent.');
+      _snack(l10n.verifyEmailSent);
     } else {
-      _snack(err);
+      _snack(localizedAuthError(l10n, err));
     }
   }
 
@@ -85,6 +88,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final email = ref.watch(
       authNotifierProvider.select((s) => s.email),
@@ -105,7 +109,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
               ),
               const Gap(24),
               Text(
-                'Verify your\nemail',
+                l10n.verifyTitle,
                 style: GoogleFonts.poppins(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
@@ -119,25 +123,21 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                   children: [
-                    const TextSpan(text: 'We sent a verification link to '),
+                    TextSpan(text: l10n.verifyBodyPrefix),
                     TextSpan(
-                      text: email ?? 'your email',
+                      text: email ?? l10n.verifyYourEmail,
                       style: TextStyle(
                         color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const TextSpan(
-                      text:
-                          '. Open it, then come back here — this screen '
-                          'updates automatically.',
-                    ),
+                    TextSpan(text: l10n.verifyBodySuffix),
                   ],
                 ),
               ),
               const Spacer(),
               AppButton(
-                label: "I've verified — Continue",
+                label: l10n.verifyContinue,
                 loading: _checking,
                 onPressed: _check,
               ),
@@ -148,8 +148,8 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                   onPressed: _cooldown == 0 ? _resend : null,
                   child: Text(
                     _cooldown == 0
-                        ? 'Resend email'
-                        : 'Resend email (${_cooldown}s)',
+                        ? l10n.verifyResend
+                        : l10n.verifyResendCooldown(_cooldown),
                   ),
                 ),
               ),
@@ -159,7 +159,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                   onPressed: () =>
                       ref.read(authNotifierProvider.notifier).signOut(),
                   child: Text(
-                    'Use another account',
+                    l10n.verifyUseAnotherAccount,
                     style: TextStyle(color: theme.colorScheme.error),
                   ),
                 ),

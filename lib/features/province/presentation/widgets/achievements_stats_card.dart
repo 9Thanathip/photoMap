@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 import 'gold_text.dart';
 
 class AchievementsStatsCard extends StatelessWidget {
@@ -17,6 +18,7 @@ class AchievementsStatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -33,7 +35,7 @@ class AchievementsStatsCard extends StatelessWidget {
           Row(children: [
             Icon(Icons.emoji_events_rounded, color: t.accentGold, size: 16),
             const SizedBox(width: 6),
-            GoldText('Thailand Explorer', fontSize: 12, fontWeight: FontWeight.w600),
+            GoldText(l10n.thailandExplorer, fontSize: 12, fontWeight: FontWeight.w600),
           ]),
           const SizedBox(height: 12),
           Row(
@@ -60,7 +62,7 @@ class AchievementsStatsCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Text('${total - visited} provinces remaining',
+          Text(l10n.provincesRemaining(total - visited),
               style: TextStyle(fontSize: 11, color: context.dim(0.3, 0.3))),
         ],
       ),

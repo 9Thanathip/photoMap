@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/features/map/presentation/widgets/map_ui_components.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 
 class NationalMapActions extends StatelessWidget {
   const NationalMapActions({
@@ -20,6 +21,7 @@ class NationalMapActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return GlassCard(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
@@ -27,7 +29,7 @@ class NationalMapActions extends StatelessWidget {
         children: [
           MapActionButton(
             icon: Icons.palette_outlined,
-            tooltip: 'Background',
+            tooltip: l10n.tooltipBackground,
             onTap: onShowSettings,
           ),
           Divider(
@@ -37,7 +39,7 @@ class NationalMapActions extends StatelessWidget {
           ),
           MapActionButton(
             icon: Icons.center_focus_strong_outlined,
-            tooltip: 'Center Map',
+            tooltip: l10n.tooltipCenterMap,
             onTap: onResetView,
           ),
           Divider(
@@ -47,7 +49,7 @@ class NationalMapActions extends StatelessWidget {
           ),
           MapActionButton(
             icon: isDownloading ? Icons.hourglass_top_rounded : Icons.download_rounded,
-            tooltip: 'Save to Photos',
+            tooltip: l10n.tooltipSaveToPhotos,
             onTap: onDownload,
           ),
           Divider(
@@ -57,7 +59,7 @@ class NationalMapActions extends StatelessWidget {
           ),
           MapActionButton(
             icon: Icons.ios_share,
-            tooltip: 'Share',
+            tooltip: l10n.tooltipShare,
             onTap: onShare,
           ),
         ],

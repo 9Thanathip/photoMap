@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:photo_map/features/gallery/presentation/widgets/main_gallery/photos_tab.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
+import 'package:photo_map/l10n/l10n_x.dart';
 
 /// Shows a bottom sheet for selecting a [ViewMode].
 /// Call this from any screen that needs a view mode filter.
@@ -29,6 +31,7 @@ class _ViewModeSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final botPad = MediaQuery.paddingOf(context).bottom;
 
     return Container(
@@ -39,7 +42,7 @@ class _ViewModeSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const AppSheetHandle(title: 'View Mode'),
+          AppSheetHandle(title: l10n.viewModeTitle),
           Divider(
             height: 1,
             color: theme.colorScheme.outlineVariant.withAlpha(80),
@@ -47,7 +50,7 @@ class _ViewModeSheet extends StatelessWidget {
           ...ViewMode.values.map(
             (v) => ListTile(
               title: Text(
-                v.label,
+                l10n.viewModeLabel(v),
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
               trailing: current == v

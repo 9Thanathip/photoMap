@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/gallery_notifier.dart';
 import '../providers/gallery_select_provider.dart';
 import '../widgets/main_gallery/albums_tab.dart';
@@ -195,14 +196,16 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
               ),
               const Gap(16),
               Text(
-                'Error',
+                AppLocalizations.of(context).commonError,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.error,
                 ),
               ),
               const Gap(8),
               Text(
-                gallery.error!,
+                gallery.error == 'permissionDenied'
+                    ? AppLocalizations.of(context).errorPermissionDenied
+                    : AppLocalizations.of(context).errorLoadPhotos,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -292,17 +295,16 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
         photo: photo,
         onDelete: () {
           Navigator.pop(ctx);
+          final l10n = AppLocalizations.of(context);
           showDialog<void>(
             context: context,
             builder: (dlg) => AlertDialog(
-              title: const Text('Delete Photo'),
-              content: const Text(
-                'Are you sure you want to delete this photo?',
-              ),
+              title: Text(l10n.deletePhotoTitle),
+              content: Text(l10n.deletePhotoBody),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dlg),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.commonCancel),
                 ),
                 FilledButton(
                   style: FilledButton.styleFrom(
@@ -314,7 +316,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                         .read(galleryStateProvider.notifier)
                         .removePhoto(photo.path);
                   },
-                  child: const Text('Delete'),
+                  child: Text(l10n.commonDelete),
                 ),
               ],
             ),

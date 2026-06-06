@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 import 'province_gallery_screen.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/districts_grid.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/districts_map.dart';
@@ -97,7 +98,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Saved to Photos'),
+            content: Text(AppLocalizations.of(context).mapSavedToPhotos),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -109,7 +110,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Failed to save image'),
+            content: Text(AppLocalizations.of(context).mapSaveFailed),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -294,7 +295,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                   children: [
                     MapActionButton(
                       icon: Icons.palette_outlined,
-                      tooltip: 'Colors',
+                      tooltip: AppLocalizations.of(context).tooltipColors,
                       onTap: _showSettings,
                     ),
                     Divider(
@@ -304,7 +305,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                     ),
                     MapActionButton(
                       icon: Icons.center_focus_strong_outlined,
-                      tooltip: 'Center',
+                      tooltip: AppLocalizations.of(context).tooltipCenter,
                       onTap: _resetView,
                     ),
                     Divider(
@@ -316,7 +317,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                       icon: _downloading
                           ? Icons.hourglass_top_rounded
                           : Icons.download_rounded,
-                      tooltip: 'Save to Photos',
+                      tooltip: AppLocalizations.of(context).tooltipSaveToPhotos,
                       onTap: _download,
                     ),
                     Divider(
@@ -326,7 +327,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                     ),
                     MapActionButton(
                       icon: Icons.ios_share,
-                      tooltip: 'Share Map',
+                      tooltip: AppLocalizations.of(context).tooltipShareMap,
                       onTap: _share,
                     ),
                   ],

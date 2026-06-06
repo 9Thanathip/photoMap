@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/providers/locale_provider.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'dart:ui' as ui;
 import 'package:google_fonts/google_fonts.dart';
+import 'l10n/app_localizations.dart';
 import 'features/gallery/presentation/providers/gallery_notifier.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 
@@ -15,8 +17,7 @@ class App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
-    final gallery = ref.watch(galleryStateProvider);
-    final auth = ref.watch(authNotifierProvider);
+    final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
       title: 'Jaruek',
@@ -24,6 +25,9 @@ class App extends ConsumerWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
       builder: (context, child) {
         return SetupOverlayWrapper(child: child);
@@ -122,7 +126,8 @@ class _SetupOverlayWrapperState extends ConsumerState<SetupOverlayWrapper> {
                                         ),
                                         const SizedBox(height: 16),
                                         Text(
-                                          'Preparing Your Atlas',
+                                          AppLocalizations.of(context)
+                                              .setupPreparingAtlas,
                                           style: GoogleFonts.inter(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
@@ -131,7 +136,11 @@ class _SetupOverlayWrapperState extends ConsumerState<SetupOverlayWrapper> {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'Indexing and organizing your photos\n(${gallery.geocodeProcessed} / ${gallery.geocodeTotal})',
+                                          AppLocalizations.of(context)
+                                              .setupIndexingPhotos(
+                                            gallery.geocodeProcessed,
+                                            gallery.geocodeTotal,
+                                          ),
                                           textAlign: TextAlign.center,
                                           style: GoogleFonts.inter(
                                             fontSize: 13,
@@ -184,7 +193,8 @@ class _SetupOverlayWrapperState extends ConsumerState<SetupOverlayWrapper> {
                                         ),
                                         const SizedBox(height: 24),
                                         Text(
-                                          'This setup only happens on the first launch\nto map your travels safely.',
+                                          AppLocalizations.of(context)
+                                              .setupFirstLaunchNote,
                                           textAlign: TextAlign.center,
                                           style: GoogleFonts.inter(
                                             fontSize: 11,

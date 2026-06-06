@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 
 class DistrictsGrid extends StatelessWidget {
   const DistrictsGrid({
@@ -21,7 +22,8 @@ class DistrictsGrid extends StatelessWidget {
       ..sort();
 
     if (districts.isEmpty) {
-      return const Center(child: Text('No photos categorized by district'));
+      return Center(
+          child: Text(AppLocalizations.of(context).mapNoPhotosByDistrict));
     }
 
     return GridView.builder(
@@ -84,7 +86,7 @@ class DistrictsGrid extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${photos.length} photos',
+                        AppLocalizations.of(context).photoCount(photos.length),
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.8),
                           fontSize: 12,

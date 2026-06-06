@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 /// Dedicated profile screen — shows the signed-in identity clearly and
@@ -13,13 +14,14 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final auth = ref.watch(authNotifierProvider);
     final t = context.tokens;
 
     final email = auth.email ?? '';
     final name = (auth.displayName?.trim().isNotEmpty ?? false)
         ? auth.displayName!.trim()
-        : (email.contains('@') ? email.split('@').first : 'User');
+        : (email.contains('@') ? email.split('@').first : l10n.defaultUserName);
     final verified = auth.status == AuthStatus.authenticated;
 
     return Scaffold(
@@ -27,7 +29,7 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: t.surfaceBase,
         title: Text(
-          'Profile',
+          l10n.profileTitle,
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -41,16 +43,16 @@ class ProfileScreen extends ConsumerWidget {
           _ProfileHeader(name: name, email: email, verified: verified),
           const SizedBox(height: 28),
 
-          _SectionLabel('Account'),
+          _SectionLabel(l10n.sectionAccount),
           const SizedBox(height: 10),
           _Card(
             children: [
               _ActionTile(
                 icon: Icons.verified_user_outlined,
                 iconColor: t.accentGold,
-                title: 'Account Status',
+                title: l10n.profileAccountStatus,
                 trailing: Text(
-                  verified ? 'Verified' : 'Unverified',
+                  verified ? l10n.profileVerified : l10n.profileUnverified,
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -62,7 +64,7 @@ class ProfileScreen extends ConsumerWidget {
               _ActionTile(
                 icon: Icons.logout_rounded,
                 iconColor: t.textSecondary,
-                title: 'Sign Out',
+                title: l10n.profileSignOut,
                 onTap: () => _confirmSignOut(context, ref),
               ),
             ],
@@ -70,15 +72,15 @@ class ProfileScreen extends ConsumerWidget {
 
           const SizedBox(height: 28),
 
-          _SectionLabel('Danger Zone'),
+          _SectionLabel(l10n.sectionDangerZone),
           const SizedBox(height: 10),
           _Card(
             children: [
               _ActionTile(
                 icon: Icons.manage_accounts_outlined,
                 iconColor: t.textSecondary,
-                title: 'Manage Account',
-                subtitle: 'Delete account and other actions',
+                title: l10n.profileManageAccount,
+                subtitle: l10n.profileManageAccountSubtitle,
                 onTap: () => context.push('/profile/delete-account'),
               ),
             ],
@@ -89,22 +91,23 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   void _confirmSignOut(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
+        title: Text(l10n.signOutConfirmTitle),
+        content: Text(l10n.signOutConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () {
               Navigator.pop(ctx);
               ref.read(authNotifierProvider.notifier).signOut();
             },
-            child: const Text('Sign Out'),
+            child: Text(l10n.profileSignOut),
           ),
         ],
       ),
@@ -191,7 +194,9 @@ class _ProfileHeader extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                verified ? 'Verified account' : 'Unverified',
+                verified
+                    ? AppLocalizations.of(context).profileVerifiedAccount
+                    : AppLocalizations.of(context).profileUnverified,
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

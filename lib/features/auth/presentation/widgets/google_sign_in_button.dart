@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
 import 'google_logo.dart';
 
@@ -12,6 +13,7 @@ class GoogleSignInButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final t = context.tokens;
     final isLoading = ref.watch(
       authNotifierProvider.select((s) => s.status == AuthStatus.loading),
@@ -25,7 +27,7 @@ class GoogleSignInButton extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Text(
-                'or',
+                l10n.authOrDivider,
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   color: t.textSecondary,
@@ -66,7 +68,7 @@ class GoogleSignInButton extends ConsumerWidget {
                       const GoogleLogo(size: 20),
                       const Gap(12),
                       Text(
-                        'Continue with Google',
+                        l10n.buttonContinueWithGoogle,
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,

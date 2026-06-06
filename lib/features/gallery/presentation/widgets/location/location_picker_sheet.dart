@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
 
 class LocationPickerSheet extends ConsumerStatefulWidget {
@@ -30,7 +31,7 @@ class _LocationPickerSheetState extends ConsumerState<LocationPickerSheet> {
         .updatePhotoLocation(widget.photo.path, country, province);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Location set to $province'),
+        content: Text(AppLocalizations.of(context).locationSetTo(province)),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -44,7 +45,7 @@ class _LocationPickerSheetState extends ConsumerState<LocationPickerSheet> {
     final gallery = ref.watch(galleryStateProvider);
     final theme = Theme.of(context);
     final isInCountry = _country != null;
-    final title = isInCountry ? _country! : 'Set Location';
+    final title = isInCountry ? _country! : AppLocalizations.of(context).setLocation;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.62,
@@ -162,7 +163,7 @@ class _CountriesGrid extends StatelessWidget {
     final names = byCountry.keys.where((k) => k != 'Unknown').toList()..sort();
 
     if (names.isEmpty) {
-      return const Center(child: Text('No albums found'));
+      return Center(child: Text(AppLocalizations.of(context).noAlbumsFound));
     }
 
     return GridView.builder(
@@ -206,7 +207,7 @@ class _ProvincesGrid extends StatelessWidget {
     final names = byProvince.keys.toList()..sort();
 
     if (names.isEmpty) {
-      return Center(child: Text('No albums in $country'));
+      return Center(child: Text(AppLocalizations.of(context).noAlbumsIn(country)));
     }
 
     return GridView.builder(
@@ -321,7 +322,7 @@ class _AlbumCardState extends State<_AlbumCard>
                     ?.copyWith(fontWeight: FontWeight.w600),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis),
-            Text('${widget.count} photos',
+            Text(AppLocalizations.of(context).photoCount(widget.count),
                 style: theme.textTheme.labelSmall
                     ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           ],

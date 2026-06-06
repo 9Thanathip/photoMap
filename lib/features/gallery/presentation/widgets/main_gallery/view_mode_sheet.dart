@@ -4,6 +4,8 @@ import 'package:gap/gap.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:photo_map/features/gallery/presentation/widgets/main_gallery/photos_tab.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
+import 'package:photo_map/l10n/l10n_x.dart';
 
 class ViewModeSheet extends StatelessWidget {
   const ViewModeSheet({
@@ -34,6 +36,7 @@ class ViewModeSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final botPad = MediaQuery.paddingOf(context).bottom;
 
     return Container(
@@ -44,10 +47,11 @@ class ViewModeSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const AppSheetHandle(title: 'View Mode'),
+            AppSheetHandle(title: l10n.viewModeTitle),
             ...ViewMode.values.map(
               (m) => ListTile(
-                title: Text(m.label, style: GoogleFonts.poppins(fontSize: 14)),
+                title: Text(l10n.viewModeLabel(m),
+                    style: GoogleFonts.poppins(fontSize: 14)),
                 trailing: currentMode == m
                     ? Icon(
                         Icons.check_rounded,

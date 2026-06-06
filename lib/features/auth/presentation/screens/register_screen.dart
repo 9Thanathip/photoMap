@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../common_widgets/app_button.dart';
 import '../../../../common_widgets/app_text_field.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../auth_error_l10n.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_brand_mark.dart';
 import '../widgets/google_sign_in_button.dart';
@@ -46,6 +48,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final auth = ref.watch(authNotifierProvider);
     final isLoading = auth.status == AuthStatus.loading;
     final theme = Theme.of(context);
@@ -72,7 +75,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const AuthBrandMark(),
                 const Gap(32),
                 Text(
-                  'Create\nAccount',
+                  l10n.registerTitle,
                   style: GoogleFonts.poppins(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
@@ -82,7 +85,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const Gap(8),
                 Text(
-                  'Start mapping your memories today',
+                  l10n.registerSubtitle,
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     color: t.textSecondary,
@@ -104,7 +107,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         const Gap(8),
                         Expanded(
                           child: Text(
-                            auth.error!,
+                            localizedAuthError(l10n, auth.error),
                             style: TextStyle(
                               color: theme.colorScheme.onErrorContainer,
                             ),
@@ -116,31 +119,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const Gap(16),
                 ],
                 AppTextField(
-                  label: 'Full Name',
+                  label: l10n.fieldFullName,
                   controller: _nameCtrl,
                   textInputAction: TextInputAction.next,
                   prefixIcon: const Icon(Icons.person_outlined),
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Name is required';
+                    if (v == null || v.trim().isEmpty) {
+                      return l10n.validationNameRequired;
+                    }
                     return null;
                   },
                 ),
                 const Gap(14),
                 AppTextField(
-                  label: 'Email',
+                  label: l10n.fieldEmail,
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   prefixIcon: const Icon(Icons.email_outlined),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Email is required';
-                    if (!v.contains('@')) return 'Enter a valid email';
+                    if (v == null || v.isEmpty) {
+                      return l10n.validationEmailRequired;
+                    }
+                    if (!v.contains('@')) return l10n.validationEmailInvalid;
                     return null;
                   },
                 ),
                 const Gap(14),
                 AppTextField(
-                  label: 'Password',
+                  label: l10n.fieldPassword,
                   controller: _passwordCtrl,
                   obscureText: _obscure,
                   textInputAction: TextInputAction.next,
@@ -154,14 +161,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Password is required';
-                    if (v.length < 6) return 'Minimum 6 characters';
+                    if (v == null || v.isEmpty) {
+                      return l10n.validationPasswordRequired;
+                    }
+                    if (v.length < 6) return l10n.validationPasswordMin;
                     return null;
                   },
                 ),
                 const Gap(14),
                 AppTextField(
-                  label: 'Confirm Password',
+                  label: l10n.fieldConfirmPassword,
                   controller: _confirmCtrl,
                   obscureText: _obscureConfirm,
                   textInputAction: TextInputAction.done,
@@ -177,13 +186,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   onFieldSubmitted: (_) => _submit(),
                   validator: (v) {
-                    if (v != _passwordCtrl.text) return 'Passwords do not match';
+                    if (v != _passwordCtrl.text) {
+                      return l10n.validationPasswordMismatch;
+                    }
                     return null;
                   },
                 ),
                 const Gap(28),
                 AppButton(
-                  label: 'Create Account',
+                  label: l10n.buttonCreateAccount,
                   loading: isLoading,
                   onPressed: _submit,
                 ),
@@ -195,14 +206,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     onPressed: () => context.go('/login'),
                     child: RichText(
                       text: TextSpan(
-                        text: 'Already have an account? ',
+                        text: l10n.registerHaveAccount,
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color: t.textSecondary,
                         ),
                         children: [
                           TextSpan(
-                            text: 'Sign In',
+                            text: l10n.buttonSignIn,
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               color: t.accentGoldDeep,

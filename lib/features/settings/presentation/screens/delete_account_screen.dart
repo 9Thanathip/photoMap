@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 /// Buried one level under [ProfileScreen]. Account deletion is gated behind
@@ -18,25 +19,26 @@ class DeleteAccountScreen extends ConsumerStatefulWidget {
 class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
   bool _acknowledged = false;
 
-  static const _consequences = [
-    'All your photos and their map locations will be removed',
-    'Your province achievements and progress will be lost',
-    'This action is permanent and cannot be undone',
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final t = context.tokens;
     final isLoading = ref.watch(
       authNotifierProvider.select((s) => s.status == AuthStatus.loading),
     );
+
+    final consequences = [
+      l10n.deleteConsequencePhotos,
+      l10n.deleteConsequenceAchievements,
+      l10n.deleteConsequencePermanent,
+    ];
 
     return Scaffold(
       backgroundColor: t.surfaceBase,
       appBar: AppBar(
         backgroundColor: t.surfaceBase,
         title: Text(
-          'Manage Account',
+          l10n.profileManageAccount,
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -64,7 +66,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
           ),
           const SizedBox(height: 20),
           Text(
-            'Delete Account',
+            l10n.deleteAccountTitle,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 22,
@@ -74,8 +76,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Deleting your account is irreversible. Please review what '
-            'happens before continuing.',
+            l10n.deleteAccountIntro,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 14,
@@ -94,7 +95,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (var i = 0; i < _consequences.length; i++) ...[
+                for (var i = 0; i < consequences.length; i++) ...[
                   if (i > 0) const SizedBox(height: 12),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +108,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          _consequences[i],
+                          consequences[i],
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             height: 1.45,
@@ -137,8 +138,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                   ),
                   Expanded(
                     child: Text(
-                      'I understand this will permanently delete my account '
-                      'and all my data.',
+                      l10n.deleteAccountAcknowledge,
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         height: 1.4,
@@ -174,7 +174,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                       ),
                     )
                   : Text(
-                      'Delete My Account',
+                      l10n.deleteAccountButton,
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -188,7 +188,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
             child: TextButton(
               onPressed: isLoading ? null : () => Navigator.pop(context),
               child: Text(
-                'Cancel',
+                l10n.commonCancel,
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -203,18 +203,16 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
   }
 
   void _confirmDelete(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Account?'),
-        content: const Text(
-          'This is your final confirmation. Your account and all data will '
-          'be permanently deleted.',
-        ),
+        title: Text(l10n.deleteConfirmTitle),
+        content: Text(l10n.deleteConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -224,7 +222,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
               Navigator.pop(ctx);
               ref.read(authNotifierProvider.notifier).deleteAccount();
             },
-            child: const Text('Delete'),
+            child: Text(l10n.deleteConfirmAction),
           ),
         ],
       ),

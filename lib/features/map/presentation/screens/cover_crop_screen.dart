@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 
 /// Returns the normalized crop rect (left, top, right, bottom in [0,1]) or null if cancelled.
 ///
@@ -158,10 +159,10 @@ class _CoverCropScreenState extends State<CoverCropScreen> {
                 Expanded(
                   child: Column(
                     children: [
-                      const Text(
-                        'Set Cover Photo',
+                      Text(
+                        AppLocalizations.of(context).coverSetTitle,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -188,10 +189,10 @@ class _CoverCropScreenState extends State<CoverCropScreen> {
             top: frame.bottom + 12,
             left: 0,
             right: 0,
-            child: const Text(
-              'Move and pinch to adjust',
+            child: Text(
+              AppLocalizations.of(context).coverAdjustHint,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white54, fontSize: 12),
+              style: const TextStyle(color: Colors.white54, fontSize: 12),
             ),
           ),
 
@@ -212,7 +213,7 @@ class _CoverCropScreenState extends State<CoverCropScreen> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Cancel'),
+                    child: Text(AppLocalizations.of(context).commonCancel),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -226,8 +227,8 @@ class _CoverCropScreenState extends State<CoverCropScreen> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Use Photo',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    child: Text(AppLocalizations.of(context).coverUsePhoto,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/features/map/presentation/screens/province_gallery_screen.dart';
 import '../widgets/achievements_stats.dart';
@@ -98,6 +99,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final photos = ref.watch(galleryStateProvider).allPhotos;
     final topPad = MediaQuery.paddingOf(context).top;
     final dark = context.isDark;
@@ -146,7 +148,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                 children: [
                   // ── Header ──
                   Text(
-                    'Places',
+                    l10n.placesTitle,
                     style: GoogleFonts.inter(
                       fontSize: 32,
                       fontWeight: FontWeight.w700,
@@ -155,7 +157,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '$visitedCount of $total provinces explored',
+                    l10n.provincesExplored(visitedCount, total),
                     style: GoogleFonts.inter(fontSize: 14, color: ts),
                   ),
 
@@ -195,7 +197,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '$visitedCount / $total provinces',
+                          l10n.provincesProgress(visitedCount, total),
                           style: GoogleFonts.inter(fontSize: 13, color: ts),
                         ),
                         const SizedBox(height: 16),

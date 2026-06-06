@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
+import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
 import 'album_card.dart';
 import 'photo_tile.dart';
@@ -169,15 +171,16 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   }
 
   Widget _countriesGrid() {
+    final l10n = AppLocalizations.of(context);
     final byCountry = widget.gallery.photosByCountry;
     if (byCountry.isEmpty) {
       return AppEmptyState(
         icon: Icons.photo_library_outlined,
         title: widget.gallery.isGeocoding
-            ? 'Detecting locations...'
-            : 'No photos found',
+            ? l10n.detectingLocations
+            : l10n.noPhotosFound,
         subtitle:
-            widget.gallery.isGeocoding ? 'Your photos will appear shortly' : '',
+            widget.gallery.isGeocoding ? l10n.photosAppearShortly : '',
         showLoader: widget.gallery.isGeocoding,
       );
     }
@@ -191,7 +194,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
         final name = names[i];
         return AlbumCard(
           title: name,
-          subtitle: '${byCountry[name]!.length} photos',
+          subtitle: l10n.photoCount(byCountry[name]!.length),
           coverPhoto: byCountry[name]!.first,
           onTap: () =>
               ref.read(galleryStateProvider.notifier).selectCountry(name),
@@ -201,12 +204,13 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   }
 
   Widget _provincesGrid() {
+    final l10n = AppLocalizations.of(context);
     final byProvince =
         widget.gallery.photosByProvince(widget.gallery.selectedCountry);
     if (byProvince.isEmpty) {
       return AppEmptyState(
           icon: Icons.photo_library_outlined,
-          title: 'No photos in ${widget.gallery.selectedCountry}',
+          title: l10n.noPhotosIn(widget.gallery.selectedCountry),
           subtitle: '');
     }
     final names = byProvince.keys.toList()..sort();
@@ -219,7 +223,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
         final name = names[i];
         return AlbumCard(
           title: name,
-          subtitle: '${byProvince[name]!.length} photos',
+          subtitle: l10n.photoCount(byProvince[name]!.length),
           coverPhoto: byProvince[name]!.first,
           onTap: () =>
               ref.read(galleryStateProvider.notifier).selectProvince(name),
@@ -227,11 +231,6 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
       },
     );
   }
-
-  static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
 
   Map<String, List<PhotoItem>> _groupBy(
       List<PhotoItem> items, String Function(PhotoItem) key) {
@@ -243,12 +242,14 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   }
 
   Widget _provincePhotos() {
+    final l10n = AppLocalizations.of(context);
+    final months = l10n.monthsShort;
     final photos = widget.gallery.filteredPhotos;
     if (photos.isEmpty) {
-      return const AppEmptyState(
+      return AppEmptyState(
           icon: Icons.photo_library_outlined,
-          title: 'No photos here',
-          subtitle: 'Your photo library is empty');
+          title: l10n.noPhotosHere,
+          subtitle: l10n.libraryEmpty);
     }
 
     return switch (widget.viewMode) {
@@ -265,7 +266,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
           }),
           (k) {
             final parts = k.split('-');
-            return '${_months[int.parse(parts[1]) - 1]} ${parts[0]}';
+            return '${months[int.parse(parts[1]) - 1]} ${parts[0]}';
           },
           context,
         ),
@@ -276,7 +277,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
           }),
           (k) {
             final parts = k.split('-');
-            return '${int.parse(parts[2])} ${_months[int.parse(parts[1]) - 1]} ${parts[0]}';
+            return '${int.parse(parts[2])} ${months[int.parse(parts[1]) - 1]} ${parts[0]}';
           },
           context,
         ),

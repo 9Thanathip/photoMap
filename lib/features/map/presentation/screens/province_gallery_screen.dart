@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
+import 'package:photo_map/l10n/l10n_x.dart';
 import '../../../gallery/presentation/providers/gallery_notifier.dart';
 import '../../../gallery/presentation/widgets/main_gallery/photo_tile.dart';
 import '../../../gallery/presentation/widgets/viewer/photo_viewer_screen.dart';
@@ -38,21 +40,6 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
   ViewMode _viewMode = ViewMode.day;
   bool _isScrolled = false;
 
-  static const _months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-
   Map<String, List<PhotoItem>> _groupBy(
     List<PhotoItem> items,
     String Function(PhotoItem) key,
@@ -64,15 +51,15 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
     return map;
   }
 
-  String _getLabel(String k, ViewMode mode) {
+  String _getLabel(String k, ViewMode mode, List<String> months) {
     if (mode == ViewMode.year) return k;
     if (mode == ViewMode.month) {
       final parts = k.split('-');
-      return '${_months[int.parse(parts[1]) - 1]} ${parts[0]}';
+      return '${months[int.parse(parts[1]) - 1]} ${parts[0]}';
     }
     if (mode == ViewMode.day) {
       final parts = k.split('-');
-      return '${int.parse(parts[2])} ${_months[int.parse(parts[1]) - 1]} ${parts[0]}';
+      return '${int.parse(parts[2])} ${months[int.parse(parts[1]) - 1]} ${parts[0]}';
     }
     return '';
   }
@@ -127,9 +114,10 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
                   : (photos.isEmpty && !gallery.isGeocoding)
                       ? AppEmptyState(
                           icon: Icons.photo_library_outlined,
-                          title: 'No photos in ${widget.districtName ?? widget.provinceName}',
-                          subtitle:
-                              'Photos you take here will appear here.',
+                          title: AppLocalizations.of(context).noPhotosIn(
+                              widget.districtName ?? widget.provinceName),
+                          subtitle: AppLocalizations.of(context)
+                              .provinceGallerySubtitle,
                         )
                       : _buildGrid(context, topPad, theme, photos),
             ),
@@ -162,7 +150,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Tap a photo to set as cover',
+                      AppLocalizations.of(context).coverTapHint,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -343,7 +331,8 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Text(
-                _getLabel(key, _viewMode),
+                _getLabel(key, _viewMode,
+                    AppLocalizations.of(context).monthsShort),
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

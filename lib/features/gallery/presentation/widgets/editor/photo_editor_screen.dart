@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
+import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
 import '../../../utils/color_matrix_utils.dart';
 
@@ -90,6 +92,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   }
 
   Widget _buildTopBar() {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -98,10 +101,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             style: TextButton.styleFrom(foregroundColor: Colors.white70),
-            child: const Text('Cancel', style: TextStyle(fontSize: 15)),
+            child: Text(l10n.commonCancel, style: const TextStyle(fontSize: 15)),
           ),
           Text(
-            _mode == _EditMode.presets ? 'Presets' : 'Adjust',
+            _mode == _EditMode.presets ? l10n.editorPresets : l10n.editorAdjust,
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontWeight: FontWeight.w500,
@@ -114,8 +117,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
               Navigator.pop(context);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.white),
-            child: const Text('Done',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            child: Text(l10n.commonDone,
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -178,12 +182,15 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _BottomTab(
-                    title: 'PRESETS',
+                    title: AppLocalizations.of(context)
+                        .editorPresets
+                        .toUpperCase(),
                     isActive: _mode == _EditMode.presets,
                     onTap: () => setState(() => _mode = _EditMode.presets),
                   ),
                   _BottomTab(
-                    title: 'ADJUST',
+                    title:
+                        AppLocalizations.of(context).editorAdjust.toUpperCase(),
                     isActive: _mode == _EditMode.adjust,
                     onTap: () => setState(() => _mode = _EditMode.adjust),
                     showDot: _hasAdjustments,
@@ -254,7 +261,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  preset.name,
+                  AppLocalizations.of(context)
+                      .filmPresetName(preset.id, preset.name),
                   style: TextStyle(
                     color: isSelected ? Colors.white : Colors.white38,
                     fontSize: 10,
@@ -271,6 +279,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   }
 
   Widget _buildAdjustTools() {
+    final l10n = AppLocalizations.of(context);
     return ListView(
       key: const ValueKey('tools'),
       scrollDirection: Axis.horizontal,
@@ -278,31 +287,31 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       children: [
         _ToolButton(
           icon: Icons.exposure_rounded,
-          label: 'Exposure',
+          label: l10n.adjExposure,
           isActive: _exposure != 0,
           onTap: () => setState(() => _activeTool = _AdjustTool.exposure),
         ),
         _ToolButton(
           icon: Icons.contrast_rounded,
-          label: 'Contrast',
+          label: l10n.adjContrast,
           isActive: _contrast != 1.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.contrast),
         ),
         _ToolButton(
           icon: Icons.water_drop_outlined,
-          label: 'Saturation',
+          label: l10n.adjSaturation,
           isActive: _saturation != 1.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.saturation),
         ),
         _ToolButton(
           icon: Icons.thermostat_rounded,
-          label: 'Temperature',
+          label: l10n.adjTemperature,
           isActive: _temperature != 0.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.temperature),
         ),
         _ToolButton(
           icon: Icons.invert_colors_rounded,
-          label: 'Tint',
+          label: l10n.adjTint,
           isActive: _tint != 0.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.tint),
         ),
@@ -315,13 +324,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             },
             icon: const Icon(Icons.settings_backup_restore_rounded,
                 color: Colors.white54),
-            tooltip: 'Reset Adjustments',
+            tooltip: l10n.editorReset,
           ),
       ],
     );
   }
 
   Widget _buildSlider() {
+    final l10n = AppLocalizations.of(context);
     double value = 0;
     double min = -1.0;
     double max = 1.0;
@@ -330,27 +340,27 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     switch (_activeTool!) {
       case _AdjustTool.exposure:
         value = _exposure;
-        label = 'Exposure';
+        label = l10n.adjExposure;
         break;
       case _AdjustTool.contrast:
         min = 0.5;
         max = 1.5;
         value = _contrast;
-        label = 'Contrast';
+        label = l10n.adjContrast;
         break;
       case _AdjustTool.saturation:
         min = 0.0;
         max = 2.0;
         value = _saturation;
-        label = 'Saturation';
+        label = l10n.adjSaturation;
         break;
       case _AdjustTool.temperature:
         value = _temperature;
-        label = 'Temperature';
+        label = l10n.adjTemperature;
         break;
       case _AdjustTool.tint:
         value = _tint;
-        label = 'Tint';
+        label = l10n.adjTint;
         break;
     }
 
