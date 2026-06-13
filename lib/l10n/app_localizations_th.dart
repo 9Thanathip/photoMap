@@ -619,6 +619,21 @@ class AppLocalizationsTh extends AppLocalizations {
   String get mapBackToPresets => 'กลับไปที่พรีเซ็ต';
 
   @override
+  String get mapHue => 'เฉดสี';
+
+  @override
+  String get mapSaturation => 'ความอิ่มสี';
+
+  @override
+  String get mapBrightness => 'ความสว่าง';
+
+  @override
+  String get mapCustomColor => 'สีกำหนดเอง';
+
+  @override
+  String get mapResetColor => 'รีเซ็ต';
+
+  @override
   String get tooltipBackground => 'พื้นหลัง';
 
   @override

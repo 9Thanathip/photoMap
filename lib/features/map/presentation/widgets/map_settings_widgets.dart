@@ -462,118 +462,326 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
   }
 
   Widget _buildHuePicker() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: _HueSlider(
-            color: _selected,
-            onChanged: (c) => setState(() => _selected = c),
+    return _HsvPicker(
+      color: _selected,
+      initial: widget.current,
+      onChanged: (c) => setState(() => _selected = c),
+      onBack: () => setState(() => _showHuePicker = false),
+    );
+  }
+}
+
+/// Three-channel (H/S/V) custom-color editor. The hue track shows the full
+/// rainbow; the saturation and value tracks update their gradients live to
+/// reflect the other channels, so the slider you're touching always paints
+/// what the result will look like.
+class _HsvPicker extends StatefulWidget {
+  const _HsvPicker({
+    required this.color,
+    required this.initial,
+    required this.onChanged,
+    required this.onBack,
+  });
+
+  final Color color;
+  final Color initial;
+  final ValueChanged<Color> onChanged;
+  final VoidCallback onBack;
+
+  @override
+  State<_HsvPicker> createState() => _HsvPickerState();
+}
+
+class _HsvPickerState extends State<_HsvPicker> {
+  late HSVColor _hsv;
+
+  @override
+  void initState() {
+    super.initState();
+    _hsv = HSVColor.fromColor(widget.color);
+  }
+
+  @override
+  void didUpdateWidget(covariant _HsvPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Sync if the parent swapped in a different color (e.g. preset selected
+    // again before opening the custom picker).
+    if (oldWidget.color != widget.color &&
+        widget.color != _hsv.toColor()) {
+      _hsv = HSVColor.fromColor(widget.color);
+    }
+  }
+
+  void _commit(HSVColor next) {
+    setState(() => _hsv = next);
+    widget.onChanged(next.toColor());
+  }
+
+  String _hex(Color c) {
+    String pad(int v) => v.toRadixString(16).padLeft(2, '0').toUpperCase();
+    return '#${pad((c.r * 255).round())}${pad((c.g * 255).round())}${pad((c.b * 255).round())}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final color = _hsv.toColor();
+    final onSurface = theme.colorScheme.onSurface;
+    final isDarkOnPreview =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark;
+    final previewTextColor = isDarkOnPreview
+        ? Colors.white.withValues(alpha: 0.95)
+        : Colors.black.withValues(alpha: 0.85);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── Big preview ──
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOut,
+            height: 92,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: onSurface.withValues(alpha: 0.08),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.38),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              _hex(color),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: previewTextColor,
+                letterSpacing: 2.0,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
           ),
+          const SizedBox(height: 22),
+
+          _ChannelSlider(
+            label: l10n.mapHue,
+            valueText: '${_hsv.hue.round()}°',
+            position: _hsv.hue / 360.0,
+            trackGradient: const LinearGradient(
+              colors: [
+                Color(0xFFFF0000),
+                Color(0xFFFFFF00),
+                Color(0xFF00FF00),
+                Color(0xFF00FFFF),
+                Color(0xFF0000FF),
+                Color(0xFFFF00FF),
+                Color(0xFFFF0000),
+              ],
+            ),
+            thumbColor: HSVColor.fromAHSV(1, _hsv.hue, 1, 1).toColor(),
+            onChanged: (p) => _commit(_hsv.withHue(p * 360)),
+          ),
+          const SizedBox(height: 18),
+
+          _ChannelSlider(
+            label: l10n.mapSaturation,
+            valueText: '${(_hsv.saturation * 100).round()}%',
+            position: _hsv.saturation,
+            trackGradient: LinearGradient(
+              colors: [
+                HSVColor.fromAHSV(1, _hsv.hue, 0, _hsv.value).toColor(),
+                HSVColor.fromAHSV(1, _hsv.hue, 1, _hsv.value).toColor(),
+              ],
+            ),
+            thumbColor: color,
+            onChanged: (p) => _commit(_hsv.withSaturation(p)),
+          ),
+          const SizedBox(height: 18),
+
+          _ChannelSlider(
+            label: l10n.mapBrightness,
+            valueText: '${(_hsv.value * 100).round()}%',
+            position: _hsv.value,
+            trackGradient: LinearGradient(
+              colors: [
+                HSVColor.fromAHSV(1, _hsv.hue, _hsv.saturation, 0).toColor(),
+                HSVColor.fromAHSV(1, _hsv.hue, _hsv.saturation, 1).toColor(),
+              ],
+            ),
+            thumbColor: color,
+            onChanged: (p) => _commit(_hsv.withValue(p)),
+          ),
+
+          const SizedBox(height: 18),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton.icon(
+                onPressed: widget.onBack,
+                icon: const Icon(Icons.grid_view_rounded, size: 16),
+                label: Text(l10n.mapBackToPresets),
+                style: TextButton.styleFrom(
+                  foregroundColor: onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () => _commit(HSVColor.fromColor(widget.initial)),
+                icon: const Icon(Icons.refresh_rounded, size: 16),
+                label: Text(l10n.mapResetColor),
+                style: TextButton.styleFrom(
+                  foregroundColor: onSurface.withValues(alpha: 0.55),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChannelSlider extends StatelessWidget {
+  const _ChannelSlider({
+    required this.label,
+    required this.valueText,
+    required this.position,
+    required this.trackGradient,
+    required this.thumbColor,
+    required this.onChanged,
+  });
+
+  /// Channel name shown above the track.
+  final String label;
+
+  /// Right-aligned numeric readout (e.g. `120°`, `42%`).
+  final String valueText;
+
+  /// Normalised position 0..1 (left = 0).
+  final double position;
+
+  final Gradient trackGradient;
+
+  /// Fill color of the thumb. The HSV picker passes the *current* channel
+  /// extreme so the thumb visually matches what it sets.
+  final Color thumbColor;
+
+  final ValueChanged<double> onChanged;
+
+  static const double _trackHeight = 14;
+  static const double _thumbRadius = 13;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final onSurface = theme.colorScheme.onSurface;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: onSurface.withValues(alpha: 0.75),
+                letterSpacing: -0.1,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              valueText,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: onSurface.withValues(alpha: 0.5),
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
         ),
-        TextButton(
-          onPressed: () => setState(() => _showHuePicker = false),
-          child: Text(AppLocalizations.of(context).mapBackToPresets),
+        const SizedBox(height: 10),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            void update(Offset local) {
+              final p = (local.dx / width).clamp(0.0, 1.0);
+              if (p != position) HapticFeedback.selectionClick();
+              onChanged(p);
+            }
+
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onPanDown: (d) => update(d.localPosition),
+              onPanUpdate: (d) => update(d.localPosition),
+              onTapDown: (d) => update(d.localPosition),
+              child: SizedBox(
+                height: _thumbRadius * 2,
+                child: Stack(
+                  alignment: Alignment.centerLeft,
+                  children: [
+                    Container(
+                      height: _trackHeight,
+                      decoration: BoxDecoration(
+                        gradient: trackGradient,
+                        borderRadius:
+                            BorderRadius.circular(_trackHeight / 2),
+                        border: Border.all(
+                          color: onSurface.withValues(alpha: 0.06),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: (width - _thumbRadius * 2) *
+                          position.clamp(0.0, 1.0),
+                      child: _Thumb(color: thumbColor, radius: _thumbRadius),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
   }
 }
 
-class _HueSlider extends StatelessWidget {
-  const _HueSlider({required this.color, required this.onChanged});
+class _Thumb extends StatelessWidget {
+  const _Thumb({required this.color, required this.radius});
   final Color color;
-  final ValueChanged<Color> onChanged;
+  final double radius;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onPanUpdate: (details) => _updateColor(context, details.localPosition),
-      onPanDown: (details) => _updateColor(context, details.localPosition),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Adjust Hue',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.black54,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            height: 12,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFFFF0000),
-                  Color(0xFFFFFF00),
-                  Color(0xFF00FF00),
-                  Color(0xFF00FFFF),
-                  Color(0xFF0000FF),
-                  Color(0xFFFF00FF),
-                  Color(0xFFFF0000),
-                ],
-              ),
-            ),
-            child: CustomPaint(
-              painter: _SliderThumbPainter(HSVColor.fromColor(color).hue),
-            ),
+    return Container(
+      width: radius * 2,
+      height: radius * 2,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 3),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
     );
   }
-
-  void _updateColor(BuildContext context, Offset localPos) {
-    final RenderBox box = context.findRenderObject() as RenderBox;
-    final width = box.size.width;
-    final percent = (localPos.dx / width).clamp(0.0, 1.0);
-    final hue = percent * 360.0;
-    onChanged(HSVColor.fromAHSV(1.0, hue, 1.0, 1.0).toColor());
-  }
-}
-
-class _SliderThumbPainter extends CustomPainter {
-  _SliderThumbPainter(this.hue);
-  final double hue;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final x = (hue / 360.0) * size.width;
-    final center = Offset(x, size.height / 2);
-
-    // White border/glow
-    canvas.drawCircle(
-      center,
-      10,
-      Paint()
-        ..color = Colors.white
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
-    );
-
-    // The thumb itself
-    canvas.drawCircle(
-      center,
-      8,
-      Paint()
-        ..color = HSVColor.fromAHSV(1.0, hue, 1.0, 1.0).toColor()
-        ..style = PaintingStyle.fill,
-    );
-
-    canvas.drawCircle(
-      center,
-      8,
-      Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_SliderThumbPainter old) => old.hue != hue;
 }

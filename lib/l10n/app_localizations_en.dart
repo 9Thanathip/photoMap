@@ -622,6 +622,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapBackToPresets => 'Back to presets';
 
   @override
+  String get mapHue => 'Hue';
+
+  @override
+  String get mapSaturation => 'Saturation';
+
+  @override
+  String get mapBrightness => 'Brightness';
+
+  @override
+  String get mapCustomColor => 'Custom Color';
+
+  @override
+  String get mapResetColor => 'Reset';
+
+  @override
   String get tooltipBackground => 'Background';
 
   @override

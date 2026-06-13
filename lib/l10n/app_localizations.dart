@@ -1250,6 +1250,36 @@ abstract class AppLocalizations {
   /// **'Back to presets'**
   String get mapBackToPresets;
 
+  /// No description provided for @mapHue.
+  ///
+  /// In en, this message translates to:
+  /// **'Hue'**
+  String get mapHue;
+
+  /// No description provided for @mapSaturation.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation'**
+  String get mapSaturation;
+
+  /// No description provided for @mapBrightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Brightness'**
+  String get mapBrightness;
+
+  /// No description provided for @mapCustomColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Color'**
+  String get mapCustomColor;
+
+  /// No description provided for @mapResetColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get mapResetColor;
+
   /// No description provided for @tooltipBackground.
   ///
   /// In en, this message translates to:

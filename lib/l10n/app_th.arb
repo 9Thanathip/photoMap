@@ -218,6 +218,11 @@
   "mapSettingsBackgroundColor": "สีพื้นหลัง",
   "mapSettingsBorderColor": "สีเส้นขอบ",
   "mapBackToPresets": "กลับไปที่พรีเซ็ต",
+  "mapHue": "เฉดสี",
+  "mapSaturation": "ความอิ่มสี",
+  "mapBrightness": "ความสว่าง",
+  "mapCustomColor": "สีกำหนดเอง",
+  "mapResetColor": "รีเซ็ต",
 
   "tooltipBackground": "พื้นหลัง",
   "tooltipCenterMap": "จัดแผนที่ให้อยู่กึ่งกลาง",

@@ -230,6 +230,11 @@
   "mapSettingsBackgroundColor": "Background Color",
   "mapSettingsBorderColor": "Border Color",
   "mapBackToPresets": "Back to presets",
+  "mapHue": "Hue",
+  "mapSaturation": "Saturation",
+  "mapBrightness": "Brightness",
+  "mapCustomColor": "Custom Color",
+  "mapResetColor": "Reset",
 
   "tooltipBackground": "Background",
   "tooltipCenterMap": "Center Map",
