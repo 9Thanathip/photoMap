@@ -75,8 +75,12 @@ class MapNotifier extends StateNotifier<MapState> {
       }
     });
     _ref.listen(coverPhotoProvider, (previous, next) {
+      // Also react to `loaded` flipping true even when there are no covers:
+      // with empty assetIds before and after, the equality checks below stay
+      // false, so we'd otherwise never run the deferred first photo pass.
       if (previous?.assetIds != next.assetIds ||
-          previous?.cropRects != next.cropRects) {
+          previous?.cropRects != next.cropRects ||
+          previous?.loaded != next.loaded) {
         _updateProvincePhotos();
       }
     });
@@ -178,6 +182,12 @@ class MapNotifier extends StateNotifier<MapState> {
   Future<void> _updateProvincePhotos() async {
     final allPhotos = _ref.read(galleryStateProvider).allPhotos;
     final coverState = _ref.read(coverPhotoProvider);
+
+    // Wait until the user's saved covers are known before painting anything.
+    // Otherwise we'd paint the default (first photo per province) on the first
+    // gallery tick, then swap to the saved cover once it loads — a visible
+    // flicker. Cover state loads from local storage and resolves quickly.
+    if (!coverState.loaded) return;
 
     // Build default map: first photo per province
     final Map<String, AssetEntity> provinceSelectedPhotos = {};
