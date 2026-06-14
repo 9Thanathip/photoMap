@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,10 +9,21 @@ import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
 import '../../../utils/color_matrix_utils.dart';
+import 'film_effects.dart';
 
 enum _EditMode { presets, adjust }
 
-enum _AdjustTool { exposure, contrast, saturation, temperature, tint }
+enum _AdjustTool {
+  exposure,
+  contrast,
+  saturation,
+  temperature,
+  tint,
+  fade,
+  grain,
+  vignette,
+  lightLeak,
+}
 
 class PhotoEditorScreen extends StatefulWidget {
   const PhotoEditorScreen({
@@ -38,7 +51,25 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   double _temperature = 0.0; // -1.0 to 1.0
   double _tint = 0.0; // -1.0 to 1.0
 
+  // Film overlay effects, 0.0 (off) .. 1.0 (strong).
+  double _fade = 0.0; // lifted/faded shadows (baked into the colour matrix)
+  double _grain = 0.0; // film grain overlay
+  double _vignette = 0.0; // darkened edges overlay
+  double _lightLeak = 0.0; // warm light-leak overlay
+  Alignment _lightLeakDir = Alignment.topRight; // leak origin corner
+
   bool _showOriginal = false;
+  bool _saving = false;
+
+  // Persistent so the horizontal tool strip keeps its scroll offset when the
+  // slider opens/closes (the AnimatedSwitcher otherwise rebuilds it at 0).
+  final ScrollController _toolsScroll = ScrollController();
+
+  @override
+  void dispose() {
+    _toolsScroll.dispose();
+    super.dispose();
+  }
 
   ColorMatrix get _combinedMatrix {
     if (_showOriginal) return ColorMatrix.identity;
@@ -49,6 +80,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     if (_saturation != 1.0) m = m.multiply(ColorMatrix.saturation(_saturation));
     if (_temperature != 0) m = m.multiply(ColorMatrix.temperature(_temperature));
     if (_tint != 0) m = m.multiply(ColorMatrix.tint(_tint));
+    if (_fade != 0) m = m.multiply(ColorMatrix.fade(_fade));
 
     return m;
   }
@@ -60,6 +92,11 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       _saturation = 1.0;
       _temperature = 0.0;
       _tint = 0.0;
+      _fade = 0.0;
+      _grain = 0.0;
+      _vignette = 0.0;
+      _lightLeak = 0.0;
+      _lightLeakDir = Alignment.topRight;
     });
   }
 
@@ -68,7 +105,85 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       _contrast != 1.0 ||
       _saturation != 1.0 ||
       _temperature != 0.0 ||
-      _tint != 0.0;
+      _tint != 0.0 ||
+      _fade != 0.0 ||
+      _grain != 0.0 ||
+      _vignette != 0.0 ||
+      _lightLeak != 0.0;
+
+  Future<void> _save() async {
+    final asset = widget.photo.assetEntity;
+    if (asset == null || _saving) return;
+    setState(() => _saving = true);
+
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      final origin = await asset.originBytes;
+      if (origin == null) throw StateError('Original bytes unavailable.');
+
+      final codec = await ui.instantiateImageCodec(origin);
+      final frame = await codec.getNextFrame();
+      final source = frame.image;
+      final w = source.width.toDouble();
+      final h = source.height.toDouble();
+      final rect = Rect.fromLTWH(0, 0, w, h);
+
+      // Bake the same pipeline the preview shows: colour matrix first, then the
+      // film overlays on top, all at full source resolution.
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder, rect);
+      canvas.drawImage(
+        source,
+        Offset.zero,
+        Paint()
+          ..colorFilter = ColorFilter.matrix(_combinedMatrix.matrix)
+          ..filterQuality = FilterQuality.high,
+      );
+      paintFilmOverlays(
+        canvas,
+        rect,
+        vignette: _vignette,
+        lightLeak: _lightLeak,
+        grain: _grain,
+        lightLeakDirection: _lightLeakDir,
+      );
+      final picture = recorder.endRecording();
+      final out = await picture.toImage(source.width, source.height);
+      final png = await out.toByteData(format: ui.ImageByteFormat.png);
+      if (png == null) throw StateError('Failed to encode edited image.');
+
+      final filename = 'jaruek_${DateTime.now().millisecondsSinceEpoch}.png';
+      await PhotoManager.editor.saveImage(
+        png.buffer.asUint8List(),
+        filename: filename,
+        title: filename,
+        desc: 'Edited in Jaruek',
+      );
+
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.editorSaved),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      Navigator.pop(context);
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.editorSaveFailed),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,14 +227,20 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             ),
           ),
           TextButton(
-            onPressed: () {
-              // TODO: Save to gallery or apply to map state
-              Navigator.pop(context);
-            },
+            onPressed: _saving ? null : _save,
             style: TextButton.styleFrom(foregroundColor: Colors.white),
-            child: Text(l10n.commonDone,
-                style:
-                    const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            child: _saving
+                ? const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Text(l10n.commonDone,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -135,10 +256,20 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         maxScale: 5.0,
         child: Center(
           child: widget.photo.assetEntity != null
-              ? ColorFiltered(
-                  colorFilter: ColorFilter.matrix(_combinedMatrix.matrix),
-                  child: Hero(
-                    tag: widget.heroTag,
+              ? CustomPaint(
+                  // foregroundPainter paints over exactly the image's rendered
+                  // box, so grain/vignette/leak align with the photo (not the
+                  // letterbox bars).
+                  foregroundPainter: _showOriginal
+                      ? null
+                      : FilmOverlayPainter(
+                          vignette: _vignette,
+                          lightLeak: _lightLeak,
+                          grain: _grain,
+                          lightLeakDirection: _lightLeakDir,
+                        ),
+                  child: ColorFiltered(
+                    colorFilter: ColorFilter.matrix(_combinedMatrix.matrix),
                     child: Image(
                       image: AssetEntityImageProvider(
                         widget.photo.assetEntity!,
@@ -236,7 +367,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   width: 56,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(4),
                     border: isSelected
                         ? Border.all(color: Colors.white, width: 2)
@@ -282,6 +413,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     final l10n = AppLocalizations.of(context);
     return ListView(
       key: const ValueKey('tools'),
+      controller: _toolsScroll,
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
       children: [
@@ -314,6 +446,30 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           label: l10n.adjTint,
           isActive: _tint != 0.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.tint),
+        ),
+        _ToolButton(
+          icon: Icons.gradient_rounded,
+          label: l10n.adjFade,
+          isActive: _fade != 0.0,
+          onTap: () => setState(() => _activeTool = _AdjustTool.fade),
+        ),
+        _ToolButton(
+          icon: Icons.grain_rounded,
+          label: l10n.adjGrain,
+          isActive: _grain != 0.0,
+          onTap: () => setState(() => _activeTool = _AdjustTool.grain),
+        ),
+        _ToolButton(
+          icon: Icons.vignette_rounded,
+          label: l10n.adjVignette,
+          isActive: _vignette != 0.0,
+          onTap: () => setState(() => _activeTool = _AdjustTool.vignette),
+        ),
+        _ToolButton(
+          icon: Icons.flare_rounded,
+          label: l10n.adjLightLeak,
+          isActive: _lightLeak != 0.0,
+          onTap: () => setState(() => _activeTool = _AdjustTool.lightLeak),
         ),
         const SizedBox(width: 24),
         if (_hasAdjustments)
@@ -362,6 +518,30 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         value = _tint;
         label = l10n.adjTint;
         break;
+      case _AdjustTool.fade:
+        min = 0.0;
+        max = 1.0;
+        value = _fade;
+        label = l10n.adjFade;
+        break;
+      case _AdjustTool.grain:
+        min = 0.0;
+        max = 1.0;
+        value = _grain;
+        label = l10n.adjGrain;
+        break;
+      case _AdjustTool.vignette:
+        min = 0.0;
+        max = 1.0;
+        value = _vignette;
+        label = l10n.adjVignette;
+        break;
+      case _AdjustTool.lightLeak:
+        min = 0.0;
+        max = 1.0;
+        value = _lightLeak;
+        label = l10n.adjLightLeak;
+        break;
     }
 
     return Column(
@@ -393,13 +573,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             ],
           ),
         ),
+        if (_activeTool == _AdjustTool.lightLeak) _buildLeakDirectionRow(),
         SliderTheme(
           data: SliderThemeData(
             trackHeight: 2,
             activeTrackColor: Colors.white,
             inactiveTrackColor: Colors.white24,
             thumbColor: Colors.white,
-            overlayColor: Colors.white.withOpacity(0.1),
+            overlayColor: Colors.white.withValues(alpha: 0.1),
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
           ),
           child: Padding(
@@ -426,6 +607,18 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     case _AdjustTool.tint:
                       _tint = v;
                       break;
+                    case _AdjustTool.fade:
+                      _fade = v;
+                      break;
+                    case _AdjustTool.grain:
+                      _grain = v;
+                      break;
+                    case _AdjustTool.vignette:
+                      _vignette = v;
+                      break;
+                    case _AdjustTool.lightLeak:
+                      _lightLeak = v;
+                      break;
                   }
                 });
               },
@@ -433,6 +626,53 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLeakDirectionRow() {
+    const dirs = <(IconData, Alignment)>[
+      (Icons.north_west_rounded, Alignment.topLeft),
+      (Icons.north_east_rounded, Alignment.topRight),
+      (Icons.south_west_rounded, Alignment.bottomLeft),
+      (Icons.south_east_rounded, Alignment.bottomRight),
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (final (icon, align) in dirs)
+            GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() => _lightLeakDir = align);
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _lightLeakDir == align
+                      ? Colors.white.withValues(alpha: 0.18)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _lightLeakDir == align
+                        ? Colors.white
+                        : Colors.white24,
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  size: 18,
+                  color: _lightLeakDir == align
+                      ? Colors.white
+                      : Colors.white54,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

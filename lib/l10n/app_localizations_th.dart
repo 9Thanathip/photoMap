@@ -538,6 +538,24 @@ class AppLocalizationsTh extends AppLocalizations {
   String get adjTint => 'โทนสี';
 
   @override
+  String get editorSaved => 'บันทึกลงรูปภาพแล้ว';
+
+  @override
+  String get editorSaveFailed => 'บันทึกรูปภาพไม่สำเร็จ';
+
+  @override
+  String get adjFade => 'ซีดจาง';
+
+  @override
+  String get adjGrain => 'เม็ดฟิล์ม';
+
+  @override
+  String get adjVignette => 'ขอบมืด';
+
+  @override
+  String get adjLightLeak => 'แสงรั่ว';
+
+  @override
   String get presetOriginal => 'ต้นฉบับ';
 
   @override

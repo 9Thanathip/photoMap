@@ -1088,6 +1088,42 @@ abstract class AppLocalizations {
   /// **'Tint'**
   String get adjTint;
 
+  /// No description provided for @editorSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to Photos'**
+  String get editorSaved;
+
+  /// No description provided for @editorSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save photo'**
+  String get editorSaveFailed;
+
+  /// No description provided for @adjFade.
+  ///
+  /// In en, this message translates to:
+  /// **'Fade'**
+  String get adjFade;
+
+  /// No description provided for @adjGrain.
+  ///
+  /// In en, this message translates to:
+  /// **'Grain'**
+  String get adjGrain;
+
+  /// No description provided for @adjVignette.
+  ///
+  /// In en, this message translates to:
+  /// **'Vignette'**
+  String get adjVignette;
+
+  /// No description provided for @adjLightLeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Light Leak'**
+  String get adjLightLeak;
+
   /// No description provided for @presetOriginal.
   ///
   /// In en, this message translates to:

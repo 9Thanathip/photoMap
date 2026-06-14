@@ -540,6 +540,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adjTint => 'Tint';
 
   @override
+  String get editorSaved => 'Saved to Photos';
+
+  @override
+  String get editorSaveFailed => 'Failed to save photo';
+
+  @override
+  String get adjFade => 'Fade';
+
+  @override
+  String get adjGrain => 'Grain';
+
+  @override
+  String get adjVignette => 'Vignette';
+
+  @override
+  String get adjLightLeak => 'Light Leak';
+
+  @override
   String get presetOriginal => 'Original';
 
   @override
