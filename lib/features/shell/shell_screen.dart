@@ -58,8 +58,8 @@ class ShellScreen extends ConsumerWidget {
                     ),
                     _NavIcon(
                       isSelected: navigationShell.currentIndex == 2,
-                      icon: Icons.location_city_outlined,
-                      selectedIcon: Icons.location_city,
+                      icon: Icons.emoji_events_outlined,
+                      selectedIcon: Icons.emoji_events,
                       label: l10n.navAchievements,
                       onTap: () => _onTabSelected(2),
                     ),
