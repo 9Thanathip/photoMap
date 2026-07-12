@@ -1,0 +1,305 @@
+<title>photo_map — Screens Overview</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #16171b; --sub: #5b616e;
+    --line: #e6e8ec; --gold: #caa24a; --accent: #3a6df0; --chip: #eef1f6;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.05);
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0e0f13; --card:#16181f; --ink:#f2f3f5; --sub:#9aa0ad;
+      --line:#262932; --chip:#20242e; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.5); }
+  }
+  :root[data-theme="dark"] { --bg:#0e0f13; --card:#16181f; --ink:#f2f3f5; --sub:#9aa0ad; --line:#262932; --chip:#20242e; }
+  :root[data-theme="light"] { --bg:#f6f7f9; --card:#fff; --ink:#16171b; --sub:#5b616e; --line:#e6e8ec; --chip:#eef1f6; }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 20px 80px; }
+  header.top { margin-bottom: 32px; }
+  h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -0.5px; }
+  .lede { color: var(--sub); margin: 0; }
+  .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .pill { background: var(--chip); color: var(--sub); font-size: 12px; font-weight: 600;
+    padding: 5px 11px; border-radius: 999px; }
+
+  .flow { margin: 36px 0 8px; }
+  .flow h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--gold); margin: 0 0 16px; font-weight: 700; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+  .shot { background: linear-gradient(160deg, #11131a, #1b1f2b); padding: 18px;
+    display: flex; justify-content: center; }
+  .shot svg { width: 172px; height: auto; border-radius: 22px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+  .body { padding: 16px 18px 18px; }
+  .body h3 { margin: 0 0 2px; font-size: 17px; letter-spacing: -0.2px; }
+  .route { font: 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--accent); background: var(--chip); padding: 3px 7px; border-radius: 6px;
+    display: inline-block; margin-bottom: 10px; }
+  .body p { margin: 0 0 10px; color: var(--sub); font-size: 14px; }
+  ul.caps { margin: 0; padding: 0; list-style: none; }
+  ul.caps li { position: relative; padding-left: 18px; margin: 4px 0; font-size: 13.5px; }
+  ul.caps li::before { content: "›"; position: absolute; left: 3px; color: var(--gold); font-weight: 700; }
+  footer { margin-top: 48px; color: var(--sub); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; }
+  code { font: 12px ui-monospace, Menlo, monospace; background: var(--chip); padding: 1px 5px; border-radius: 5px; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>photo_map — Screens Overview</h1>
+    <p class="lede">คู่มือสรุปทุกหน้าจอ: ทำอะไรได้ + route + ความสามารถหลัก. รูปเป็น schematic mockup (layout คร่าวๆ ไม่ใช่ screenshot จริง).</p>
+    <div class="meta">
+      <span class="pill">Flutter</span><span class="pill">Riverpod</span>
+      <span class="pill">go_router</span><span class="pill">Firebase Auth + Firestore</span>
+      <span class="pill">EN / TH</span>
+    </div>
+  </header>
+
+  <!-- ============ AUTH FLOW ============ -->
+  <section class="flow">
+    <h2>1 · Startup &amp; Auth</h2>
+    <div class="grid" id="g-auth"></div>
+  </section>
+
+  <!-- ============ MAIN TABS ============ -->
+  <section class="flow">
+    <h2>2 · Main Tabs (Shell — bottom nav)</h2>
+    <div class="grid" id="g-main"></div>
+  </section>
+
+  <!-- ============ GALLERY SUB ============ -->
+  <section class="flow">
+    <h2>3 · Gallery — viewer &amp; editing</h2>
+    <div class="grid" id="g-gallery"></div>
+  </section>
+
+  <!-- ============ MAP SUB ============ -->
+  <section class="flow">
+    <h2>4 · Map — drill-down &amp; covers</h2>
+    <div class="grid" id="g-map"></div>
+  </section>
+
+  <!-- ============ SETTINGS SUB ============ -->
+  <section class="flow">
+    <h2>5 · Settings &amp; Account</h2>
+    <div class="grid" id="g-settings"></div>
+  </section>
+
+  <footer>
+    สร้างจากการอ่านโค้ดใน <code>lib/features/**</code>. Route อ้างอิง <code>core/router/app_router.dart</code>.
+    Mockup วาดด้วย inline SVG — ปรับ/แทนด้วย screenshot จริงได้ภายหลัง.
+  </footer>
+</div>
+
+<script>
+// ---- SVG phone-frame mockup builder ----
+// Each screen = an array of "elements" drawn into a 172x360 phone canvas.
+const W = 172, H = 360;
+
+function frame(inner, bg = "#0f1117") {
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="${W}" height="${H}" rx="22" fill="${bg}"/>
+    <rect x="60" y="8" width="52" height="6" rx="3" fill="#000" opacity=".5"/>
+    ${inner}
+  </svg>`;
+}
+const T = (x,y,w,c="#e9ebf0",h=7,r=3) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${c}"/>`;
+const box = (x,y,w,h,c,r=8) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${c}"/>`;
+const circle = (cx,cy,rr,c) => `<circle cx="${cx}" cy="${cy}" r="${rr}" fill="${c}"/>`;
+// bottom nav bar
+const nav = (active=0) => {
+  let items = "";
+  for (let i=0;i<4;i++){ const x=26+i*32; const on=i===active;
+    items += circle(x,338,6,on?"#caa24a":"#3a3f4c"); }
+  return box(14,324,144,28,"#1b1e27",14)+items;
+};
+
+const SCREENS = {
+  splash: frame(
+    circle(86,150,30,"#caa24a") + T(66,196,40,"#caa24a",8) ,
+    "#0c0d12"),
+
+  onboarding: frame(
+    box(24,60,124,120,"#1a1d26",14) + circle(86,110,26,"#caa24a") +
+    T(46,200,80,"#e9ebf0",9) + T(56,218,60,"#5b616e",6) +
+    box(24,270,124,30,"#caa24a",15) + box(24,308,124,30,"#20242e",15)),
+
+  login: frame(
+    T(24,54,70,"#e9ebf0",9) +
+    box(24,86,124,30,"#171a22",8) + box(24,124,124,30,"#171a22",8) +
+    box(24,168,124,32,"#caa24a",16) +
+    box(24,214,124,30,"#20242e",15) + T(58,300,56,"#5b616e",6)),
+
+  register: frame(
+    T(24,54,84,"#e9ebf0",9) +
+    box(24,84,124,28,"#171a22",8) + box(24,118,124,28,"#171a22",8) +
+    box(24,152,124,28,"#171a22",8) +
+    box(24,192,124,32,"#caa24a",16) + T(52,300,68,"#5b616e",6)),
+
+  verify: frame(
+    circle(86,110,28,"#2a2f3a") + T(56,150,60,"#e9ebf0",8) +
+    T(40,170,92,"#5b616e",6) + T(50,182,72,"#5b616e",6) +
+    box(24,220,124,32,"#caa24a",16) + box(24,262,124,30,"#20242e",15)),
+
+  gallery: frame(
+    T(18,42,60,"#e9ebf0",9) + circle(150,46,9,"#20242e") +
+    box(18,66,40,20,"#caa24a",10) + box(64,66,40,20,"#20242e",10) +
+    (()=>{let g="";for(let r=0;r<4;r++)for(let c=0;c<3;c++){g+=box(18+c*46,98+r*46,42,42,"#232733",8);}return g;})() +
+    nav(0)),
+
+  map: frame(
+    box(0,20,W,300,"#0a0c11",0) +
+    `<path d="M60 90 L110 80 L120 130 L95 175 L70 200 L50 150 Z" fill="#caa24a" opacity=".85"/>` +
+    `<path d="M95 175 L120 130 L140 160 L120 210 L92 205 Z" fill="#7c6a3a" opacity=".7"/>` +
+    circle(70,150,10,"#fff") +
+    box(112,44,44,22,"#1b1e27",11) + circle(138,55,7,"#caa24a") +
+    nav(1)),
+
+  achievements: frame(
+    T(18,42,84,"#e9ebf0",9) +
+    box(18,64,136,54,"#171a22",12) + circle(40,91,14,"#caa24a") + T(64,82,70,"#e9ebf0",7) + T(64,98,44,"#5b616e",6) +
+    box(18,128,64,64,"#232733",10) + box(90,128,64,64,"#232733",10) +
+    box(18,200,136,44,"#171a22",10) +
+    nav(2)),
+
+  settings: frame(
+    T(18,42,72,"#e9ebf0",9) +
+    box(18,66,136,40,"#171a22",10) + circle(40,86,11,"#3a6df0") + T(60,80,60,"#e9ebf0",7)+T(60,94,80,"#5b616e",5) +
+    box(18,114,136,40,"#171a22",10) + circle(40,134,11,"#caa24a") + T(60,128,50,"#e9ebf0",7) +
+    box(18,162,136,40,"#171a22",10) + T(60,178,66,"#e9ebf0",7) +
+    T(58,300,56,"#5b616e",6) +
+    nav(3)),
+
+  viewer: frame(
+    box(0,20,W,300,"#000",0) + box(20,70,132,180,"#2b303c",10) +
+    circle(30,44,8,"#fff") + box(60,300,52,18,"#1b1e27",9),
+    "#000"),
+
+  editor: frame(
+    box(0,20,W,220,"#000",0) + box(28,50,116,150,"#2b303c",8) +
+    (()=>{let g="";const names=["#caa24a","#8a5a3a","#3a6df0","#6a6a6a","#b04a4a","#4a8a5a"];
+      for(let i=0;i<6;i++)g+=box(16+i*24,250,20,20,names[i],6);return g;})() +
+    box(16,286,140,10,"#20242e",5)+circle(60,291,6,"#caa24a") +
+    box(28,308,116,30,"#caa24a",15),
+    "#0c0d12"),
+
+  locationPick: frame(
+    T(18,44,90,"#e9ebf0",9) +
+    box(18,68,136,28,"#171a22",8) + circle(36,82,6,"#5b616e") +
+    box(18,104,136,120,"#0a0c11",10) + circle(86,164,9,"#caa24a") +
+    box(18,236,136,30,"#171a22",8) + box(18,272,136,30,"#171a22",8) +
+    box(28,308,116,30,"#caa24a",15)),
+
+  provinceGallery: frame(
+    circle(30,44,8,"#e9ebf0") + T(52,40,70,"#e9ebf0",8) +
+    box(18,66,40,18,"#caa24a",9)+box(64,66,40,18,"#20242e",9)+box(110,66,40,18,"#20242e",9) +
+    (()=>{let g="";for(let r=0;r<5;r++)for(let c=0;c<3;c++){g+=box(18+c*46,94+r*46,42,42,"#232733",8);}return g;})()),
+
+  districts: frame(
+    box(0,20,W,180,"#0a0c11",0) + circle(30,44,8,"#e9ebf0") + T(52,40,64,"#e9ebf0",8) +
+    `<path d="M40 80 L90 70 L110 110 L80 150 L45 130 Z" fill="#caa24a" opacity=".8"/>` +
+    (()=>{let g="";for(let i=0;i<4;i++)g+=box(18,208+i*36,136,30,"#171a22",8)+T(30,219+i*36,70,"#e9ebf0",6);return g;})()),
+
+  coverCrop: frame(
+    box(0,20,W,300,"#000",0) +
+    `<path d="M56 90 L120 80 L130 160 L95 220 L58 180 Z" fill="none" stroke="#caa24a" stroke-width="2"/>` +
+    box(66,108,50,90,"#3a4050",6) +
+    box(40,300,92,26,"#caa24a",13),
+    "#000"),
+
+  profile: frame(
+    circle(30,44,8,"#e9ebf0") + T(52,40,54,"#e9ebf0",8) +
+    circle(86,96,26,"#caa24a") + T(56,132,60,"#e9ebf0",8) + T(64,150,44,"#3a8a5a",6) +
+    box(18,180,136,44,"#171a22",10)+T(30,197,80,"#e9ebf0",7)+T(30,211,60,"#5b616e",5) +
+    box(18,232,136,40,"#171a22",10)+T(30,248,50,"#b04a4a",7)),
+
+  deleteAccount: frame(
+    circle(30,44,8,"#e9ebf0") + T(52,40,80,"#e9ebf0",8) +
+    circle(86,110,26,"#b04a4a") +
+    T(40,154,92,"#e9ebf0",7)+T(50,172,72,"#5b616e",6)+T(46,184,80,"#5b616e",6) +
+    box(18,240,136,30,"#171a22",8) +
+    box(18,286,136,32,"#b04a4a",16)),
+};
+
+const DATA = {
+  "g-auth": [
+    ["Splash","/splash","splash",
+      "หน้าเปิดแอป — โชว์โลโก้ระหว่างรอ Firebase init + เช็ก auth state.",
+      ["ตรวจสถานะ login แล้ว redirect อัตโนมัติ","ไม่มี interaction — transient"]],
+    ["Onboarding","/onboarding","onboarding",
+      "หน้าแรกสำหรับผู้ที่ยังไม่ล็อกอิน — แนะนำแอป + ทางเข้า sign in/up.",
+      ["ปุ่มไป Login / Register","Google sign-in","จุดเริ่ม flow สมัคร"]],
+    ["Login","/login","login",
+      "เข้าสู่ระบบด้วย email/password หรือ Google.",
+      ["Email + password sign-in","Google sign-in","แสดง error (auth_error_l10n)","ลิงก์ไปสมัคร"]],
+    ["Register","/register","register",
+      "สมัครบัญชีใหม่ — ส่ง verification email อัตโนมัติหลังสมัคร.",
+      ["สร้างบัญชี email/password","ตั้งชื่อ display name","ส่ง email ยืนยันทันที"]],
+    ["Verify Email","/verify-email","verify",
+      "รอผู้ใช้กดลิงก์ยืนยันใน email ก่อนเข้าแอป.",
+      ["Resend verification link","Refresh เช็กว่ายืนยันแล้ว","Sign out","gate โดย AuthStatus.awaitingVerification"]],
+  ],
+  "g-main": [
+    ["Gallery","/gallery","gallery",
+      "แท็บหลัก — รูป/วิดีโอในเครื่อง จัดกลุ่มตามเวลา. หัวใจของแอป.",
+      ["View mode: All / Year / Month / Day","Multi-select → ลบหลายรูป","เปิด viewer เต็มจอ","แถบ delete แสดงตอน select mode"]],
+    ["Map","/map","map",
+      "แท็บแผนที่ — รูปถูก geocode แล้ววาดลงจังหวัด/ประเทศ.",
+      ["แสดงรูป cover ต่อจังหวัด","เลือก/ดาวน์โหลดประเทศอื่น","ปรับสี province/background/border","จิ้มจังหวัด → drill down"]],
+    ["Achievements","/province","achievements",
+      "แท็บความสำเร็จ — สถิติการเดินทาง + จังหวัดที่ไปครบ.",
+      ["สรุปจำนวนจังหวัดที่เยือน","การ์ด achievement ต่อจังหวัด","Thailand map thumbnail","country pills"]],
+    ["Settings","/settings","settings",
+      "แท็บตั้งค่า — ภาษา, บัญชี, ข้อมูลแอป.",
+      ["สลับภาษา EN / TH","สลับ theme (light/dark)","เข้า Profile","แสดง version"]],
+  ],
+  "g-gallery": [
+    ["Photo / Video Viewer","(pushed)","viewer",
+      "ดูรูป/วิดีโอเต็มจอ — swipe เปลี่ยนรูป, ลากลงเพื่อปิด.",
+      ["Pinch zoom + double-tap zoom","Swipe ระหว่างรูป (PageView)","Drag-down dismiss","แผง info (EXIF/สถานที่)","เมนู options (share/แก้/ลบ)","เล่นวิดีโอ (HDR→SDR tone-map)"]],
+    ["Photo Editor","(pushed)","editor",
+      "แต่งรูปด้วย film preset + ปรับสี.",
+      ["Film presets: Original/Moody/Vibrant/Vintage/Polaroid/B&W","ColorMatrix filters","Preview สด","Save กลับ Photos"]],
+    ["Location Picker / Search","(sheet)","locationPick",
+      "กำหนด/แก้สถานที่ของรูป (เขียน EXIF GPS).",
+      ["ค้นหาสถานที่ (geocoding)","เลือกจากแผนที่","selector sheet","อัปเดต location → รีเฟรช map"]],
+  ],
+  "g-map": [
+    ["Province Gallery","(pushed)","provinceGallery",
+      "รูปทั้งหมดในจังหวัดที่เลือก จัดตามเวลา.",
+      ["Grid รูปเฉพาะจังหวัด","View mode เหมือน gallery หลัก","เปิด viewer","filter ตาม district ได้"]],
+    ["Province / District Map","(pushed)","districts",
+      "ซูมเข้าจังหวัด — เห็นอำเภอ (district) แยกย่อย.",
+      ["แผนที่ระดับอำเภอ (districts_map)","Grid รายอำเภอ (districts_grid)","จิ้มอำเภอ → province gallery กรอง","province header + สถิติ"]],
+    ["Cover Crop","(pushed)","coverCrop",
+      "ครอปรูปให้พอดีรูปทรงจังหวัดสำหรับใช้เป็น cover บนแผนที่.",
+      ["Mask เป็น silhouette จังหวัดจริง","ปรับตำแหน่ง crop","คืนค่า normalized rect","บันทึกเป็น cover ของจังหวัด"]],
+  ],
+  "g-settings": [
+    ["Profile","/profile","profile",
+      "ข้อมูลบัญชีที่ล็อกอิน + จัดการบัญชี. Action อันตรายอยู่ลึกอีกชั้น.",
+      ["แสดง identity + สถานะ verified","Sign out","เข้า Manage / Delete account","แยก destructive กันกดพลาด"]],
+    ["Delete Account","/profile/delete-account","deleteAccount",
+      "ลบบัญชีถาวร — ชั้นในสุด, ยืนยันก่อนทำ.",
+      ["ยืนยันการลบ","เรียก deleteAccount() + ล้าง local session","destructive / irreversible"]],
+  ],
+};
+
+for (const [gid, items] of Object.entries(DATA)) {
+  const el = document.getElementById(gid);
+  el.innerHTML = items.map(([title,route,key,desc,caps]) => `
+    <div class="card">
+      <div class="shot">${SCREENS[key] || frame("")}</div>
+      <div class="body">
+        <h3>${title}</h3>
+        <span class="route">${route}</span>
+        <p>${desc}</p>
+        <ul class="caps">${caps.map(c=>`<li>${c}</li>`).join("")}</ul>
+      </div>
+    </div>`).join("");
+}
+</script>
