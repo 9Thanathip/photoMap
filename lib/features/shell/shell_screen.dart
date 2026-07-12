@@ -134,9 +134,7 @@ class _NavIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final activeColor = t.textPrimary;
-    final inactiveColor = context.isDark
-        ? Colors.white.withValues(alpha: 0.35)
-        : Colors.black.withValues(alpha: 0.3);
+    final inactiveColor = t.textSecondary;
 
     return Expanded(
       child: GestureDetector(
