@@ -795,6 +795,14 @@ class AppLocalizationsTh extends AppLocalizations {
   String get collageAddPhotos => 'เพิ่มรูป';
 
   @override
+  String get collageColorSort => 'ไล่โทนสี';
+
+  @override
+  String collagePickerHint(int filled, int total) {
+    return 'กริด $filled/$total ช่องเต็ม';
+  }
+
+  @override
   String get collageRows => 'แถว';
 
   @override

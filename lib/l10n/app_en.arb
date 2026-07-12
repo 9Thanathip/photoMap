@@ -305,6 +305,14 @@
   "frameSize": "Frame",
   "collageTitle": "Collage",
   "collageAddPhotos": "Add",
+  "collageColorSort": "Color gradient",
+  "collagePickerHint": "Grid {filled}/{total} filled",
+  "@collagePickerHint": {
+    "placeholders": {
+      "filled": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "collageRows": "Rows",
   "collageCols": "Cols",
   "collageGap": "Gap"

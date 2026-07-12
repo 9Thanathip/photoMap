@@ -28,7 +28,7 @@ class CollageBuilderScreen extends ConsumerStatefulWidget {
 
 class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   static const _minAxis = 1;
-  static const _maxAxis = 8;
+  static const _maxAxis = 10;
 
   int _rows = 2;
   int _cols = 2;
@@ -75,13 +75,22 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   void _setRows(int v) => setState(() => _rows = v.clamp(_minAxis, _maxAxis));
   void _setCols(int v) => setState(() => _cols = v.clamp(_minAxis, _maxAxis));
 
-  Future<List<PhotoItem>?> _openPicker({required bool multi}) {
+  Future<List<PhotoItem>?> _openPicker({
+    required bool multi,
+    int capacity = 1,
+  }) {
     final photos = ref.read(galleryStateProvider).allPhotos;
     return showModalBottomSheet<List<PhotoItem>>(
       context: context,
       backgroundColor: const Color(0xFF121212),
       isScrollControlled: true,
-      builder: (_) => _PhotoPickerSheet(photos: photos, multi: multi),
+      builder: (_) => _PhotoPickerSheet(
+        photos: photos,
+        multi: multi,
+        capacity: capacity,
+        total: _grid.count,
+        filled: _images.keys.where((i) => i < _grid.count).length,
+      ),
     );
   }
 
@@ -101,12 +110,13 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
 
   /// Picks several photos and drops them into the empty cells, left to right.
   Future<void> _pickMultiple() async {
-    final res = await _openPicker(multi: true);
-    if (res == null || res.isEmpty) return;
     final targets = [
       for (var i = 0; i < _grid.count; i++)
         if (!_images.containsKey(i)) i
     ];
+    if (targets.isEmpty) return;
+    final res = await _openPicker(multi: true, capacity: targets.length);
+    if (res == null || res.isEmpty) return;
     var t = 0;
     for (final p in res) {
       if (t >= targets.length) break;
@@ -182,6 +192,79 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     pb != null ? _paths[a] = pb : _paths.remove(a);
     pa != null ? _paths[b] = pa : _paths.remove(b);
     _revision++;
+  }
+
+  // ── Sort by colour ──────────────────────────────────────────────────────
+  /// Reorders the placed photos into a smooth colour gradient by dominant hue,
+  /// then lays them back into the cells in reading order (left→right, top→
+  /// bottom). Empty cells fall to the end.
+  Future<void> _sortByColor() async {
+    if (_busy.isNotEmpty) return;
+    setState(() => _busy = 'sort');
+    try {
+      final placed = <({ui.Image img, String path, double hue, double val})>[];
+      for (var i = 0; i < _grid.count; i++) {
+        final img = _images[i];
+        final path = _paths[i];
+        if (img == null || path == null) continue;
+        final tone = await _dominantTone(img);
+        placed.add((img: img, path: path, hue: tone.$1, val: tone.$2));
+      }
+      if (placed.length < 2) return;
+      // Primary key hue (the gradient), secondary lightness so near-grey frames
+      // don't scatter.
+      placed.sort((a, b) {
+        final h = a.hue.compareTo(b.hue);
+        return h != 0 ? h : a.val.compareTo(b.val);
+      });
+      final imgs = <int, ui.Image>{};
+      final paths = <int, String>{};
+      for (var k = 0; k < placed.length; k++) {
+        imgs[k] = placed[k].img;
+        paths[k] = placed[k].path;
+      }
+      if (!mounted) return;
+      setState(() {
+        _images
+          ..clear()
+          ..addAll(imgs);
+        _paths
+          ..clear()
+          ..addAll(paths);
+        _revision++;
+      });
+    } finally {
+      if (mounted) setState(() => _busy = '');
+    }
+  }
+
+  /// Average colour of [img] as (hue 0..360, value 0..1). Downscales to 8×8 on
+  /// the GPU first so the averaging is cheap.
+  Future<(double, double)> _dominantTone(ui.Image img) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    canvas.drawImageRect(
+      img,
+      Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
+      const Rect.fromLTWH(0, 0, 8, 8),
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+    final small = await recorder.endRecording().toImage(8, 8);
+    final data = await small.toByteData(format: ui.ImageByteFormat.rawRgba);
+    small.dispose();
+    if (data == null) return (0.0, 0.0);
+    final b = data.buffer.asUint8List();
+    var r = 0.0, g = 0.0, bl = 0.0;
+    final n = b.length ~/ 4;
+    for (var i = 0; i < b.length; i += 4) {
+      r += b[i];
+      g += b[i + 1];
+      bl += b[i + 2];
+    }
+    final color = Color.fromARGB(
+        255, (r / n).round(), (g / n).round(), (bl / n).round());
+    final hsv = HSVColor.fromColor(color);
+    return (hsv.hue, hsv.value);
   }
 
   // ── Export ────────────────────────────────────────────────────────────────
@@ -279,6 +362,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
               _buildTopBar(l10n),
               Expanded(child: _buildCanvas()),
               _buildGridPicker(l10n),
+              _buildColorSort(l10n),
               _buildRatioPicker(),
               _buildGapAndColor(l10n),
               _buildActions(l10n),
@@ -354,17 +438,50 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     );
   }
 
+  Widget _buildColorSort(AppLocalizations l10n) {
+    final enabled = _busy.isEmpty && (_images.keys.where((i) => i < _grid.count).length >= 2);
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: TextButton.icon(
+        onPressed: enabled ? _sortByColor : null,
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.white,
+          disabledForegroundColor: Colors.white24,
+        ),
+        icon: _busy == 'sort'
+            ? const SizedBox(
+                width: 15,
+                height: 15,
+                child:
+                    CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            : const Icon(Icons.gradient_rounded, size: 18),
+        label: Text(l10n.collageColorSort, style: const TextStyle(fontSize: 13)),
+      ),
+    );
+  }
+
   Widget _buildGridPicker(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+      // Expanded halves keep the '×' at the true horizontal centre even though
+      // the Thai row/col labels differ in width.
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _stepper(l10n.collageRows, _rows, (v) => _setRows(v)),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: _stepper(l10n.collageRows, _rows, (v) => _setRows(v)),
+            ),
+          ),
           const SizedBox(width: 12),
           const Text('×', style: TextStyle(color: Colors.white38, fontSize: 18)),
           const SizedBox(width: 12),
-          _stepper(l10n.collageCols, _cols, (v) => _setCols(v)),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: _stepper(l10n.collageCols, _cols, (v) => _setCols(v)),
+            ),
+          ),
         ],
       ),
     );
@@ -570,10 +687,24 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
 /// taps to toggle several (numbered by pick order) then confirms; otherwise the
 /// first tap returns immediately. Always pops a `List<PhotoItem>`.
 class _PhotoPickerSheet extends StatefulWidget {
-  const _PhotoPickerSheet({required this.photos, required this.multi});
+  const _PhotoPickerSheet({
+    required this.photos,
+    required this.multi,
+    required this.capacity,
+    required this.total,
+    required this.filled,
+  });
 
   final List<PhotoItem> photos;
   final bool multi;
+
+  /// Max photos selectable (= empty cells in the grid).
+  final int capacity;
+
+  /// Total cells in the grid, and how many are already filled — shown so the
+  /// user knows how many more will fit.
+  final int total;
+  final int filled;
 
   @override
   State<_PhotoPickerSheet> createState() => _PhotoPickerSheetState();
@@ -598,14 +729,23 @@ class _PhotoPickerSheetState extends State<_PhotoPickerSheet> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
                 children: [
-                  Text('${_selected.length}',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700)),
-                  const SizedBox(width: 6),
-                  const Text('selected',
-                      style: TextStyle(color: Colors.white54, fontSize: 13)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${_selected.length} / ${widget.capacity}',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700)),
+                      Text(
+                        l10n.collagePickerHint(
+                            widget.filled, widget.total),
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 12),
+                      ),
+                    ],
+                  ),
                   const Spacer(),
                   FilledButton(
                     onPressed: _selected.isEmpty
@@ -638,6 +778,10 @@ class _PhotoPickerSheetState extends State<_PhotoPickerSheet> {
                     if (!widget.multi) {
                       Navigator.pop(context, [p]);
                       return;
+                    }
+                    if (order < 0 && _selected.length >= widget.capacity) {
+                      HapticFeedback.lightImpact();
+                      return; // grid full — no more slots
                     }
                     setState(() {
                       order >= 0 ? _selected.remove(p) : _selected.add(p);

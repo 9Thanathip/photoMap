@@ -279,6 +279,8 @@
   "frameSize": "เฟรม",
   "collageTitle": "คอลลาจ",
   "collageAddPhotos": "เพิ่มรูป",
+  "collageColorSort": "ไล่โทนสี",
+  "collagePickerHint": "กริด {filled}/{total} ช่องเต็ม",
   "collageRows": "แถว",
   "collageCols": "คอลัมน์",
   "collageGap": "ช่องว่าง"

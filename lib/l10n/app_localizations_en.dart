@@ -798,6 +798,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collageAddPhotos => 'Add';
 
   @override
+  String get collageColorSort => 'Color gradient';
+
+  @override
+  String collagePickerHint(int filled, int total) {
+    return 'Grid $filled/$total filled';
+  }
+
+  @override
   String get collageRows => 'Rows';
 
   @override

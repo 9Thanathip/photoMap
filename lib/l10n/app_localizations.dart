@@ -1580,6 +1580,18 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get collageAddPhotos;
 
+  /// No description provided for @collageColorSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Color gradient'**
+  String get collageColorSort;
+
+  /// No description provided for @collagePickerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid {filled}/{total} filled'**
+  String collagePickerHint(int filled, int total);
+
   /// No description provided for @collageRows.
   ///
   /// In en, this message translates to:
