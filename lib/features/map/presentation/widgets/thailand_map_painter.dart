@@ -196,8 +196,8 @@ class ThailandMapPainter extends CustomPainter {
     //     text: 'T  H  A  I  L  A  N  D',
     //     style: TextStyle(
     //       color: isDarkBackground
-    //           ? Colors.white.withOpacity(0.4)
-    //           : Colors.black.withOpacity(0.4),
+    //           ? Colors.white.withValues(alpha: 0.4)
+    //           : Colors.black.withValues(alpha: 0.4),
     //       fontSize: 16,
     //       fontWeight: FontWeight.w400,
     //       letterSpacing: 4,

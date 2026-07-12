@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CacheService {
@@ -16,7 +17,7 @@ class CacheService {
       final file = await _getFile(_photoCacheFile);
       await file.writeAsString(jsonEncode(data));
     } catch (e) {
-      print('Error saving photo cache: $e');
+      debugPrint('Error saving photo cache: $e');
     }
   }
 
@@ -28,7 +29,7 @@ class CacheService {
         return List<Map<String, dynamic>>.from(jsonDecode(content));
       }
     } catch (e) {
-      print('Error loading photo cache: $e');
+      debugPrint('Error loading photo cache: $e');
     }
     return null;
   }
@@ -38,7 +39,7 @@ class CacheService {
       final file = await _getFile(_geoCacheFile);
       await file.writeAsString(jsonEncode(data));
     } catch (e) {
-      print('Error saving geo cache: $e');
+      debugPrint('Error saving geo cache: $e');
     }
   }
 
@@ -50,7 +51,7 @@ class CacheService {
         final file = await _getFile(name);
         if (await file.exists()) await file.delete();
       } catch (e) {
-        print('Error clearing cache $name: $e');
+        debugPrint('Error clearing cache $name: $e');
       }
     }
   }
@@ -63,7 +64,7 @@ class CacheService {
         return Map<String, dynamic>.from(jsonDecode(content));
       }
     } catch (e) {
-      print('Error loading geo cache: $e');
+      debugPrint('Error loading geo cache: $e');
     }
     return null;
   }

@@ -35,7 +35,7 @@ class NationalMapActions extends StatelessWidget {
           Divider(
             height: 1,
             thickness: 0.5,
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
           ),
           MapActionButton(
             icon: Icons.center_focus_strong_outlined,
@@ -45,7 +45,7 @@ class NationalMapActions extends StatelessWidget {
           Divider(
             height: 1,
             thickness: 0.5,
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
           ),
           MapActionButton(
             icon: isDownloading ? Icons.hourglass_top_rounded : Icons.download_rounded,
@@ -55,7 +55,7 @@ class NationalMapActions extends StatelessWidget {
           Divider(
             height: 1,
             thickness: 0.5,
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
           ),
           MapActionButton(
             icon: Icons.ios_share,

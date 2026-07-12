@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -28,14 +29,13 @@ class CountryRepository {
         .collection('countries')
         .get(const GetOptions(source: Source.server));
     
-    // ignore: avoid_print
-    print('[CountryRepo] path=${snap.metadata.isFromCache ? "cache" : "server"} '
+    debugPrint(
+        '[CountryRepo] path=${snap.metadata.isFromCache ? "cache" : "server"} '
         'docs=${snap.docs.length} '
         'ids=${snap.docs.map((d) => d.id).toList()}');
-    
+
     for (final d in snap.docs) {
-      // ignore: avoid_print
-      print('[CountryRepo] doc ${d.id} data=${d.data()}');
+      debugPrint('[CountryRepo] doc ${d.id} data=${d.data()}');
     }
     
     return snap.docs.map((d) => Country.fromMap(d.id, d.data())).toList();

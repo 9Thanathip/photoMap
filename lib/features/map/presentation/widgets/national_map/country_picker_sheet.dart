@@ -69,7 +69,7 @@ class _CountryPickerSheetState extends ConsumerState<CountryPickerSheet> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 filled: true,
                 fillColor: theme.colorScheme.surfaceContainerHighest
-                    .withOpacity(0.6),
+                    .withValues(alpha: 0.6),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -120,7 +120,7 @@ class _CountryPickerSheetState extends ConsumerState<CountryPickerSheet> {
                       MediaQuery.paddingOf(context).bottom + 8,
                     ),
                     itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 4),
+                    separatorBuilder: (_, _) => const SizedBox(height: 4),
                     itemBuilder: (context, i) {
                       final c = filtered[i];
                       return _CountryRow(
@@ -182,7 +182,7 @@ class _CountryRow extends StatelessWidget {
               value: progress! > 0 ? progress : null,
               strokeWidth: 2.5,
               color: theme.colorScheme.primary,
-              backgroundColor: theme.colorScheme.primary.withOpacity(0.15),
+              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
             ),
           ),
           Text(
@@ -233,7 +233,7 @@ class _CountryRow extends StatelessWidget {
 
     return Material(
       color: isCurrent
-          ? theme.colorScheme.primary.withOpacity(0.08)
+          ? theme.colorScheme.primary.withValues(alpha: 0.08)
           : Colors.transparent,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
@@ -248,7 +248,7 @@ class _CountryRow extends StatelessWidget {
                 height: 36,
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surfaceContainerHighest
-                      .withOpacity(0.6),
+                      .withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 alignment: Alignment.center,

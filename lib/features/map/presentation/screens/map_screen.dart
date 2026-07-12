@@ -8,7 +8,6 @@ import 'package:photo_map/features/map/presentation/providers/country_provider.d
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
-import '../../../gallery/presentation/providers/gallery_notifier.dart';
 import '../../../province/data/province_data.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_actions.dart';
@@ -260,7 +259,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
     final state = ref.watch(mapProvider);
     final settings = ref.watch(mapSettingsProvider);
-    final gallery = ref.watch(galleryStateProvider);
 
     final topPad = MediaQuery.paddingOf(context).top;
     final botPad = MediaQuery.paddingOf(context).bottom;
@@ -314,7 +312,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       width: 120,
                       child: LinearProgressIndicator(
                         value: state.downloadProgress,
-                        backgroundColor: Colors.grey.withOpacity(0.2),
+                        backgroundColor: Colors.grey.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -383,8 +381,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.25),
-                      Colors.black.withOpacity(0),
+                      Colors.black.withValues(alpha: 0.25),
+                      Colors.black.withValues(alpha: 0),
                     ],
                   ),
                 ),

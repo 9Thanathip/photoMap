@@ -123,7 +123,7 @@ class GalleryHeader extends StatelessWidget {
                   switchOutCurve: Curves.easeIn,
                   layoutBuilder: (current, previous) => Stack(
                     alignment: Alignment.centerLeft,
-                    children: [...previous, if (current != null) current],
+                    children: [...previous, ?current],
                   ),
                   transitionBuilder: (child, animation) => FadeTransition(
                     opacity: animation,

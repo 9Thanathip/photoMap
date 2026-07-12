@@ -8,7 +8,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
-import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'province_gallery_screen.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/districts_grid.dart';
@@ -177,13 +176,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
     );
   }
 
-  void _onSelectDistrict(
-    String districtName,
-    Map<String, List<PhotoItem>> byDistrict,
-  ) {
-    final photos = List<PhotoItem>.from(byDistrict[districtName] ?? [])
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-
+  void _onSelectDistrict(String districtName) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => ProvinceGalleryScreen(
@@ -232,14 +225,14 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                       strokeWidth: strokeWidth,
                       currentTime: _currentTime,
                       openTime: _openTime,
-                      onSelectDistrict: (d) => _onSelectDistrict(d, byDistrict),
+                      onSelectDistrict: (d) => _onSelectDistrict(d),
                     ),
                   )
                 : DistrictsGrid(
                     key: const ValueKey('districts'),
                     byDistrict: byDistrict,
                     provinceName: widget.provinceName,
-                    onSelectDistrict: (d) => _onSelectDistrict(d, byDistrict),
+                    onSelectDistrict: (d) => _onSelectDistrict(d),
                   ),
           ),
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
-import 'package:photo_map/features/gallery/presentation/widgets/main_gallery/photo_tile.dart';
 import '../../providers/gallery_notifier.dart';
 
 // Display size for the full viewer image
@@ -82,8 +81,8 @@ class _ImageViewerPageState extends State<ImageViewerPage>
       // Zoom in at tap position
       final position = _doubleTapPosition ?? Offset.zero;
       final Matrix4 zoomedMatrix = Matrix4.identity()
-        ..translate(-position.dx * 1.5, -position.dy * 1.5)
-        ..scale(2.5);
+        ..translateByDouble(-position.dx * 1.5, -position.dy * 1.5, 0, 1)
+        ..scaleByDouble(2.5, 2.5, 2.5, 1);
 
       _animation = Matrix4Tween(begin: matrix, end: zoomedMatrix).animate(
         CurvedAnimation(
@@ -266,7 +265,7 @@ class _TwoPhaseImageState extends State<_TwoPhaseImage> {
                   image: widget.fullProvider,
                   fit: BoxFit.cover,
                   alignment: widget.alignment,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
                 )
               : const SizedBox.shrink(),
         ),

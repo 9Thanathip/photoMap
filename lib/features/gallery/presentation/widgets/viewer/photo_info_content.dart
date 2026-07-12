@@ -311,7 +311,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                           ),
                           decoration: BoxDecoration(
                             border:
-                                Border.all(color: Colors.grey.withOpacity(0.3)),
+                                Border.all(color: Colors.grey.withValues(alpha: 0.3)),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(

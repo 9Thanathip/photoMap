@@ -295,8 +295,6 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
 
   @override
   Widget build(BuildContext context) {
-    final screenH = MediaQuery.sizeOf(context).height;
-
     // PageView is built once and reused — AnimatedBuilder won't rebuild it
     final pageView = PageView.builder(
       key: const PageStorageKey('photo_viewer_pageview'),
@@ -392,7 +390,6 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     );
 
     final overlay = _buildOverlay();
-    final photoPath = _photos.isNotEmpty ? _current.path : 'empty';
 
     return Scaffold(
       key: const ValueKey('photo_viewer_scaffold'),
@@ -411,24 +408,12 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
               ? 1.0 
               : (widget.routeAnimation?.value ?? 1.0);
 
-          // Dismissal progress (0 to 1) only when dragging down
-          final dismissProgress = dy > 0
-              ? (dy / (screenH * 0.4)).clamp(0.0, 1.0)
-              : 0.0;
-
-          // Smooth scale and opacity tracking
-          final scale = 1.0 - (dismissProgress * 0.18);
-          final bgOpacity = ((1.0 - dismissProgress) * routeAlpha).clamp(
-            0.0,
-            1.0,
-          );
-
           // Fade UI buttons as we drag away
           final overlayOpacity = ((1.0 - (dy.abs() / 150.0)) * routeAlpha)
               .clamp(0.0, 1.0);
 
           return ColoredBox(
-            color: Colors.black.withOpacity(routeAlpha),
+            color: Colors.black.withValues(alpha: routeAlpha),
             child: Stack(
               clipBehavior: Clip.none,
               children: [

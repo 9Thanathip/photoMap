@@ -71,8 +71,9 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
           NotificationListener<ScrollNotification>(
             onNotification: (n) {
               final scrolled = n.metrics.pixels > 0;
-              if (scrolled != _isScrolled)
+              if (scrolled != _isScrolled) {
                 setState(() => _isScrolled = scrolled);
+              }
               return false;
             },
             child: _buildBody(
@@ -101,7 +102,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                       colors: [
                         theme.colorScheme.surface,
                         theme.colorScheme.surface,
-                        theme.colorScheme.surface.withOpacity(0),
+                        theme.colorScheme.surface.withValues(alpha: 0),
                       ],
                       stops: const [0.0, 0.72, 1.0],
                     ),
@@ -178,7 +179,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
           mainAxisSpacing: 2,
         ),
         itemCount: 18,
-        itemBuilder: (_, __) => const ShimmerPlaceholder(),
+        itemBuilder: (_, _) => const ShimmerPlaceholder(),
       );
     }
 

@@ -150,11 +150,12 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
     });
     try {
       final results = await _searchPlaces(query);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _results = results;
           _loading = false;
         });
+      }
     } catch (_) {
       if (mounted) {
         setState(() {

@@ -32,7 +32,7 @@ class NationalMapHeader extends ConsumerWidget {
             Icon(
               Icons.map_outlined,
               size: 15,
-              color: Colors.black.withOpacity(0.55),
+              color: Colors.black.withValues(alpha: 0.55),
             ),
             const SizedBox(width: 6),
             Text(
@@ -48,7 +48,7 @@ class NationalMapHeader extends ConsumerWidget {
             Icon(
               Icons.expand_more_rounded,
               size: 16,
-              color: Colors.black.withOpacity(0.55),
+              color: Colors.black.withValues(alpha: 0.55),
             ),
           ],
         ),
