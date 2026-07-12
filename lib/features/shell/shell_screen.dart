@@ -32,7 +32,7 @@ class ShellScreen extends ConsumerWidget {
                 child: _DeleteActionBar(
                   selectedCount: select.selectedCount,
                   onDelete: select.selectedCount > 0
-                      ? () => _confirmDelete(context, ref, select)
+                      ? () => _deleteSelectedPhotos(context, ref, select)
                       : null,
                 ),
               )
@@ -84,34 +84,14 @@ class ShellScreen extends ConsumerWidget {
     );
   }
 
-  void _confirmDelete(
-      BuildContext context, WidgetRef ref, GallerySelectState select) {
-    final l10n = AppLocalizations.of(context);
-    showDialog<void>(
-      context: context,
-      builder: (dlg) => AlertDialog(
-        title: Text(l10n.deletePhotosTitle),
-        content: Text(l10n.deletePhotosBody(select.selectedCount)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dlg),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () {
-              Navigator.pop(dlg);
-              ref
-                  .read(galleryStateProvider.notifier)
-                  .removePhotos(select.selectedPaths.toList());
-              ref.read(gallerySelectProvider.notifier).exit();
-            },
-            child: Text(l10n.commonDelete),
-          ),
-        ],
-      ),
-    );
+  Future<void> _deleteSelectedPhotos(
+      BuildContext context, WidgetRef ref, GallerySelectState select) async {
+    final deleted = await ref
+        .read(galleryStateProvider.notifier)
+        .removePhotos(select.selectedPaths.toList());
+    if (deleted.isNotEmpty) {
+      ref.read(gallerySelectProvider.notifier).exit();
+    }
   }
 }
 
