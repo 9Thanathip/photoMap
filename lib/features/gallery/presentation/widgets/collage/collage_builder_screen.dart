@@ -540,49 +540,52 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   Widget _buildRatioPicker(AppTokens t) {
     return SizedBox(
       height: 60,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        children: [
-          for (final r in CollageRatio.values)
-            GestureDetector(
-              onTap: () {
-                HapticFeedback.selectionClick();
-                setState(() => _ratio = r);
-              },
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                width: 58,
-                alignment: Alignment.center,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: r.value >= 1 ? 32 : 32 * r.value,
-                      height: r.value >= 1 ? 32 / r.value : 32,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color:
-                              _ratio == r ? t.textPrimary : t.textTertiary,
-                          width: _ratio == r ? 2 : 1,
+      child: Center(
+        child: ListView(
+          shrinkWrap: true,
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          children: [
+            for (final r in CollageRatio.values)
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() => _ratio = r);
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  width: 58,
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: r.value >= 1 ? 32 : 32 * r.value,
+                        height: r.value >= 1 ? 32 / r.value : 32,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color:
+                                _ratio == r ? t.textPrimary : t.textTertiary,
+                            width: _ratio == r ? 2 : 1,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(r.label,
-                        style: TextStyle(
-                          color:
-                              _ratio == r ? t.textPrimary : t.textSecondary,
-                          fontSize: 11,
-                          fontWeight:
-                              _ratio == r ? FontWeight.w700 : FontWeight.w500,
-                        )),
-                  ],
+                      const SizedBox(height: 6),
+                      Text(r.label,
+                          style: TextStyle(
+                            color:
+                                _ratio == r ? t.textPrimary : t.textSecondary,
+                            fontSize: 11,
+                            fontWeight:
+                                _ratio == r ? FontWeight.w700 : FontWeight.w500,
+                          )),
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
