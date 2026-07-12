@@ -13,6 +13,7 @@ void showViewModeSheet(
 }) {
   showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
     backgroundColor: Colors.transparent, // Background transparent for custom design
     isScrollControlled: true,
     builder: (_) => _ViewModeSheet(current: current, onSelected: onSelected),

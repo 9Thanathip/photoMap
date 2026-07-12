@@ -24,6 +24,7 @@ class ViewModeSheet extends StatelessWidget {
   }) {
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
       builder: (_) => ViewModeSheet(

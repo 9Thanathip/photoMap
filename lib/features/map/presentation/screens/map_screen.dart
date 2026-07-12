@@ -71,6 +71,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   void _showSettings() {
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const SettingsSheet(),
     );
@@ -219,6 +220,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final countryId = ref.read(countryProvider).current.id;
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       builder: (_) =>
           ProvinceMenuSheet(countryId: countryId, provinceName: provinceName),
     );
@@ -400,7 +402,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
           // Action Overlay
           Positioned(
             right: 20,
-            bottom: botPad + 24,
+            bottom: botPad + 86,
             child: NationalMapActions(
               isDownloading: _downloading,
               onShowSettings: _showSettings,
