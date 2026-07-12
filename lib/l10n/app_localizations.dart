@@ -1507,6 +1507,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This setup only happens on the first launch\nto map your travels safely.'**
   String get setupFirstLaunchNote;
+
+  /// No description provided for @frameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame'**
+  String get frameTitle;
+
+  /// No description provided for @frameStyleBottomBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar'**
+  String get frameStyleBottomBar;
+
+  /// No description provided for @frameStyleFullBorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Border'**
+  String get frameStyleFullBorder;
+
+  /// No description provided for @frameStyleMinimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal'**
+  String get frameStyleMinimal;
+
+  /// No description provided for @frameSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get frameSave;
+
+  /// No description provided for @frameShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get frameShare;
+
+  /// No description provided for @frameSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to Photos'**
+  String get frameSaved;
+
+  /// No description provided for @frameSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save frame'**
+  String get frameSaveFailed;
+
+  /// No description provided for @frameTextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get frameTextSize;
+
+  /// No description provided for @frameSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame'**
+  String get frameSize;
 }
 
 class _AppLocalizationsDelegate

@@ -760,4 +760,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setupFirstLaunchNote =>
       'This setup only happens on the first launch\nto map your travels safely.';
+
+  @override
+  String get frameTitle => 'Frame';
+
+  @override
+  String get frameStyleBottomBar => 'Bar';
+
+  @override
+  String get frameStyleFullBorder => 'Border';
+
+  @override
+  String get frameStyleMinimal => 'Minimal';
+
+  @override
+  String get frameSave => 'Save';
+
+  @override
+  String get frameShare => 'Share';
+
+  @override
+  String get frameSaved => 'Saved to Photos';
+
+  @override
+  String get frameSaveFailed => 'Couldn\'t save frame';
+
+  @override
+  String get frameTextSize => 'Text';
+
+  @override
+  String get frameSize => 'Frame';
 }

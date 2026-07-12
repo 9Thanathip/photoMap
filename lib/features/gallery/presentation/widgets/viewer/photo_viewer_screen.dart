@@ -9,6 +9,7 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:video_player/video_player.dart';
 import '../../providers/gallery_notifier.dart';
 import '../editor/photo_editor_screen.dart';
+import '../frame/frame_export_screen.dart';
 import 'image_viewer_page.dart';
 import 'video_viewer_page.dart';
 import 'photo_info_content.dart';
@@ -293,6 +294,23 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     );
   }
 
+  void _openFrame() {
+    Navigator.push(
+      context,
+      PageRouteBuilder<void>(
+        opaque: false,
+        transitionDuration: const Duration(milliseconds: 300),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: FrameExportScreen(photo: _current),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // PageView is built once and reused — AnimatedBuilder won't rebuild it
@@ -542,6 +560,11 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                         _ViewerIconButton(
                           icon: Icons.tune_rounded,
                           onTap: _openEditor,
+                        ),
+                      if (!_isVideo)
+                        _ViewerIconButton(
+                          icon: Icons.filter_frames_rounded,
+                          onTap: _openFrame,
                         ),
                       _ViewerIconButton(
                         icon: Icons.delete_outline_rounded,

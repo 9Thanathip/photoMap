@@ -1,13 +1,12 @@
 import 'dart:io';
-import 'package:exif/exif.dart' as exif_lib;
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart' hide LatLng;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:native_exif/native_exif.dart';
 import 'package:photo_map/core/theme/app_palette.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
+import '../../../utils/exif_reader.dart';
 import '../../providers/gallery_notifier.dart';
 
 class PhotoInfoContent extends StatefulWidget {
@@ -30,132 +29,20 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
 
   Future<Map<String, String>> _fetchTechnicalInfo(AssetEntity? asset) async {
     if (asset == null) return {};
-    try {
-      if (asset.type == AssetType.video) {
-        // Camera/lens are localized at display time via the fallback below.
-        return {
-          'iso': '—',
-          'exposure': '—',
-        };
-      }
-
-      final file = await asset.originFile ?? await asset.file;
-      if (file == null) return {};
-
-      final exif = await Exif.fromPath(file.path);
-      final attr = await exif.getAttributes() ?? {};
-
-      // Try reading Make/Model directly if not in bulk attributes
-      String make = (attr['Make'] ?? attr['make'])?.toString().trim() ?? '';
-      String model = (attr['Model'] ?? attr['model'])?.toString().trim() ?? '';
-
-      if (make.isEmpty) {
-        try { make = (await exif.getAttribute('Make'))?.trim() ?? ''; } catch (_) {}
-      }
-      if (model.isEmpty) {
-        try { model = (await exif.getAttribute('Model'))?.trim() ?? ''; } catch (_) {}
-      }
-
-      await exif.close();
-
-      // Fallback: read Make/Model via pure-Dart exif package from raw bytes
-      if (make.isEmpty && model.isEmpty) {
-        try {
-          final bytes = await file.readAsBytes();
-          final tags = await exif_lib.readExifFromBytes(bytes);
-          make = tags['Image Make']?.printable.trim() ?? '';
-          model = tags['Image Model']?.printable.trim() ?? '';
-        } catch (_) {}
-      }
-
-      if (attr.isEmpty && make.isEmpty && model.isEmpty) return {};
-
-      String cameraName = '';
-      if (make.isNotEmpty && model.isNotEmpty) {
-        if (model.toLowerCase().contains(make.toLowerCase())) {
-          cameraName = model;
-        } else {
-          cameraName = '$make $model';
-        }
-      } else if (model.isNotEmpty) {
-        cameraName = model;
-      } else if (make.isNotEmpty) {
-        cameraName = make;
-      } else {
-        cameraName = ''; // localized at display time
-      }
-
-      final focalLength = (attr['FocalLength'] ?? attr['focalLength'])?.toString() ?? '';
-      final fNumber = (attr['FNumber'] ?? attr['fNumber'] ?? attr['ApertureValue'])?.toString() ?? '';
-      final iso = (attr['ISOSpeedRatings'] ?? attr['isoSpeedRatings'] ?? attr['ISO'])?.toString() ?? '';
-      final exposureTime = (attr['ExposureTime'] ?? attr['exposureTime'])?.toString() ?? '';
-
-      String exposureStr = '0 ev';
-      if (exposureTime.isNotEmpty) {
-        final expNum = double.tryParse(exposureTime);
-        if (expNum != null && expNum > 0) {
-          if (expNum < 1) {
-            final denom = (1 / expNum).round();
-            exposureStr = '1/${denom}s';
-          } else {
-            exposureStr = '${expNum.toStringAsFixed(1)}s';
-          }
-        } else {
-          exposureStr = exposureTime;
-        }
-      }
-
-      double? parseRational(String value) {
-        if (value.isEmpty) return null;
-        if (value.contains('/')) {
-          final parts = value.split('/');
-          if (parts.length == 2) {
-            final n = double.tryParse(parts[0].trim());
-            final d = double.tryParse(parts[1].trim());
-            if (n != null && d != null && d != 0) return n / d;
-          }
-        }
-        return double.tryParse(value);
-      }
-
-      String focalLengthStr = '';
-      if (focalLength.isNotEmpty) {
-        final flNum = parseRational(focalLength);
-        focalLengthStr = flNum != null ? flNum.toStringAsFixed(1) : focalLength;
-      }
-
-      String fNumberStr = '';
-      if (fNumber.isNotEmpty) {
-        final fnNum = parseRational(fNumber);
-        fNumberStr = fnNum != null ? fnNum.toStringAsFixed(1) : fNumber;
-      }
-
-      String lensInfo = '';
-      if (focalLengthStr.isNotEmpty && fNumberStr.isNotEmpty) {
-        lensInfo = '${focalLengthStr}mm — f/$fNumberStr';
-      } else if (focalLengthStr.isNotEmpty) {
-        lensInfo = '${focalLengthStr}mm';
-      } else if (fNumberStr.isNotEmpty) {
-        lensInfo = 'f/$fNumberStr';
-      } else {
-        lensInfo = ''; // localized at display time
-      }
-
-      // Strip potential bracket formatting like [50] from ISO values
-      String finalIso = iso.isNotEmpty 
-          ? iso.replaceAll('[', '').replaceAll(']', '').trim() 
-          : '—';
-
-      return {
-        'camera': cameraName,
-        'lens': lensInfo,
-        'iso': finalIso,
-        'exposure': exposureStr,
-      };
-    } catch (e) {
-      debugPrint('Error loading EXIF: $e');
-      return {};
+    // Camera/lens are localized at display time via the fallbacks below.
+    if (asset.type == AssetType.video) {
+      return {'iso': '—', 'exposure': '—'};
     }
+
+    final e = await readPhotoExif(asset);
+    if (e.isEmpty && e.camera.isEmpty) return {};
+
+    return {
+      'camera': e.camera,
+      'lens': e.lens,
+      'iso': e.iso.isNotEmpty ? e.iso : '—',
+      'exposure': e.exposure.isNotEmpty ? e.exposure : '—',
+    };
   }
 
   Future<void> _launchMap(double lat, double lng, String label) async {

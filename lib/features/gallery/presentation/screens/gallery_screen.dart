@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -11,6 +12,7 @@ import '../widgets/main_gallery/albums_tab.dart';
 import '../widgets/main_gallery/gallery_header.dart';
 import '../widgets/viewer/photo_options_sheet.dart';
 import '../widgets/viewer/photo_viewer_screen.dart';
+import '../widgets/frame/frame_export_screen.dart';
 import '../widgets/main_gallery/photos_tab.dart';
 import 'package:photo_map/common_widgets/view_mode_sheet.dart';
 
@@ -294,6 +296,16 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
       context: context,
       builder: (ctx) => PhotoOptionsSheet(
         photo: photo,
+        onFrame: photo.assetEntity?.type == AssetType.image
+            ? () {
+                Navigator.pop(ctx);
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => FrameExportScreen(photo: photo),
+                  ),
+                );
+              }
+            : null,
         onDelete: () {
           Navigator.pop(ctx);
           final l10n = AppLocalizations.of(context);

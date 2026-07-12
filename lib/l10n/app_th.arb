@@ -266,5 +266,15 @@
 
   "setupPreparingAtlas": "กำลังเตรียมแผนที่ของคุณ",
   "setupIndexingPhotos": "กำลังจัดทำดัชนีและจัดระเบียบรูปภาพ\n({processed} / {total})",
-  "setupFirstLaunchNote": "ขั้นตอนนี้จะทำงานเฉพาะครั้งแรกที่เปิดแอป\nเพื่อบันทึกการเดินทางของคุณอย่างปลอดภัย"
+  "setupFirstLaunchNote": "ขั้นตอนนี้จะทำงานเฉพาะครั้งแรกที่เปิดแอป\nเพื่อบันทึกการเดินทางของคุณอย่างปลอดภัย",
+  "frameTitle": "เฟรม",
+  "frameStyleBottomBar": "แถบล่าง",
+  "frameStyleFullBorder": "ขอบ",
+  "frameStyleMinimal": "มินิมอล",
+  "frameSave": "บันทึก",
+  "frameShare": "แชร์",
+  "frameSaved": "บันทึกลงรูปภาพแล้ว",
+  "frameSaveFailed": "บันทึกเฟรมไม่สำเร็จ",
+  "frameTextSize": "ตัวอักษร",
+  "frameSize": "เฟรม"
 }

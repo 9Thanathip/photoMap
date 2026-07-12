@@ -1,0 +1,420 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:share_plus/share_plus.dart';
+
+import 'package:photo_map/l10n/app_localizations.dart';
+import '../../providers/gallery_notifier.dart';
+import '../../../utils/exif_reader.dart';
+import 'camera_logo.dart';
+import 'frame_painter.dart';
+import 'frame_style.dart';
+
+/// Full-screen editor that wraps a single photo in an EXIF frame and exports
+/// it (save to Photos + share). Preview and export share one [paintFrame] so
+/// what the user sees is exactly what's written.
+class FrameExportScreen extends StatefulWidget {
+  const FrameExportScreen({super.key, required this.photo});
+
+  final PhotoItem photo;
+
+  @override
+  State<FrameExportScreen> createState() => _FrameExportScreenState();
+}
+
+class _FrameExportScreenState extends State<FrameExportScreen> {
+  FrameStyle _style = FrameStyle.bottomBar;
+  double _textScale = 1.0;
+  double _frameScale = 1.0;
+  bool _saving = false;
+
+  ui.Image? _photoImage;
+  ui.Image? _logo;
+  FrameData? _data;
+  bool _loadError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _photoImage?.dispose();
+    _logo?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final asset = widget.photo.assetEntity;
+    if (asset == null) {
+      setState(() => _loadError = true);
+      return;
+    }
+    try {
+      final bytes = await asset.originBytes;
+      if (bytes == null) throw StateError('Original bytes unavailable.');
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+
+      final exif = await readPhotoExif(asset);
+      final logo = exif.make.isNotEmpty ? await loadCameraLogo(exif.make) : null;
+
+      if (!mounted) {
+        frame.image.dispose();
+        logo?.dispose();
+        return;
+      }
+      setState(() {
+        _photoImage = frame.image;
+        _logo = logo;
+        _data = FrameData(exif: exif, dateTime: widget.photo.timestamp);
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loadError = true);
+    }
+  }
+
+  Future<ui.Image> _render() async {
+    final photo = _photoImage!;
+    final data = _data!;
+    final geo = computeFrameGeometry(
+      _style,
+      Size(photo.width.toDouble(), photo.height.toDouble()),
+      frameScale: _frameScale,
+    );
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder, Offset.zero & geo.canvasSize);
+    paintFrame(canvas,
+        photo: photo,
+        data: data,
+        style: _style,
+        geo: geo,
+        logo: _logo,
+        textScale: _textScale);
+    final picture = recorder.endRecording();
+    return picture.toImage(
+      geo.canvasSize.width.round(),
+      geo.canvasSize.height.round(),
+    );
+  }
+
+  Future<Uint8List?> _renderPng() async {
+    final image = await _render();
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    return bytes?.buffer.asUint8List();
+  }
+
+  Future<void> _save() async {
+    if (_saving || _photoImage == null || _data == null) return;
+    setState(() => _saving = true);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final png = await _renderPng();
+      if (png == null) throw StateError('Failed to encode frame.');
+      final filename = 'jaruek_frame_${DateTime.now().millisecondsSinceEpoch}.png';
+      await PhotoManager.editor.saveImage(
+        png,
+        filename: filename,
+        title: filename,
+        desc: 'Framed in Jaruek',
+      );
+      if (!mounted) return;
+      messenger.showSnackBar(_snack(l10n.frameSaved));
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(_snack(l10n.frameSaveFailed));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _share() async {
+    if (_saving || _photoImage == null || _data == null) return;
+    setState(() => _saving = true);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final png = await _renderPng();
+      if (png == null) throw StateError('Failed to encode frame.');
+      final dir = await getTemporaryDirectory();
+      final file = File(
+        '${dir.path}/jaruek_frame_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
+      await file.writeAsBytes(png);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(_snack(l10n.frameSaveFailed));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  SnackBar _snack(String text) => SnackBar(
+        content: Text(text),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildTopBar(l10n),
+              Expanded(child: _buildPreview(l10n)),
+              _buildStylePicker(l10n),
+              _buildSliders(l10n),
+              _buildActions(l10n),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopBar(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(foregroundColor: Colors.white70),
+            child: Text(l10n.commonCancel, style: const TextStyle(fontSize: 15)),
+          ),
+          Text(
+            l10n.frameTitle,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(width: 64),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreview(AppLocalizations l10n) {
+    if (_loadError) {
+      return Center(
+        child: Text(l10n.frameSaveFailed,
+            style: const TextStyle(color: Colors.white54)),
+      );
+    }
+    final photo = _photoImage;
+    final data = _data;
+    if (photo == null || data == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+      );
+    }
+    final geo = computeFrameGeometry(
+      _style,
+      Size(photo.width.toDouble(), photo.height.toDouble()),
+      frameScale: _frameScale,
+    );
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Center(
+        child: AspectRatio(
+          aspectRatio: geo.canvasSize.width / geo.canvasSize.height,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: CustomPaint(
+              painter: FramePainter(
+                photo: photo,
+                data: data,
+                style: _style,
+                geo: geo,
+                logo: _logo,
+                textScale: _textScale,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStylePicker(AppLocalizations l10n) {
+    String label(FrameStyle s) => switch (s) {
+          FrameStyle.bottomBar => l10n.frameStyleBottomBar,
+          FrameStyle.fullBorder => l10n.frameStyleFullBorder,
+          FrameStyle.minimal => l10n.frameStyleMinimal,
+        };
+    return SizedBox(
+      height: 56,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (final s in FrameStyle.values)
+            GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() => _style = s);
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                decoration: BoxDecoration(
+                  color: _style == s
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  label(s),
+                  style: TextStyle(
+                    color: _style == s ? Colors.black : Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSliders(AppLocalizations l10n) {
+    final enabled = _photoImage != null && !_saving;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      child: Column(
+        children: [
+          _scaleRow(
+            l10n.frameTextSize,
+            _textScale,
+            0.7,
+            1.5,
+            enabled ? (v) => setState(() => _textScale = v) : null,
+          ),
+          if (_style != FrameStyle.minimal)
+            _scaleRow(
+              l10n.frameSize,
+              _frameScale,
+              0.6,
+              1.6,
+              enabled ? (v) => setState(() => _frameScale = v) : null,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _scaleRow(
+    String label,
+    double value,
+    double min,
+    double max,
+    ValueChanged<double>? onChanged,
+  ) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 64,
+          child: Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
+        ),
+        Expanded(
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 2,
+              activeTrackColor: Colors.white,
+              inactiveTrackColor: Colors.white24,
+              thumbColor: Colors.white,
+              overlayColor: Colors.white.withValues(alpha: 0.1),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+            ),
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActions(AppLocalizations l10n) {
+    final ready = _photoImage != null && _data != null && !_saving;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20, 8, 20, 16 + MediaQuery.paddingOf(context).bottom),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: ready ? _share : null,
+              icon: const Icon(Icons.ios_share_rounded, size: 18),
+              label: Text(l10n.frameShare),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Colors.white24),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: ready ? _save : null,
+              icon: _saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.black),
+                    )
+                  : const Icon(Icons.download_rounded, size: 18),
+              label: Text(l10n.frameSave),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

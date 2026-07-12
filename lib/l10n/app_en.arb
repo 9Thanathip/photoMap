@@ -292,5 +292,15 @@
       "total": { "type": "Object" }
     }
   },
-  "setupFirstLaunchNote": "This setup only happens on the first launch\nto map your travels safely."
+  "setupFirstLaunchNote": "This setup only happens on the first launch\nto map your travels safely.",
+  "frameTitle": "Frame",
+  "frameStyleBottomBar": "Bar",
+  "frameStyleFullBorder": "Border",
+  "frameStyleMinimal": "Minimal",
+  "frameSave": "Save",
+  "frameShare": "Share",
+  "frameSaved": "Saved to Photos",
+  "frameSaveFailed": "Couldn't save frame",
+  "frameTextSize": "Text",
+  "frameSize": "Frame"
 }

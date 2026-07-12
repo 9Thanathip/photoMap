@@ -10,10 +10,14 @@ class PhotoOptionsSheet extends StatelessWidget {
     super.key,
     required this.photo,
     required this.onDelete,
+    this.onFrame,
   });
 
   final PhotoItem photo;
   final VoidCallback onDelete;
+
+  /// Opens the EXIF frame exporter. Null for videos (frames are photo-only).
+  final VoidCallback? onFrame;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +51,12 @@ class PhotoOptionsSheet extends StatelessWidget {
           ),
 
         // Menu items
+        if (onFrame != null)
+          _OptionTile(
+            icon: Icons.filter_frames_rounded,
+            label: AppLocalizations.of(context).frameTitle,
+            onTap: onFrame!,
+          ),
         _OptionTile(
           icon: Icons.delete_outline_rounded,
           label: AppLocalizations.of(context).commonRemove,

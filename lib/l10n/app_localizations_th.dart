@@ -757,4 +757,34 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get setupFirstLaunchNote =>
       'ขั้นตอนนี้จะทำงานเฉพาะครั้งแรกที่เปิดแอป\nเพื่อบันทึกการเดินทางของคุณอย่างปลอดภัย';
+
+  @override
+  String get frameTitle => 'เฟรม';
+
+  @override
+  String get frameStyleBottomBar => 'แถบล่าง';
+
+  @override
+  String get frameStyleFullBorder => 'ขอบ';
+
+  @override
+  String get frameStyleMinimal => 'มินิมอล';
+
+  @override
+  String get frameSave => 'บันทึก';
+
+  @override
+  String get frameShare => 'แชร์';
+
+  @override
+  String get frameSaved => 'บันทึกลงรูปภาพแล้ว';
+
+  @override
+  String get frameSaveFailed => 'บันทึกเฟรมไม่สำเร็จ';
+
+  @override
+  String get frameTextSize => 'ตัวอักษร';
+
+  @override
+  String get frameSize => 'เฟรม';
 }
