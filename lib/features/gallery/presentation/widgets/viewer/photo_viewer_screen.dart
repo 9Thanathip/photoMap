@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart' hide LatLng;
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../providers/gallery_notifier.dart';
 import '../editor/photo_editor_screen.dart';
@@ -311,6 +312,18 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     );
   }
 
+  Future<void> _shareCurrent() async {
+    final asset = _current.assetEntity;
+    if (asset == null) return;
+    try {
+      final file = await asset.originFile ?? await asset.file;
+      if (file == null) return;
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+    } catch (e) {
+      debugPrint('Share failed: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // PageView is built once and reused — AnimatedBuilder won't rebuild it
@@ -546,11 +559,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                     children: [
                       _ViewerIconButton(
                         icon: Icons.ios_share_rounded,
-                        onTap: () {},
-                      ),
-                      _ViewerIconButton(
-                        icon: Icons.favorite_border_rounded,
-                        onTap: () {},
+                        onTap: _shareCurrent,
                       ),
                       _ViewerIconButton(
                         icon: Icons.info_outline_rounded,
