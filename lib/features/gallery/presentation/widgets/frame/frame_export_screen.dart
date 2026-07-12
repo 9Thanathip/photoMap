@@ -30,12 +30,27 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
   FrameStyle _style = FrameStyle.bottomBar;
   double _textScale = 1.0;
   double _frameScale = 1.0;
-  bool _saving = false;
+
+  /// Which export action is running (''/'save'/'share') — drives the per-button
+  /// spinner and disables both while busy.
+  String _busy = '';
 
   ui.Image? _photoImage;
   ui.Image? _logo;
   FrameData? _data;
   bool _loadError = false;
+
+  /// Encoded PNG cached by layout key, so tapping Save right after Share (or
+  /// re-tapping the same action) skips the expensive re-render + encode.
+  Uint8List? _pngCache;
+  String? _pngCacheKey;
+
+  /// Longest edge of the exported image. Full-camera resolution (48MP) is
+  /// needlessly slow to PNG-encode for a share/save; capping keeps it snappy
+  /// with no visible quality loss at social sizes.
+  static const double _maxExportEdge = 3000;
+
+  String get _layoutKey => '${_style.id}|$_textScale|$_frameScale';
 
   @override
   void initState() {
@@ -88,8 +103,12 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
       Size(photo.width.toDouble(), photo.height.toDouble()),
       frameScale: _frameScale,
     );
+    // Cap the output so PNG encoding stays fast on 48MP originals.
+    final longest = geo.canvasSize.longestSide;
+    final scale = longest > _maxExportEdge ? _maxExportEdge / longest : 1.0;
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder, Offset.zero & geo.canvasSize);
+    if (scale != 1.0) canvas.scale(scale);
     paintFrame(canvas,
         photo: photo,
         data: data,
@@ -99,21 +118,27 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
         textScale: _textScale);
     final picture = recorder.endRecording();
     return picture.toImage(
-      geo.canvasSize.width.round(),
-      geo.canvasSize.height.round(),
+      (geo.canvasSize.width * scale).round(),
+      (geo.canvasSize.height * scale).round(),
     );
   }
 
+  /// Encodes the current frame to PNG, reusing [_pngCache] when the layout
+  /// hasn't changed since the last export.
   Future<Uint8List?> _renderPng() async {
+    if (_pngCache != null && _pngCacheKey == _layoutKey) return _pngCache;
     final image = await _render();
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
-    return bytes?.buffer.asUint8List();
+    final png = bytes?.buffer.asUint8List();
+    _pngCache = png;
+    _pngCacheKey = _layoutKey;
+    return png;
   }
 
   Future<void> _save() async {
-    if (_saving || _photoImage == null || _data == null) return;
-    setState(() => _saving = true);
+    if (_busy.isNotEmpty || _photoImage == null || _data == null) return;
+    setState(() => _busy = 'save');
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
@@ -132,13 +157,13 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
       if (!mounted) return;
       messenger.showSnackBar(_snack(l10n.frameSaveFailed));
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) setState(() => _busy = '');
     }
   }
 
   Future<void> _share() async {
-    if (_saving || _photoImage == null || _data == null) return;
-    setState(() => _saving = true);
+    if (_busy.isNotEmpty || _photoImage == null || _data == null) return;
+    setState(() => _busy = 'share');
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
@@ -154,7 +179,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
       if (!mounted) return;
       messenger.showSnackBar(_snack(l10n.frameSaveFailed));
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) setState(() => _busy = '');
     }
   }
 
@@ -305,7 +330,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
   }
 
   Widget _buildSliders(AppLocalizations l10n) {
-    final enabled = _photoImage != null && !_saving;
+    final enabled = _photoImage != null && _busy.isEmpty;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
       child: Column(
@@ -369,7 +394,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
   }
 
   Widget _buildActions(AppLocalizations l10n) {
-    final ready = _photoImage != null && _data != null && !_saving;
+    final ready = _photoImage != null && _data != null && _busy.isEmpty;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         20, 8, 20, 16 + MediaQuery.paddingOf(context).bottom),
@@ -378,7 +403,14 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
           Expanded(
             child: OutlinedButton.icon(
               onPressed: ready ? _share : null,
-              icon: const Icon(Icons.ios_share_rounded, size: 18),
+              icon: _busy == 'share'
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(Icons.ios_share_rounded, size: 18),
               label: Text(l10n.frameShare),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
@@ -394,7 +426,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
           Expanded(
             child: FilledButton.icon(
               onPressed: ready ? _save : null,
-              icon: _saving
+              icon: _busy == 'save'
                   ? const SizedBox(
                       width: 16,
                       height: 16,
