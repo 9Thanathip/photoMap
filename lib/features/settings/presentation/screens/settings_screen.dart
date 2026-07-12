@@ -60,7 +60,7 @@ class SettingsScreen extends ConsumerWidget {
                       children: [
                         _IconBadge(
                           icon: Icons.palette_outlined,
-                          color: t.accentGold,
+                          color: t.textPrimary,
                         ),
                         const SizedBox(width: 12),
                         Text(
@@ -96,7 +96,7 @@ class SettingsScreen extends ConsumerWidget {
             children: [
               _SettingsTile(
                 icon: Icons.language_outlined,
-                iconColor: t.accentGold,
+                iconColor: t.textPrimary,
                 title: l10n.settingsLanguage,
                 trailing: Text(
                   _localeLabel(l10n, locale),
@@ -202,7 +202,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                   trailing: current?.languageCode == value?.languageCode
-                      ? Icon(Icons.check_rounded, color: t.accentGold)
+                      ? Icon(Icons.check_rounded, color: t.textPrimary)
                       : null,
                   onTap: () {
                     ref.read(localeProvider.notifier).setLocale(value);
@@ -344,7 +344,7 @@ class _ProfileTile extends StatelessWidget {
               height: 44,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: t.accentGold.withValues(alpha: 0.15),
+                color: t.textPrimary.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Text(
@@ -352,7 +352,7 @@ class _ProfileTile extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: t.accentGold,
+                  color: t.textPrimary,
                 ),
               ),
             ),
@@ -505,7 +505,7 @@ class _ThemeOption extends StatelessWidget {
               Icon(
                 icon,
                 size: 15,
-                color: selected ? t.accentGold : t.textSecondary,
+                color: selected ? t.textPrimary : t.textSecondary,
               ),
               const SizedBox(width: 6),
               Text(

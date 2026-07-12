@@ -49,14 +49,14 @@ class ProfileScreen extends ConsumerWidget {
             children: [
               _ActionTile(
                 icon: Icons.verified_user_outlined,
-                iconColor: t.accentGold,
+                iconColor: t.textPrimary,
                 title: l10n.profileAccountStatus,
                 trailing: Text(
                   verified ? l10n.profileVerified : l10n.profileUnverified,
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: verified ? t.accentGold : t.textSecondary,
+                    color: verified ? t.textPrimary : t.textSecondary,
                   ),
                 ),
               ),
@@ -180,7 +180,7 @@ class _ProfileHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: (verified ? t.accentGold : t.textSecondary)
+            color: (verified ? t.textPrimary : t.textSecondary)
                 .withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20),
           ),
@@ -190,7 +190,7 @@ class _ProfileHeader extends StatelessWidget {
               Icon(
                 verified ? Icons.check_circle_rounded : Icons.error_outline,
                 size: 14,
-                color: verified ? t.accentGold : t.textSecondary,
+                color: verified ? t.textPrimary : t.textSecondary,
               ),
               const SizedBox(width: 6),
               Text(
@@ -200,7 +200,7 @@ class _ProfileHeader extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: verified ? t.accentGold : t.textSecondary,
+                  color: verified ? t.textPrimary : t.textSecondary,
                 ),
               ),
             ],
