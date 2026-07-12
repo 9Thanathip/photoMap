@@ -9,6 +9,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
 import 'collage_painter.dart';
@@ -82,7 +83,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     final photos = ref.read(galleryStateProvider).allPhotos;
     return showModalBottomSheet<List<PhotoItem>>(
       context: context,
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: context.tokens.surfaceCard,
       isScrollControlled: true,
       builder: (_) => _PhotoPickerSheet(
         photos: photos,
@@ -349,23 +350,26 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final t = context.tokens;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: t.surfaceBase,
         // bottom: false so our own bottom padding is the only inset — avoids a
         // double gap that floated the action bar above the screen edge.
         body: SafeArea(
           bottom: false,
           child: Column(
             children: [
-              _buildTopBar(l10n),
-              Expanded(child: _buildCanvas()),
-              _buildGridPicker(l10n),
-              _buildColorSort(l10n),
-              _buildRatioPicker(),
-              _buildGapAndColor(l10n),
-              _buildActions(l10n),
+              _buildTopBar(l10n, t),
+              Expanded(child: _buildCanvas(t)),
+              _buildGridPicker(l10n, t),
+              _buildColorSort(l10n, t),
+              _buildRatioPicker(t),
+              _buildGapAndColor(l10n, t),
+              _buildActions(l10n, t),
             ],
           ),
         ),
@@ -373,7 +377,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     );
   }
 
-  Widget _buildTopBar(AppLocalizations l10n) {
+  Widget _buildTopBar(AppLocalizations l10n, AppTokens t) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -381,17 +385,17 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
         children: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(foregroundColor: Colors.white70),
+            style: TextButton.styleFrom(foregroundColor: t.textSecondary),
             child: Text(l10n.commonCancel, style: const TextStyle(fontSize: 15)),
           ),
           Text(l10n.collageTitle,
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: t.textPrimary,
                   fontWeight: FontWeight.w500,
                   fontSize: 16)),
           TextButton.icon(
             onPressed: _pickMultiple,
-            style: TextButton.styleFrom(foregroundColor: Colors.white),
+            style: TextButton.styleFrom(foregroundColor: t.textPrimary),
             icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
             label: Text(l10n.collageAddPhotos,
                 style: const TextStyle(fontSize: 13)),
@@ -401,7 +405,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     );
   }
 
-  Widget _buildCanvas() {
+  Widget _buildCanvas(AppTokens t) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Center(
@@ -421,7 +425,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                     gap: _gapPx(_canvasSize),
                     background: _bg,
                     images: _images,
-                    placeholder: const Color(0xFF2A2A2A),
+                    placeholder: t.surfaceElevated,
                     revision: _revision,
                     dragImage: _dragFrom != null ? _images[_dragFrom] : null,
                     dragCenter: _dragPos,
@@ -438,29 +442,29 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     );
   }
 
-  Widget _buildColorSort(AppLocalizations l10n) {
+  Widget _buildColorSort(AppLocalizations l10n, AppTokens t) {
     final enabled = _busy.isEmpty && (_images.keys.where((i) => i < _grid.count).length >= 2);
     return Padding(
       padding: const EdgeInsets.only(top: 2),
       child: TextButton.icon(
         onPressed: enabled ? _sortByColor : null,
         style: TextButton.styleFrom(
-          foregroundColor: Colors.white,
-          disabledForegroundColor: Colors.white24,
+          foregroundColor: t.textPrimary,
+          disabledForegroundColor: t.textTertiary,
         ),
         icon: _busy == 'sort'
-            ? const SizedBox(
+            ? SizedBox(
                 width: 15,
                 height: 15,
-                child:
-                    CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: t.textPrimary))
             : const Icon(Icons.gradient_rounded, size: 18),
         label: Text(l10n.collageColorSort, style: const TextStyle(fontSize: 13)),
       ),
     );
   }
 
-  Widget _buildGridPicker(AppLocalizations l10n) {
+  Widget _buildGridPicker(AppLocalizations l10n, AppTokens t) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
       // Expanded halves keep the '×' at the true horizontal centre even though
@@ -470,16 +474,16 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
           Expanded(
             child: Align(
               alignment: Alignment.centerRight,
-              child: _stepper(l10n.collageRows, _rows, (v) => _setRows(v)),
+              child: _stepper(t, l10n.collageRows, _rows, (v) => _setRows(v)),
             ),
           ),
           const SizedBox(width: 12),
-          const Text('×', style: TextStyle(color: Colors.white38, fontSize: 18)),
+          Text('×', style: TextStyle(color: t.textTertiary, fontSize: 18)),
           const SizedBox(width: 12),
           Expanded(
             child: Align(
               alignment: Alignment.centerLeft,
-              child: _stepper(l10n.collageCols, _cols, (v) => _setCols(v)),
+              child: _stepper(t, l10n.collageCols, _cols, (v) => _setCols(v)),
             ),
           ),
         ],
@@ -487,30 +491,31 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     );
   }
 
-  Widget _stepper(String label, int value, ValueChanged<int> onChanged) {
+  Widget _stepper(
+      AppTokens t, String label, int value, ValueChanged<int> onChanged) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        Text(label, style: TextStyle(color: t.textSecondary, fontSize: 12)),
         const SizedBox(width: 8),
-        _stepBtn(Icons.remove_rounded,
+        _stepBtn(t, Icons.remove_rounded,
             value > _minAxis ? () => onChanged(value - 1) : null),
         SizedBox(
           width: 24,
           child: Text('$value',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: t.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w700)),
         ),
-        _stepBtn(Icons.add_rounded,
+        _stepBtn(t, Icons.add_rounded,
             value < _maxAxis ? () => onChanged(value + 1) : null),
       ],
     );
   }
 
-  Widget _stepBtn(IconData icon, VoidCallback? onTap) {
+  Widget _stepBtn(AppTokens t, IconData icon, VoidCallback? onTap) {
     final on = onTap != null;
     return GestureDetector(
       onTap: () {
@@ -523,15 +528,16 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
         height: 30,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: on ? 0.12 : 0.04),
+          color: on ? t.surfaceElevated : t.surfaceMuted,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, size: 18, color: on ? Colors.white : Colors.white24),
+        child:
+            Icon(icon, size: 18, color: on ? t.textPrimary : t.textTertiary),
       ),
     );
   }
 
-  Widget _buildRatioPicker() {
+  Widget _buildRatioPicker(AppTokens t) {
     return SizedBox(
       height: 60,
       child: ListView(
@@ -557,7 +563,8 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
-                          color: _ratio == r ? Colors.white : Colors.white38,
+                          color:
+                              _ratio == r ? t.textPrimary : t.textTertiary,
                           width: _ratio == r ? 2 : 1,
                         ),
                       ),
@@ -565,7 +572,8 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                     const SizedBox(height: 6),
                     Text(r.label,
                         style: TextStyle(
-                          color: _ratio == r ? Colors.white : Colors.white54,
+                          color:
+                              _ratio == r ? t.textPrimary : t.textSecondary,
                           fontSize: 11,
                           fontWeight:
                               _ratio == r ? FontWeight.w700 : FontWeight.w500,
@@ -579,7 +587,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     );
   }
 
-  Widget _buildGapAndColor(AppLocalizations l10n) {
+  Widget _buildGapAndColor(AppLocalizations l10n, AppTokens t) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 2, 20, 0),
       child: Row(
@@ -587,16 +595,16 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
           SizedBox(
             width: 40,
             child: Text(l10n.collageGap,
-                style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                style: TextStyle(color: t.textSecondary, fontSize: 12)),
           ),
           Expanded(
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
                 trackHeight: 2,
-                activeTrackColor: Colors.white,
-                inactiveTrackColor: Colors.white24,
-                thumbColor: Colors.white,
-                overlayColor: Colors.white.withValues(alpha: 0.1),
+                activeTrackColor: t.textPrimary,
+                inactiveTrackColor: t.textTertiary,
+                thumbColor: t.textPrimary,
+                overlayColor: t.textPrimary.withValues(alpha: 0.1),
                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
               ),
               child: Slider(
@@ -618,7 +626,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                   color: c,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: _bg == c ? Colors.white : Colors.white24,
+                    color: _bg == c ? t.textPrimary : t.borderStrong,
                     width: _bg == c ? 2 : 1,
                   ),
                 ),
@@ -629,7 +637,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     );
   }
 
-  Widget _buildActions(AppLocalizations l10n) {
+  Widget _buildActions(AppLocalizations l10n, AppTokens t) {
     final ready = _busy.isEmpty && _hasPhoto;
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -640,16 +648,16 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
             child: OutlinedButton.icon(
               onPressed: ready ? _share : null,
               icon: _busy == 'share'
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
+                          strokeWidth: 2, color: t.textPrimary))
                   : const Icon(Icons.ios_share_rounded, size: 18),
               label: Text(l10n.frameShare),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.white24),
+                foregroundColor: t.textPrimary,
+                side: BorderSide(color: t.borderStrong),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
@@ -661,16 +669,16 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
             child: FilledButton.icon(
               onPressed: ready ? _save : null,
               icon: _busy == 'save'
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.black))
+                          strokeWidth: 2, color: t.surfaceBase))
                   : const Icon(Icons.download_rounded, size: 18),
               label: Text(l10n.frameSave),
               style: FilledButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
+                backgroundColor: t.textPrimary,
+                foregroundColor: t.surfaceBase,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
@@ -716,6 +724,7 @@ class _PhotoPickerSheetState extends State<_PhotoPickerSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final t = context.tokens;
     final images = widget.photos.where((p) => p.assetEntity != null).toList();
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -734,15 +743,15 @@ class _PhotoPickerSheetState extends State<_PhotoPickerSheet> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('${_selected.length} / ${widget.capacity}',
-                          style: const TextStyle(
-                              color: Colors.white,
+                          style: TextStyle(
+                              color: t.textPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w700)),
                       Text(
                         l10n.collagePickerHint(
                             widget.filled, widget.total),
-                        style: const TextStyle(
-                            color: Colors.white54, fontSize: 12),
+                        style: TextStyle(
+                            color: t.textSecondary, fontSize: 12),
                       ),
                     ],
                   ),
@@ -752,8 +761,8 @@ class _PhotoPickerSheetState extends State<_PhotoPickerSheet> {
                         ? null
                         : () => Navigator.pop(context, _selected),
                     style: FilledButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: t.textPrimary,
+                      foregroundColor: t.surfaceBase,
                     ),
                     child: Text(l10n.commonDone),
                   ),

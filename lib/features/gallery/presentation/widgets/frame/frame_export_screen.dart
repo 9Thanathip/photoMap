@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
 import '../../../utils/exif_reader.dart';
@@ -192,18 +193,24 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final t = context.tokens;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: t.surfaceBase,
+        // bottom: false so our own bottom padding is the only inset — keeps the
+        // action bar flush with the screen edge (matches the collage builder).
         body: SafeArea(
+          bottom: false,
           child: Column(
             children: [
-              _buildTopBar(l10n),
-              Expanded(child: _buildPreview(l10n)),
-              _buildStylePicker(l10n),
-              _buildSliders(l10n),
-              _buildActions(l10n),
+              _buildTopBar(l10n, t),
+              Expanded(child: _buildPreview(l10n, t)),
+              _buildStylePicker(l10n, t),
+              _buildSliders(l10n, t),
+              _buildActions(l10n, t),
             ],
           ),
         ),
@@ -211,7 +218,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
     );
   }
 
-  Widget _buildTopBar(AppLocalizations l10n) {
+  Widget _buildTopBar(AppLocalizations l10n, AppTokens t) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -219,13 +226,13 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
         children: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(foregroundColor: Colors.white70),
+            style: TextButton.styleFrom(foregroundColor: t.textSecondary),
             child: Text(l10n.commonCancel, style: const TextStyle(fontSize: 15)),
           ),
           Text(
             l10n.frameTitle,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: t.textPrimary,
               fontWeight: FontWeight.w500,
               fontSize: 16,
             ),
@@ -236,18 +243,19 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
     );
   }
 
-  Widget _buildPreview(AppLocalizations l10n) {
+  Widget _buildPreview(AppLocalizations l10n, AppTokens t) {
     if (_loadError) {
       return Center(
         child: Text(l10n.frameSaveFailed,
-            style: const TextStyle(color: Colors.white54)),
+            style: TextStyle(color: t.textSecondary)),
       );
     }
     final photo = _photoImage;
     final data = _data;
     if (photo == null || data == null) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+      return Center(
+        child:
+            CircularProgressIndicator(color: t.textPrimary, strokeWidth: 2),
       );
     }
     final geo = computeFrameGeometry(
@@ -264,7 +272,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
             decoration: BoxDecoration(
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: t.glassShadow,
                   blurRadius: 24,
                   offset: const Offset(0, 8),
                 ),
@@ -286,7 +294,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
     );
   }
 
-  Widget _buildStylePicker(AppLocalizations l10n) {
+  Widget _buildStylePicker(AppLocalizations l10n, AppTokens t) {
     String label(FrameStyle s) => switch (s) {
           FrameStyle.bottomBar => l10n.frameStyleBottomBar,
           FrameStyle.fullBorder => l10n.frameStyleFullBorder,
@@ -309,15 +317,13 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                 decoration: BoxDecoration(
-                  color: _style == s
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.08),
+                  color: _style == s ? t.textPrimary : t.surfaceElevated,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   label(s),
                   style: TextStyle(
-                    color: _style == s ? Colors.black : Colors.white70,
+                    color: _style == s ? t.surfaceBase : t.textSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -329,13 +335,14 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
     );
   }
 
-  Widget _buildSliders(AppLocalizations l10n) {
+  Widget _buildSliders(AppLocalizations l10n, AppTokens t) {
     final enabled = _photoImage != null && _busy.isEmpty;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
       child: Column(
         children: [
           _scaleRow(
+            t,
             l10n.frameTextSize,
             _textScale,
             0.7,
@@ -344,6 +351,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
           ),
           if (_style != FrameStyle.minimal)
             _scaleRow(
+              t,
               l10n.frameSize,
               _frameScale,
               0.6,
@@ -356,6 +364,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
   }
 
   Widget _scaleRow(
+    AppTokens t,
     String label,
     double value,
     double min,
@@ -368,17 +377,17 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
           width: 64,
           child: Text(
             label,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
+            style: TextStyle(color: t.textSecondary, fontSize: 12),
           ),
         ),
         Expanded(
           child: SliderTheme(
             data: SliderTheme.of(context).copyWith(
               trackHeight: 2,
-              activeTrackColor: Colors.white,
-              inactiveTrackColor: Colors.white24,
-              thumbColor: Colors.white,
-              overlayColor: Colors.white.withValues(alpha: 0.1),
+              activeTrackColor: t.textPrimary,
+              inactiveTrackColor: t.textTertiary,
+              thumbColor: t.textPrimary,
+              overlayColor: t.textPrimary.withValues(alpha: 0.1),
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
             ),
             child: Slider(
@@ -393,28 +402,28 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
     );
   }
 
-  Widget _buildActions(AppLocalizations l10n) {
+  Widget _buildActions(AppLocalizations l10n, AppTokens t) {
     final ready = _photoImage != null && _data != null && _busy.isEmpty;
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        20, 8, 20, 16 + MediaQuery.paddingOf(context).bottom),
+          20, 10, 20, 12 + MediaQuery.paddingOf(context).bottom),
       child: Row(
         children: [
           Expanded(
             child: OutlinedButton.icon(
               onPressed: ready ? _share : null,
               icon: _busy == 'share'
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                          strokeWidth: 2, color: t.textPrimary),
                     )
                   : const Icon(Icons.ios_share_rounded, size: 18),
               label: Text(l10n.frameShare),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.white24),
+                foregroundColor: t.textPrimary,
+                side: BorderSide(color: t.borderStrong),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -427,17 +436,17 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
             child: FilledButton.icon(
               onPressed: ready ? _save : null,
               icon: _busy == 'save'
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.black),
+                          strokeWidth: 2, color: t.surfaceBase),
                     )
                   : const Icon(Icons.download_rounded, size: 18),
               label: Text(l10n.frameSave),
               style: FilledButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
+                backgroundColor: t.textPrimary,
+                foregroundColor: t.surfaceBase,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
