@@ -302,5 +302,10 @@
   "frameSaved": "Saved to Photos",
   "frameSaveFailed": "Couldn't save frame",
   "frameTextSize": "Text",
-  "frameSize": "Frame"
+  "frameSize": "Frame",
+  "collageTitle": "Collage",
+  "collageAddPhotos": "Add",
+  "collageRows": "Rows",
+  "collageCols": "Cols",
+  "collageGap": "Gap"
 }

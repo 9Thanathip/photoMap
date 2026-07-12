@@ -790,4 +790,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get frameSize => 'Frame';
+
+  @override
+  String get collageTitle => 'Collage';
+
+  @override
+  String get collageAddPhotos => 'Add';
+
+  @override
+  String get collageRows => 'Rows';
+
+  @override
+  String get collageCols => 'Cols';
+
+  @override
+  String get collageGap => 'Gap';
 }

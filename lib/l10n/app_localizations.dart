@@ -1567,6 +1567,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Frame'**
   String get frameSize;
+
+  /// No description provided for @collageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Collage'**
+  String get collageTitle;
+
+  /// No description provided for @collageAddPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get collageAddPhotos;
+
+  /// No description provided for @collageRows.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows'**
+  String get collageRows;
+
+  /// No description provided for @collageCols.
+  ///
+  /// In en, this message translates to:
+  /// **'Cols'**
+  String get collageCols;
+
+  /// No description provided for @collageGap.
+  ///
+  /// In en, this message translates to:
+  /// **'Gap'**
+  String get collageGap;
 }
 
 class _AppLocalizationsDelegate

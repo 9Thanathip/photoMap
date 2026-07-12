@@ -17,6 +17,7 @@ class GalleryHeader extends StatelessWidget {
     required this.onAlbumTab,
     required this.onBack,
     required this.onFilterTap,
+    this.onCollageTap,
     this.isSelectMode = false,
     this.selectedCount = 0,
     this.totalCount = 0,
@@ -35,6 +36,7 @@ class GalleryHeader extends StatelessWidget {
   final VoidCallback onAlbumTab;
   final VoidCallback onBack;
   final VoidCallback onFilterTap;
+  final VoidCallback? onCollageTap;
   final bool isSelectMode;
   final int selectedCount;
   final int totalCount;
@@ -157,6 +159,19 @@ class GalleryHeader extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (onCollageTap != null) ...[
+                          GlassCard(
+                            onTap: onCollageTap,
+                            borderRadius: 100,
+                            padding: const EdgeInsets.all(10),
+                            child: Icon(
+                              Icons.dashboard_customize_outlined,
+                              size: 20,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          const Gap(8),
+                        ],
                         GlassCard(
                           onTap: onFilterTap,
                           borderRadius: 100,

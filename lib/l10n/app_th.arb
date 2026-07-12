@@ -276,5 +276,10 @@
   "frameSaved": "บันทึกลงรูปภาพแล้ว",
   "frameSaveFailed": "บันทึกเฟรมไม่สำเร็จ",
   "frameTextSize": "ตัวอักษร",
-  "frameSize": "เฟรม"
+  "frameSize": "เฟรม",
+  "collageTitle": "คอลลาจ",
+  "collageAddPhotos": "เพิ่มรูป",
+  "collageRows": "แถว",
+  "collageCols": "คอลัมน์",
+  "collageGap": "ช่องว่าง"
 }

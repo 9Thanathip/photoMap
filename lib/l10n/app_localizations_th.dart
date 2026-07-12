@@ -787,4 +787,19 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get frameSize => 'เฟรม';
+
+  @override
+  String get collageTitle => 'คอลลาจ';
+
+  @override
+  String get collageAddPhotos => 'เพิ่มรูป';
+
+  @override
+  String get collageRows => 'แถว';
+
+  @override
+  String get collageCols => 'คอลัมน์';
+
+  @override
+  String get collageGap => 'ช่องว่าง';
 }
