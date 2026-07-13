@@ -302,6 +302,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
   void _showPhotoOptions(BuildContext context, PhotoItem photo) {
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       builder: (ctx) => PhotoOptionsSheet(
         photo: photo,
         onFrame: photo.assetEntity?.type == AssetType.image

@@ -83,6 +83,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     final photos = ref.read(galleryStateProvider).allPhotos;
     return showModalBottomSheet<List<PhotoItem>>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: context.tokens.surfaceCard,
       isScrollControlled: true,
       builder: (_) => _PhotoPickerSheet(

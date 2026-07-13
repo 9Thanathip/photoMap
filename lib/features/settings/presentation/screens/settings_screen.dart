@@ -165,6 +165,7 @@ class SettingsScreen extends ConsumerWidget {
     final t = context.tokens;
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: t.surfaceCard,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
