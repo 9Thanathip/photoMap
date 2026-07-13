@@ -171,6 +171,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
   void _showSettings() {
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const SettingsSheet(),
     );

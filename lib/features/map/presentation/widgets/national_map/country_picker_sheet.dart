@@ -40,8 +40,14 @@ class _CountryPickerSheetState extends ConsumerState<CountryPickerSheet> {
     final notifier = ref.read(countryProvider.notifier);
     final filtered = _filter(state.available);
 
-    return SafeArea(
-      top: false,
+    final botPad = MediaQuery.paddingOf(context).bottom;
+
+    return Container(
+      padding: EdgeInsets.only(bottom: botPad),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

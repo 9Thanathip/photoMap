@@ -14,8 +14,10 @@ class MapActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconColor = isDark ? Colors.white : Colors.black87;
     return IconButton(
-      icon: Icon(icon, size: 20, color: Colors.black87),
+      icon: Icon(icon, size: 20, color: iconColor),
       onPressed: onTap,
       tooltip: tooltip,
     );

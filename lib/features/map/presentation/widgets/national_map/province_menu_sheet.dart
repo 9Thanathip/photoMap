@@ -24,14 +24,23 @@ class ProvinceMenuSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AppSheetHandle(title: provinceName),
-        Divider(
-          height: 1,
-          color: Theme.of(context).colorScheme.outlineVariant.withAlpha(80),
-        ),
+    final theme = Theme.of(context);
+    final botPad = MediaQuery.paddingOf(context).bottom;
+
+    return Container(
+      padding: EdgeInsets.only(bottom: botPad),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppSheetHandle(title: provinceName),
+          Divider(
+            height: 1,
+            color: theme.colorScheme.outlineVariant.withAlpha(80),
+          ),
         ListTile(
           leading: const Icon(Icons.map_outlined),
           title: Text(l10n.menuViewDistricts),
@@ -77,8 +86,8 @@ class ProvinceMenuSheet extends ConsumerWidget {
             _openPickCover(nav, notifier);
           },
         ),
-        SizedBox(height: MediaQuery.paddingOf(context).bottom + 8),
       ],
+    ),
     );
   }
 

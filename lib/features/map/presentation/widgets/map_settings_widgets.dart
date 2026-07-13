@@ -54,6 +54,7 @@ class SettingsSheet extends ConsumerWidget {
   }) {
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => ColorPickerSheet(
@@ -74,10 +75,10 @@ class SettingsSheet extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return Container(
-      margin: EdgeInsets.fromLTRB(16, 0, 16, botPad + 16),
+      padding: EdgeInsets.only(bottom: botPad),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -135,7 +136,9 @@ class SettingsSheet extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.55,
+                      ),
                       letterSpacing: -0.1,
                     ),
                   ),
@@ -169,14 +172,20 @@ class SettingsSheet extends ConsumerWidget {
                                 color: settings.strokeColor,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                                  color: theme.colorScheme.outline.withValues(
+                                    alpha: 0.3,
+                                  ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 6),
-                            Icon(Icons.chevron_right_rounded,
-                                size: 18,
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              size: 18,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.4,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -200,7 +209,9 @@ class SettingsSheet extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.55,
+                          ),
                         ),
                       ),
                     ],
@@ -209,10 +220,15 @@ class SettingsSheet extends ConsumerWidget {
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 3,
-                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 8,
+                      ),
+                      overlayShape: const RoundSliderOverlayShape(
+                        overlayRadius: 16,
+                      ),
                       activeTrackColor: theme.colorScheme.onSurface,
-                      inactiveTrackColor: theme.colorScheme.onSurface.withValues(alpha: 0.15),
+                      inactiveTrackColor: theme.colorScheme.onSurface
+                          .withValues(alpha: 0.15),
                       thumbColor: theme.colorScheme.onSurface,
                     ),
                     child: Slider(
@@ -222,7 +238,8 @@ class SettingsSheet extends ConsumerWidget {
                       divisions: 27,
                       onChanged: (v) {
                         final stepped = (v * 10).round() / 10;
-                        if (stepped != (settings.strokeWidth * 10).round() / 10) {
+                        if (stepped !=
+                            (settings.strokeWidth * 10).round() / 10) {
                           HapticFeedback.selectionClick();
                         }
                         notifier.updateStrokeWidth(v);
@@ -255,7 +272,9 @@ class ColorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark =
         ThemeData.estimateBrightnessForColor(color) == Brightness.dark;
-    final textColor = isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black54;
+    final textColor = isDark
+        ? Colors.white.withValues(alpha: 0.9)
+        : Colors.black54;
 
     return GestureDetector(
       onTap: onTap,
@@ -294,7 +313,9 @@ class ColorCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12),
+                  color: (isDark ? Colors.white : Colors.black).withValues(
+                    alpha: 0.12,
+                  ),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(Icons.colorize_rounded, size: 14, color: textColor),
@@ -343,15 +364,10 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.fromLTRB(
-        16,
-        0,
-        16,
-        MediaQuery.paddingOf(context).bottom + 16,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -506,8 +522,7 @@ class _HsvPickerState extends State<_HsvPicker> {
     super.didUpdateWidget(oldWidget);
     // Sync if the parent swapped in a different color (e.g. preset selected
     // again before opening the custom picker).
-    if (oldWidget.color != widget.color &&
-        widget.color != _hsv.toColor()) {
+    if (oldWidget.color != widget.color && widget.color != _hsv.toColor()) {
       _hsv = HSVColor.fromColor(widget.color);
     }
   }
@@ -548,9 +563,7 @@ class _HsvPickerState extends State<_HsvPicker> {
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(
-                color: onSurface.withValues(alpha: 0.08),
-              ),
+              border: Border.all(color: onSurface.withValues(alpha: 0.08)),
               boxShadow: [
                 BoxShadow(
                   color: color.withValues(alpha: 0.38),
@@ -737,16 +750,15 @@ class _ChannelSlider extends StatelessWidget {
                       height: _trackHeight,
                       decoration: BoxDecoration(
                         gradient: trackGradient,
-                        borderRadius:
-                            BorderRadius.circular(_trackHeight / 2),
+                        borderRadius: BorderRadius.circular(_trackHeight / 2),
                         border: Border.all(
                           color: onSurface.withValues(alpha: 0.06),
                         ),
                       ),
                     ),
                     Positioned(
-                      left: (width - _thumbRadius * 2) *
-                          position.clamp(0.0, 1.0),
+                      left:
+                          (width - _thumbRadius * 2) * position.clamp(0.0, 1.0),
                       child: _Thumb(color: thumbColor, radius: _thumbRadius),
                     ),
                   ],

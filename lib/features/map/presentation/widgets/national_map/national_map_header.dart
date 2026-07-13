@@ -10,6 +10,9 @@ class NationalMapHeader extends ConsumerWidget {
   void _openPicker(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => const CountryPickerSheet(),
     );
   }
@@ -21,6 +24,11 @@ class NationalMapHeader extends ConsumerWidget {
     final countryName = isThai && country.nameTh.isNotEmpty
         ? country.nameTh
         : country.nameEn;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final iconColor = isDark
+        ? Colors.white.withValues(alpha: 0.75)
+        : Colors.black.withValues(alpha: 0.55);
 
     return GestureDetector(
       onTap: () => _openPicker(context),
@@ -32,15 +40,15 @@ class NationalMapHeader extends ConsumerWidget {
             Icon(
               Icons.map_outlined,
               size: 15,
-              color: Colors.black.withValues(alpha: 0.55),
+              color: iconColor,
             ),
             const SizedBox(width: 6),
             Text(
               countryName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: textColor,
                 letterSpacing: 0.2,
               ),
             ),
@@ -48,7 +56,7 @@ class NationalMapHeader extends ConsumerWidget {
             Icon(
               Icons.expand_more_rounded,
               size: 16,
-              color: Colors.black.withValues(alpha: 0.55),
+              color: iconColor,
             ),
           ],
         ),

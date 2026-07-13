@@ -22,6 +22,8 @@ class NationalMapActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dividerColor = (isDark ? Colors.white : Colors.black).withValues(alpha: 0.12);
     return GlassCard(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
@@ -35,7 +37,7 @@ class NationalMapActions extends StatelessWidget {
           Divider(
             height: 1,
             thickness: 0.5,
-            color: Colors.black.withValues(alpha: 0.08),
+            color: dividerColor,
           ),
           MapActionButton(
             icon: Icons.center_focus_strong_outlined,
@@ -45,7 +47,7 @@ class NationalMapActions extends StatelessWidget {
           Divider(
             height: 1,
             thickness: 0.5,
-            color: Colors.black.withValues(alpha: 0.08),
+            color: dividerColor,
           ),
           MapActionButton(
             icon: isDownloading ? Icons.hourglass_top_rounded : Icons.download_rounded,
@@ -55,7 +57,7 @@ class NationalMapActions extends StatelessWidget {
           Divider(
             height: 1,
             thickness: 0.5,
-            color: Colors.black.withValues(alpha: 0.08),
+            color: dividerColor,
           ),
           MapActionButton(
             icon: Icons.ios_share,
