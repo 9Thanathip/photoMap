@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../widgets/auth_brand_mark.dart';
@@ -90,7 +89,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPressed: () => context.go('/login'),
                 child: Text(
                   l10n.buttonSkip,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: t.textSecondary,
@@ -215,7 +214,7 @@ class _OnboardingPage extends StatelessWidget {
           const Gap(48),
           Text(
             data.title,
-            style: GoogleFonts.poppins(
+            style: TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.bold,
               height: 1.15,
@@ -226,7 +225,7 @@ class _OnboardingPage extends StatelessWidget {
           const Gap(16),
           Text(
             data.description,
-            style: GoogleFonts.inter(
+            style: TextStyle(
               fontSize: 15,
               height: 1.6,
               color: t.textSecondary,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 
 /// App icon + "Jaruek" wordmark — the same lockup as the splash screen,
@@ -29,7 +28,7 @@ class AuthBrandMark extends StatelessWidget {
         Gap(iconSize * 0.28),
         Text(
           'Jaruek',
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             fontSize: labelSize,
             fontWeight: FontWeight.bold,
             letterSpacing: -0.5,

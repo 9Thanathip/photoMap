@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'achievements_stats.dart';
 import 'gold_text.dart';
@@ -43,7 +42,7 @@ class CountryPills extends StatelessWidget {
               ),
               child: Text(
                 c != 'Thailand' && count > 0 ? '$c · $count' : c,
-                style: GoogleFonts.poppins(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: sel ? FontWeight.w600 : FontWeight.w500,
                   color: sel ? context.tokens.textOnAccent : context.dim(0.55, 0.55),

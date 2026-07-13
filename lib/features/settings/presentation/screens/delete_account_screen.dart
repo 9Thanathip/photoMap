@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -39,7 +38,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
         backgroundColor: t.surfaceBase,
         title: Text(
           l10n.profileManageAccount,
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: t.textPrimary,
@@ -68,7 +67,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
           Text(
             l10n.deleteAccountTitle,
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: t.textPrimary,
@@ -78,7 +77,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
           Text(
             l10n.deleteAccountIntro,
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
+            style: TextStyle(
               fontSize: 14,
               height: 1.5,
               color: t.textSecondary,
@@ -109,7 +108,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                       Expanded(
                         child: Text(
                           consequences[i],
-                          style: GoogleFonts.inter(
+                          style: TextStyle(
                             fontSize: 13,
                             height: 1.45,
                             color: t.textPrimary,
@@ -139,7 +138,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                   Expanded(
                     child: Text(
                       l10n.deleteAccountAcknowledge,
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         fontSize: 13,
                         height: 1.4,
                         color: t.textPrimary,
@@ -175,7 +174,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                     )
                   : Text(
                       l10n.deleteAccountButton,
-                      style: GoogleFonts.poppins(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -189,7 +188,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
               onPressed: isLoading ? null : () => Navigator.pop(context),
               child: Text(
                 l10n.commonCancel,
-                style: GoogleFonts.inter(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: t.textSecondary,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/providers/theme_provider.dart';
@@ -33,7 +32,7 @@ class SettingsScreen extends ConsumerWidget {
           // ── Header ──
           Text(
             l10n.settingsTitle,
-            style: GoogleFonts.inter(
+            style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w700,
               color: t.textPrimary,
@@ -42,7 +41,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 2),
           Text(
             l10n.settingsSubtitle,
-            style: GoogleFonts.inter(fontSize: 14, color: t.textSecondary),
+            style: TextStyle(fontSize: 14, color: t.textSecondary),
           ),
           const SizedBox(height: 28),
 
@@ -65,7 +64,7 @@ class SettingsScreen extends ConsumerWidget {
                         const SizedBox(width: 12),
                         Text(
                           l10n.appTheme,
-                          style: GoogleFonts.inter(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: t.textPrimary,
@@ -100,7 +99,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: l10n.settingsLanguage,
                 trailing: Text(
                   _localeLabel(l10n, locale),
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontSize: 13,
                     color: t.textSecondary,
                   ),
@@ -136,7 +135,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: l10n.settingsVersion,
                 trailing: Text(
                   '1.0.0',
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontSize: 13,
                     color: t.textSecondary,
                   ),
@@ -185,7 +184,7 @@ class SettingsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
                 child: Text(
                   l10n.settingsLanguage,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                     color: t.textPrimary,
@@ -196,7 +195,7 @@ class SettingsScreen extends ConsumerWidget {
                 ListTile(
                   title: Text(
                     label,
-                    style: GoogleFonts.inter(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                       color: t.textPrimary,
@@ -231,7 +230,7 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4),
       child: Text(
         title.toUpperCase(),
-        style: GoogleFonts.inter(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.4,
@@ -293,7 +292,7 @@ class _SettingsTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.inter(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: t.textPrimary,
@@ -350,7 +349,7 @@ class _ProfileTile extends StatelessWidget {
               ),
               child: Text(
                 initial,
-                style: GoogleFonts.inter(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: t.textPrimary,
@@ -366,7 +365,7 @@ class _ProfileTile extends StatelessWidget {
                     name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: t.textPrimary,
@@ -378,7 +377,7 @@ class _ProfileTile extends StatelessWidget {
                       email,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         fontSize: 12,
                         color: t.textSecondary,
                       ),
@@ -511,7 +510,7 @@ class _ThemeOption extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 label,
-                style: GoogleFonts.inter(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   color: selected ? t.textPrimary : t.textSecondary,

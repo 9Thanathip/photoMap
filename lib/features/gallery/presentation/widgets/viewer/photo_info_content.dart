@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart' hide LatLng;
-import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:photo_map/core/theme/app_palette.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
@@ -111,7 +110,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                   children: [
                     Text(
                       _formatDate(photo.timestamp, l10n),
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -121,7 +120,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                       const SizedBox(height: 2),
                       Text(
                         asset!.title!,
-                        style: GoogleFonts.inter(
+                        style: TextStyle(
                           fontSize: 13,
                           color: Colors.white54,
                         ),
@@ -175,7 +174,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                             children: [
                               Text(
                                 camera,
-                                style: GoogleFonts.inter(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
@@ -183,7 +182,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                               ),
                               Text(
                                 lens,
-                                style: GoogleFonts.inter(
+                                style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.white54,
                                 ),
@@ -290,7 +289,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                               children: [
                                 Text(
                                   title.isNotEmpty ? title : l10n.locationLabel,
-                                  style: GoogleFonts.inter(
+                                  style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
@@ -302,7 +301,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                                   const SizedBox(height: 2),
                                   Text(
                                     subtitle,
-                                    style: GoogleFonts.inter(
+                                    style: TextStyle(
                                       color: Colors.white70,
                                       fontSize: 13,
                                     ),
@@ -321,7 +320,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                                     const SizedBox(width: 4),
                                     Text(
                                       hint,
-                                      style: GoogleFonts.inter(
+                                      style: TextStyle(
                                         color: Colors.white54,
                                         fontSize: 11,
                                       ),
@@ -358,7 +357,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
         children: [
           Text(
             label,
-            style: GoogleFonts.inter(
+            style: TextStyle(
               fontSize: 11,
               color: Colors.grey,
               fontWeight: FontWeight.w600,
@@ -368,7 +367,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
           const SizedBox(height: 4),
           Text(
             value,
-            style: GoogleFonts.inter(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Colors.white,

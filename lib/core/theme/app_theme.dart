@@ -1,9 +1,15 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 import 'app_tokens.dart';
 
 abstract final class AppTheme {
+  /// The platform system UI font — San Francisco on Apple, Roboto (null =
+  /// Flutter default) on Android — so the app reads as native, not Google-web.
+  static final String? _systemFont =
+      (Platform.isIOS || Platform.isMacOS) ? '.SF Pro Text' : null;
+
   static ThemeData light() => _build(
         ColorScheme.fromSeed(seedColor: AppColors.seed, brightness: Brightness.light),
         AppTokens.light(),
@@ -26,16 +32,20 @@ abstract final class AppTheme {
       secondary: mono,
       onSecondary: onMono,
     );
-    final base = ThemeData(useMaterial3: true, colorScheme: cs);
+    final base = ThemeData(
+      useMaterial3: true,
+      colorScheme: cs,
+      fontFamily: _systemFont,
+    );
     return base.copyWith(
       extensions: <ThemeExtension<dynamic>>[tokens],
-      textTheme: GoogleFonts.poppinsTextTheme(base.textTheme),
       appBarTheme: AppBarTheme(
         backgroundColor: cs.surface,
         foregroundColor: cs.onSurface,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: TextStyle(
+          fontFamily: _systemFont,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: cs.onSurface,
@@ -43,7 +53,10 @@ abstract final class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         labelTextStyle: WidgetStateProperty.all(
-          GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w500),
+          TextStyle(
+              fontFamily: _systemFont,
+              fontSize: 11,
+              fontWeight: FontWeight.w500),
         ),
         height: 68,
       ),
@@ -79,7 +92,10 @@ abstract final class AppTheme {
           minimumSize: const Size(double.infinity, 52),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 0,
-          textStyle: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: TextStyle(
+              fontFamily: _systemFont,
+              fontSize: 16,
+              fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -87,7 +103,10 @@ abstract final class AppTheme {
           minimumSize: const Size(double.infinity, 52),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           side: BorderSide(color: cs.outline),
-          textStyle: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
+          textStyle: TextStyle(
+              fontFamily: _systemFont,
+              fontSize: 16,
+              fontWeight: FontWeight.w500),
         ),
       ),
       cardTheme: CardThemeData(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
@@ -318,7 +317,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(10, 12, 10, 4),
               child: Text(label(key),
-                  style: GoogleFonts.poppins(
+                  style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: theme.colorScheme.onSurface)),

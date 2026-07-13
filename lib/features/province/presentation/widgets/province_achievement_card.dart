@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/core/theme/app_palette.dart';
@@ -125,7 +124,7 @@ class _CardRow extends StatelessWidget {
                 ? GoldText(name, fontSize: 13, fontWeight: FontWeight.w600)
                 : Text(
                     name,
-                    style: GoogleFonts.poppins(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: visited ? FontWeight.w600 : FontWeight.w400,
                       color: visited
@@ -241,7 +240,7 @@ class _CardExpanded extends StatelessWidget {
                           alignment: Alignment.center,
                           child: Text(
                             '+${photos.length - 5}',
-                            style: GoogleFonts.poppins(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                               color: context.tokens.accentVioletText,
@@ -272,7 +271,7 @@ class _CardExpanded extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(AppLocalizations.of(context).viewAll,
-                              style: GoogleFonts.poppins(
+                              style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.black)),

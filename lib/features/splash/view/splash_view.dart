@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class SplashView extends StatelessWidget {
   const SplashView({super.key});
@@ -27,7 +26,7 @@ class SplashView extends StatelessWidget {
             const Gap(20),
             Text(
               'Jaruek',
-              style: GoogleFonts.poppins(
+              style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
                 letterSpacing: -0.5,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../common_widgets/app_button.dart';
 import '../../../../common_widgets/app_text_field.dart';
@@ -61,7 +60,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const Gap(36),
                 Text(
                   l10n.loginWelcomeBack,
-                  style: GoogleFonts.poppins(
+                  style: TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
                     height: 1.1,
@@ -71,7 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const Gap(8),
                 Text(
                   l10n.loginSubtitle,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontSize: 15,
                     color: t.textSecondary,
                   ),
@@ -134,14 +133,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: RichText(
                       text: TextSpan(
                         text: l10n.loginNoAccount,
-                        style: GoogleFonts.inter(
+                        style: TextStyle(
                           fontSize: 14,
                           color: t.textSecondary,
                         ),
                         children: [
                           TextSpan(
                             text: l10n.buttonRegister,
-                            style: GoogleFonts.inter(
+                            style: TextStyle(
                               fontSize: 14,
                               color: t.accentGoldDeep,
                               fontWeight: FontWeight.w700,

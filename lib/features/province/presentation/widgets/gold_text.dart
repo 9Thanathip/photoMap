@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_palette.dart';
 
 // Aliases kept for `const` usage sites (AlwaysStoppedAnimation, BoxDecoration).
@@ -24,7 +23,7 @@ class GoldText extends StatelessWidget {
       ).createShader(b),
       child: Text(
         text,
-        style: GoogleFonts.poppins(
+        style: TextStyle(
           fontSize: fontSize,
           fontWeight: fontWeight,
           color: Colors.white,

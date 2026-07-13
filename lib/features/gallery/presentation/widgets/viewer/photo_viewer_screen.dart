@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart' hide LatLng;
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -516,7 +515,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                   const Spacer(),
                   Text(
                     '${_currentIndex + 1} / ${_photos.length}',
-                    style: GoogleFonts.inter(
+                    style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.85),
                       fontSize: 13,
                       fontWeight: FontWeight.w500,

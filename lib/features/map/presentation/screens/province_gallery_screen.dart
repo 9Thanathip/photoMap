@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
@@ -333,7 +332,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
               child: Text(
                 _getLabel(key, _viewMode,
                     AppLocalizations.of(context).monthsShort),
-                style: GoogleFonts.poppins(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: theme.colorScheme.onSurface,

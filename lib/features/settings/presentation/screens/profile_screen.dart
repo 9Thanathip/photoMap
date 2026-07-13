@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -30,7 +29,7 @@ class ProfileScreen extends ConsumerWidget {
         backgroundColor: t.surfaceBase,
         title: Text(
           l10n.profileTitle,
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: t.textPrimary,
@@ -53,7 +52,7 @@ class ProfileScreen extends ConsumerWidget {
                 title: l10n.profileAccountStatus,
                 trailing: Text(
                   verified ? l10n.profileVerified : l10n.profileUnverified,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: verified ? t.textPrimary : t.textSecondary,
@@ -149,7 +148,7 @@ class _ProfileHeader extends StatelessWidget {
           ),
           child: Text(
             initial,
-            style: GoogleFonts.poppins(
+            style: TextStyle(
               fontSize: 38,
               fontWeight: FontWeight.w700,
               color: t.textOnAccent,
@@ -161,7 +160,7 @@ class _ProfileHeader extends StatelessWidget {
           name,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: t.textPrimary,
@@ -173,7 +172,7 @@ class _ProfileHeader extends StatelessWidget {
             email,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(fontSize: 14, color: t.textSecondary),
+            style: TextStyle(fontSize: 14, color: t.textSecondary),
           ),
         ],
         const SizedBox(height: 12),
@@ -197,7 +196,7 @@ class _ProfileHeader extends StatelessWidget {
                 verified
                     ? AppLocalizations.of(context).profileVerifiedAccount
                     : AppLocalizations.of(context).profileUnverified,
-                style: GoogleFonts.inter(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: verified ? t.textPrimary : t.textSecondary,
@@ -223,7 +222,7 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4),
       child: Text(
         title.toUpperCase(),
-        style: GoogleFonts.inter(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.4,
@@ -295,7 +294,7 @@ class _ActionTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.inter(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: t.textPrimary,
@@ -305,7 +304,7 @@ class _ActionTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle!,
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         fontSize: 12,
                         color: t.textSecondary,
                       ),

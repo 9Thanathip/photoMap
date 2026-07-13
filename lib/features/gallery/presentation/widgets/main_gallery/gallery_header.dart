@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 
@@ -81,7 +80,7 @@ class GalleryHeader extends StatelessWidget {
                         ? l10n.selectItems
                         : l10n.selectedCount(selectedCount),
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -140,7 +139,7 @@ class GalleryHeader extends StatelessWidget {
                   child: Text(
                     title,
                     key: ValueKey(title),
-                    style: GoogleFonts.poppins(
+                    style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w700,
                       color: theme.colorScheme.onSurface,
@@ -193,7 +192,7 @@ class GalleryHeader extends StatelessWidget {
                             ),
                             child: Text(
                               l10n.commonSelect,
-                              style: GoogleFonts.poppins(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: theme.colorScheme.onSurface,
@@ -247,7 +246,7 @@ class _TabToggle extends StatelessWidget {
       onTap: onTap,
       child: Text(
         label,
-        style: GoogleFonts.poppins(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
           color: selected

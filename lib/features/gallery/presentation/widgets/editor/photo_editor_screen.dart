@@ -2,7 +2,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
@@ -220,7 +219,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           ),
           Text(
             _mode == _EditMode.presets ? l10n.editorPresets : l10n.editorAdjust,
-            style: GoogleFonts.poppins(
+            style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w500,
               fontSize: 16,
@@ -356,7 +355,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
               children: [
                 Text(
                   preset.id,
-                  style: GoogleFonts.manrope(
+                  style: TextStyle(
                     color: isSelected ? Colors.white : Colors.white54,
                     fontSize: 16,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
@@ -52,7 +51,7 @@ class ViewModeSheet extends StatelessWidget {
             ...ViewMode.values.map(
               (m) => ListTile(
                 title: Text(l10n.viewModeLabel(m),
-                    style: GoogleFonts.poppins(fontSize: 14)),
+                    style: TextStyle(fontSize: 14)),
                 trailing: currentMode == m
                     ? Icon(
                         Icons.check_rounded,

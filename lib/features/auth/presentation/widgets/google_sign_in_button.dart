@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
@@ -28,7 +27,7 @@ class GoogleSignInButton extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Text(
                 l10n.authOrDivider,
-                style: GoogleFonts.inter(
+                style: TextStyle(
                   fontSize: 13,
                   color: t.textSecondary,
                 ),
@@ -69,7 +68,7 @@ class GoogleSignInButton extends ConsumerWidget {
                       const Gap(12),
                       Text(
                         l10n.buttonContinueWithGoogle,
-                        style: GoogleFonts.poppins(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: t.textPrimary,

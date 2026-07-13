@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../common_widgets/app_button.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../auth_error_l10n.dart';
@@ -110,7 +109,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
               const Gap(24),
               Text(
                 l10n.verifyTitle,
-                style: GoogleFonts.poppins(
+                style: TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
                   height: 1.1,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
@@ -149,7 +148,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                   // ── Header ──
                   Text(
                     l10n.placesTitle,
-                    style: GoogleFonts.inter(
+                    style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w700,
                       color: tp,
@@ -158,7 +157,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                   const SizedBox(height: 2),
                   Text(
                     l10n.provincesExplored(visitedCount, total),
-                    style: GoogleFonts.inter(fontSize: 14, color: ts),
+                    style: TextStyle(fontSize: 14, color: ts),
                   ),
 
                   if (countries.length > 1) ...[
@@ -188,7 +187,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                       children: [
                         Text(
                           '$pct%',
-                          style: GoogleFonts.inter(
+                          style: TextStyle(
                             fontSize: 52,
                             fontWeight: FontWeight.w700,
                             color: tp,
@@ -198,7 +197,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                         const SizedBox(height: 6),
                         Text(
                           l10n.provincesProgress(visitedCount, total),
-                          style: GoogleFonts.inter(fontSize: 13, color: ts),
+                          style: TextStyle(fontSize: 13, color: ts),
                         ),
                         const SizedBox(height: 16),
                         ClipRRect(
@@ -277,7 +276,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                         Expanded(
                           child: Text(
                             name,
-                            style: GoogleFonts.inter(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: visited
                                   ? FontWeight.w600
@@ -289,7 +288,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                         if (visited && count > 0) ...[
                           Text(
                             '$count',
-                            style: GoogleFonts.inter(fontSize: 12, color: ts),
+                            style: TextStyle(fontSize: 12, color: ts),
                           ),
                           const SizedBox(width: 4),
                           Icon(

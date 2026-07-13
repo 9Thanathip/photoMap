@@ -5,7 +5,6 @@ import 'core/providers/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'dart:ui' as ui;
-import 'package:google_fonts/google_fonts.dart';
 import 'l10n/app_localizations.dart';
 import 'features/gallery/presentation/providers/gallery_notifier.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
@@ -128,7 +127,7 @@ class _SetupOverlayWrapperState extends ConsumerState<SetupOverlayWrapper> {
                                         Text(
                                           AppLocalizations.of(context)
                                               .setupPreparingAtlas,
-                                          style: GoogleFonts.inter(
+                                          style: TextStyle(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.white,
@@ -142,7 +141,7 @@ class _SetupOverlayWrapperState extends ConsumerState<SetupOverlayWrapper> {
                                             gallery.geocodeTotal,
                                           ),
                                           textAlign: TextAlign.center,
-                                          style: GoogleFonts.inter(
+                                          style: TextStyle(
                                             fontSize: 13,
                                             color: Colors.white70,
                                           ),
@@ -181,7 +180,7 @@ class _SetupOverlayWrapperState extends ConsumerState<SetupOverlayWrapper> {
                                                 const SizedBox(height: 12),
                                                 Text(
                                                   '${(value * 100).toStringAsFixed(0)}%',
-                                                  style: GoogleFonts.inter(
+                                                  style: TextStyle(
                                                     fontSize: 16,
                                                     fontWeight: FontWeight.w600,
                                                     color: Colors.white,
@@ -196,7 +195,7 @@ class _SetupOverlayWrapperState extends ConsumerState<SetupOverlayWrapper> {
                                           AppLocalizations.of(context)
                                               .setupFirstLaunchNote,
                                           textAlign: TextAlign.center,
-                                          style: GoogleFonts.inter(
+                                          style: TextStyle(
                                             fontSize: 11,
                                             color: Colors.white38,
                                             height: 1.4,

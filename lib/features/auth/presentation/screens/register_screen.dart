@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../common_widgets/app_button.dart';
 import '../../../../common_widgets/app_text_field.dart';
@@ -76,7 +75,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const Gap(32),
                 Text(
                   l10n.registerTitle,
-                  style: GoogleFonts.poppins(
+                  style: TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
                     height: 1.1,
@@ -86,7 +85,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const Gap(8),
                 Text(
                   l10n.registerSubtitle,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontSize: 15,
                     color: t.textSecondary,
                   ),
@@ -207,14 +206,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: RichText(
                       text: TextSpan(
                         text: l10n.registerHaveAccount,
-                        style: GoogleFonts.inter(
+                        style: TextStyle(
                           fontSize: 14,
                           color: t.textSecondary,
                         ),
                         children: [
                           TextSpan(
                             text: l10n.buttonSignIn,
-                            style: GoogleFonts.inter(
+                            style: TextStyle(
                               fontSize: 14,
                               color: t.accentGoldDeep,
                               fontWeight: FontWeight.w700,
