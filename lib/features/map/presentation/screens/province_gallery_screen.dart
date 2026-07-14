@@ -95,7 +95,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
     final isPickMode = widget.onPickCover != null;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
+      backgroundColor: context.tokens.surfaceBase,
       body: Stack(
         children: [
           // Content
@@ -180,9 +180,9 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                                  theme.colorScheme.surface.withValues(alpha: 0.85),
-                                  theme.colorScheme.surface.withValues(alpha: 0.55),
-                                  theme.colorScheme.surface.withValues(alpha: 0.0),
+                                  context.tokens.surfaceBase.withValues(alpha: 0.85),
+                                  context.tokens.surfaceBase.withValues(alpha: 0.55),
+                                  context.tokens.surfaceBase.withValues(alpha: 0.0),
                                 ],
                                 stops: const [0.0, 0.55, 1.0],
                               ),
@@ -199,9 +199,9 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    theme.colorScheme.surface,
-                                    theme.colorScheme.surface,
-                                    theme.colorScheme.surface.withAlpha(0),
+                                    context.tokens.surfaceBase,
+                                    context.tokens.surfaceBase,
+                                    context.tokens.surfaceBase.withAlpha(0),
                                   ],
                                   stops: const [0.0, 0.72, 1.0],
                                 ),

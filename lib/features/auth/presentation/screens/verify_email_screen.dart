@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:gap/gap.dart';
 import '../../../../common_widgets/app_button.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -94,6 +95,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     );
 
     return Scaffold(
+      backgroundColor: context.tokens.surfaceBase,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),

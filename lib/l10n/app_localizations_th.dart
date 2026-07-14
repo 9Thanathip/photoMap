@@ -798,6 +798,21 @@ class AppLocalizationsTh extends AppLocalizations {
   String get collageColorSort => 'ไล่โทนสี';
 
   @override
+  String get achExplorerLabel => 'นักสำรวจ';
+
+  @override
+  String get achExplorerSubtitle => 'สำรวจจังหวัด';
+
+  @override
+  String get achExplored => 'สำรวจแล้ว';
+
+  @override
+  String get achProvincesVisited => 'จังหวัดที่ไป';
+
+  @override
+  String get achLeftToExplore => 'ยังไม่ได้ไป';
+
+  @override
   String collagePickerHint(int filled, int total) {
     return 'กริด $filled/$total ช่องเต็ม';
   }

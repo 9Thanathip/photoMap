@@ -6,6 +6,7 @@ import 'package:photo_map/features/gallery/presentation/providers/gallery_notifi
 import 'package:photo_map/features/map/presentation/screens/province_gallery_screen.dart';
 import '../widgets/achievements_stats.dart';
 import '../widgets/country_pills.dart';
+import '../widgets/province_progress_card.dart';
 
 const Map<String, int> _kDistrictCount = {
   'Amnat Charoen': 7,
@@ -125,8 +126,6 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
 
     final visitedCount = allProvinces.where(visitedSet.contains).length;
     final total = allProvinces.length;
-    final progress = total == 0 ? 0.0 : visitedCount / total;
-    final pct = (progress * 100).toStringAsFixed(0);
 
     final bgColor = t.surfaceBase;
     final cardBg = t.surfaceCard;
@@ -172,45 +171,10 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                   const SizedBox(height: 20),
 
                   // ── Progress card ──
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 24,
-                    ),
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: borderC),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          '$pct%',
-                          style: TextStyle(
-                            fontSize: 52,
-                            fontWeight: FontWeight.w700,
-                            color: tp,
-                            height: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          l10n.provincesProgress(visitedCount, total),
-                          style: TextStyle(fontSize: 13, color: ts),
-                        ),
-                        const SizedBox(height: 16),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(3),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 5,
-                            backgroundColor: tt.withValues(alpha: 0.2),
-                            valueColor: AlwaysStoppedAnimation(tp),
-                          ),
-                        ),
-                      ],
-                    ),
+                  ProvinceProgressCard(
+                    country: _country,
+                    visited: visitedCount,
+                    total: total,
                   ),
                   const SizedBox(height: 28),
                 ],

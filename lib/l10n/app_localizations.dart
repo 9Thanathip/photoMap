@@ -1586,6 +1586,36 @@ abstract class AppLocalizations {
   /// **'Color gradient'**
   String get collageColorSort;
 
+  /// No description provided for @achExplorerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer'**
+  String get achExplorerLabel;
+
+  /// No description provided for @achExplorerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Province Explorer'**
+  String get achExplorerSubtitle;
+
+  /// No description provided for @achExplored.
+  ///
+  /// In en, this message translates to:
+  /// **'explored'**
+  String get achExplored;
+
+  /// No description provided for @achProvincesVisited.
+  ///
+  /// In en, this message translates to:
+  /// **'provinces visited'**
+  String get achProvincesVisited;
+
+  /// No description provided for @achLeftToExplore.
+  ///
+  /// In en, this message translates to:
+  /// **'left to explore'**
+  String get achLeftToExplore;
+
   /// No description provided for @collagePickerHint.
   ///
   /// In en, this message translates to:

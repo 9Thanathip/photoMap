@@ -306,6 +306,11 @@
   "collageTitle": "Collage",
   "collageAddPhotos": "Add",
   "collageColorSort": "Color gradient",
+  "achExplorerLabel": "Explorer",
+  "achExplorerSubtitle": "Province Explorer",
+  "achExplored": "explored",
+  "achProvincesVisited": "provinces visited",
+  "achLeftToExplore": "left to explore",
   "collagePickerHint": "Grid {filled}/{total} filled",
   "@collagePickerHint": {
     "placeholders": {

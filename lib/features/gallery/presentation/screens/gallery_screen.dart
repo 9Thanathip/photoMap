@@ -69,6 +69,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     return Scaffold(
+      backgroundColor: context.tokens.surfaceBase,
       body: Stack(
         children: [
           NotificationListener<ScrollNotification>(
@@ -103,9 +104,9 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        theme.colorScheme.surface,
-                        theme.colorScheme.surface,
-                        theme.colorScheme.surface.withValues(alpha: 0),
+                        context.tokens.surfaceBase,
+                        context.tokens.surfaceBase,
+                        context.tokens.surfaceBase.withValues(alpha: 0),
                       ],
                       stops: const [0.0, 0.72, 1.0],
                     ),

@@ -801,6 +801,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collageColorSort => 'Color gradient';
 
   @override
+  String get achExplorerLabel => 'Explorer';
+
+  @override
+  String get achExplorerSubtitle => 'Province Explorer';
+
+  @override
+  String get achExplored => 'explored';
+
+  @override
+  String get achProvincesVisited => 'provinces visited';
+
+  @override
+  String get achLeftToExplore => 'left to explore';
+
+  @override
   String collagePickerHint(int filled, int total) {
     return 'Grid $filled/$total filled';
   }
