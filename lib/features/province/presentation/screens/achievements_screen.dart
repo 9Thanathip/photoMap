@@ -4,6 +4,7 @@ import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/features/map/presentation/screens/province_gallery_screen.dart';
+import 'package:photo_map/features/auth/presentation/providers/auth_provider.dart';
 import '../widgets/achievements_stats.dart';
 import '../widgets/country_pills.dart';
 import '../widgets/province_progress_card.dart';
@@ -101,6 +102,11 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final photos = ref.watch(galleryStateProvider).allPhotos;
+    final auth = ref.watch(authNotifierProvider);
+    final email = auth.email ?? '';
+    final userName = (auth.displayName?.trim().isNotEmpty ?? false)
+        ? auth.displayName!.trim()
+        : (email.contains('@') ? email.split('@').first : l10n.defaultUserName);
     final topPad = MediaQuery.paddingOf(context).top;
     final dark = context.isDark;
     final t = context.tokens;
@@ -175,6 +181,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                     country: _country,
                     visited: visitedCount,
                     total: total,
+                    userName: userName,
                   ),
                   const SizedBox(height: 28),
                 ],

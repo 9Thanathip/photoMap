@@ -14,11 +14,13 @@ class ProvinceProgressCard extends StatelessWidget {
     required this.country,
     required this.visited,
     required this.total,
+    this.userName,
   });
 
   final String country;
   final int visited;
   final int total;
+  final String? userName;
 
   @override
   Widget build(BuildContext context) {
@@ -96,8 +98,16 @@ class ProvinceProgressCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        l10n.achExplorerSubtitle,
-                        style: TextStyle(fontSize: 13, color: t.textSecondary),
+                        (userName != null && userName!.isNotEmpty)
+                            ? userName!
+                            : l10n.achExplorerSubtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: t.textSecondary,
+                        ),
                       ),
                     ],
                   ),
