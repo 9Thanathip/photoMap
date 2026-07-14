@@ -67,5 +67,6 @@ flutter:
   assets:
     - assets/icon.png
     - assets/data/thailand.json
+    - assets/data/national_parks.json
     - assets/data/districts_full.geojson
     - assets/data/districts/

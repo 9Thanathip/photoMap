@@ -6,6 +6,7 @@ import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../park/presentation/screens/national_parks_poc_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -119,6 +120,25 @@ class SettingsScreen extends ConsumerWidget {
                 name: name,
                 email: email,
                 onTap: () => context.push('/profile'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 22),
+
+          // ── POC (temp) ──
+          const _SectionLabel('Lab'),
+          const SizedBox(height: 10),
+          _SettingsCard(
+            children: [
+              _SettingsTile(
+                icon: Icons.forest_outlined,
+                iconColor: t.accentGold,
+                title: 'National Parks (POC)',
+                onTap: () => Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const NationalParksPocScreen(),
+                  ),
+                ),
               ),
             ],
           ),
