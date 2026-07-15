@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_select_provider.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
+import 'package:photo_map/common_widgets/shell_active_index.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 
 class ShellScreen extends ConsumerStatefulWidget {
@@ -59,7 +60,10 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
       extendBody: true,
       body: Stack(
         children: [
-          widget.navigationShell,
+          ShellActiveIndex(
+            index: currentIndex,
+            child: widget.navigationShell,
+          ),
           Positioned(
             left: 20,
             right: 20,

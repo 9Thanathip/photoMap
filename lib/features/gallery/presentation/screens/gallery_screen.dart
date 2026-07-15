@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:photo_map/common_widgets/shell_active_index.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/gallery_notifier.dart';
@@ -68,7 +69,16 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
     final sortedPhotos = [...gallery.allPhotos]
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
-    return Scaffold(
+    // Disable this tab's Heroes while it sits offstage in the shell — otherwise
+    // its tile Hero tags (photo.path) collide with a pushed province gallery,
+    // and on pop the heroes fly to these offstage slots (ghost images). When
+    // this tab is active (incl. while opening the viewer — a push doesn't change
+    // the shell index) Heroes stay enabled, so the zoom works as before.
+    final heroesEnabled = (ShellActiveIndex.of(context) ?? 0) == 0;
+
+    return HeroMode(
+      enabled: heroesEnabled,
+      child: Scaffold(
       backgroundColor: context.tokens.surfaceBase,
       body: Stack(
         children: [
@@ -169,6 +179,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
         ],
       ),
       floatingActionButton: null,
+      ),
     );
   }
 
