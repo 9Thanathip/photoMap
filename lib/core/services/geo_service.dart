@@ -30,6 +30,15 @@ class ProvinceBoundary {
 class GeoService {
   List<ProvinceBoundary>? _boundaries;
 
+  GeoService();
+
+  /// Test seam: build a service from pre-made boundaries, bypassing the asset
+  /// load so [getProvince]'s point-in-polygon + nearest-fallback logic can be
+  /// unit-tested without a Flutter asset bundle.
+  @visibleForTesting
+  GeoService.withBoundaries(List<ProvinceBoundary> boundaries)
+      : _boundaries = boundaries;
+
   /// Loads the GeoJSON file and parses provinces into paths + raw rings.
   Future<void> initialize() async {
     if (_boundaries != null) return;
