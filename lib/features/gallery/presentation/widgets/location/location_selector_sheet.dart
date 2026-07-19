@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
@@ -90,7 +91,7 @@ class _LocationSelectorSheetState
                       left: 4,
                       child: IconButton(
                         icon: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
+                            AppIcons.arrow_back_ios_new_rounded,
                             size: 18),
                         onPressed: _goBack,
                       ),
@@ -323,7 +324,7 @@ class _AlbumPickerCardState extends State<_AlbumPickerCard>
                     : Container(
                         color: theme.colorScheme.surfaceContainerHighest,
                         child: Icon(
-                          Icons.photo_library_outlined,
+                          AppIcons.photo_library_outlined,
                           color: theme.colorScheme.onSurfaceVariant,
                           size: 36,
                         ),

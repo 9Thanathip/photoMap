@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/features/map/presentation/widgets/map_ui_components.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
@@ -30,7 +31,7 @@ class NationalMapActions extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           MapActionButton(
-            icon: Icons.palette_outlined,
+            icon: AppIcons.palette_outlined,
             tooltip: l10n.tooltipBackground,
             onTap: onShowSettings,
           ),
@@ -40,7 +41,7 @@ class NationalMapActions extends StatelessWidget {
             color: dividerColor,
           ),
           MapActionButton(
-            icon: Icons.center_focus_strong_outlined,
+            icon: AppIcons.center_focus_strong_outlined,
             tooltip: l10n.tooltipCenterMap,
             onTap: onResetView,
           ),
@@ -50,7 +51,7 @@ class NationalMapActions extends StatelessWidget {
             color: dividerColor,
           ),
           MapActionButton(
-            icon: isDownloading ? Icons.hourglass_top_rounded : Icons.download_rounded,
+            icon: isDownloading ? AppIcons.hourglass_top_rounded : AppIcons.download_rounded,
             tooltip: l10n.tooltipSaveToPhotos,
             onTap: onDownload,
           ),
@@ -60,7 +61,7 @@ class NationalMapActions extends StatelessWidget {
             color: dividerColor,
           ),
           MapActionButton(
-            icon: Icons.ios_share,
+            icon: AppIcons.ios_share,
             tooltip: l10n.tooltipShare,
             onTap: onShare,
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/theme_provider.dart';
@@ -119,7 +120,7 @@ class _SetupOverlayWrapperState extends ConsumerState<SetupOverlayWrapper> {
                                     child: Column(
                                       children: [
                                         const Icon(
-                                          Icons.map_rounded,
+                                          AppIcons.map_rounded,
                                           size: 48,
                                           color: Colors.white,
                                         ),

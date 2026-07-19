@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -192,7 +193,7 @@ class _VideoViewerPageState extends State<VideoViewerPage>
                         child: const Padding(
                           padding: EdgeInsets.only(left: 4),
                           child: Icon(
-                            Icons.play_arrow_rounded,
+                            AppIcons.play_arrow_rounded,
                             color: Colors.white,
                             size: 40,
                           ),
@@ -370,8 +371,8 @@ class _VideoControlsState extends State<_VideoControls> {
         children: [
           _IconButton(
             icon: widget.isPlaying
-                ? Icons.pause_rounded
-                : Icons.play_arrow_rounded,
+                ? AppIcons.pause_rounded
+                : AppIcons.play_arrow_rounded,
             onTap: widget.onTogglePlay,
           ),
           const SizedBox(width: 2),
@@ -407,8 +408,8 @@ class _VideoControlsState extends State<_VideoControls> {
           const SizedBox(width: 4),
           _IconButton(
             icon: widget.muted
-                ? Icons.volume_off_rounded
-                : Icons.volume_up_rounded,
+                ? AppIcons.volume_off_rounded
+                : AppIcons.volume_up_rounded,
             onTap: widget.onToggleMute,
           ),
         ],

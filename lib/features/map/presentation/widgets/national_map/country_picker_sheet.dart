@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
@@ -61,11 +62,11 @@ class _CountryPickerSheetState extends ConsumerState<CountryPickerSheet> {
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 hintText: l10n.searchCountries,
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                prefixIcon: const Icon(AppIcons.search_rounded, size: 20),
                 suffixIcon: _query.isEmpty
                     ? null
                     : IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 18),
+                        icon: const Icon(AppIcons.close_rounded, size: 18),
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _query = '');
@@ -89,7 +90,7 @@ class _CountryPickerSheetState extends ConsumerState<CountryPickerSheet> {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
               child: Row(
                 children: [
-                  Icon(Icons.error_outline_rounded,
+                  Icon(AppIcons.error_outline_rounded,
                       size: 16, color: theme.colorScheme.error),
                   const SizedBox(width: 6),
                   Expanded(
@@ -203,7 +204,7 @@ class _CountryRow extends StatelessWidget {
       );
     } else if (!downloaded) {
       trailingChild = IconButton(
-        icon: const Icon(Icons.download_rounded, size: 22),
+        icon: const Icon(AppIcons.download_rounded, size: 22),
         color: theme.colorScheme.primary,
         onPressed: onDownload,
         tooltip: AppLocalizations.of(context).tooltipDownload,
@@ -213,13 +214,13 @@ class _CountryRow extends StatelessWidget {
       );
     } else if (isCurrent) {
       trailingChild = Icon(
-        Icons.check_circle_rounded,
+        AppIcons.check_circle_rounded,
         color: theme.colorScheme.primary,
         size: 22,
       );
     } else if (!country.isBundled) {
       trailingChild = IconButton(
-        icon: Icon(Icons.delete_outline_rounded,
+        icon: Icon(AppIcons.delete_outline_rounded,
             size: 22, color: theme.colorScheme.onSurfaceVariant),
         onPressed: onDelete,
         tooltip: AppLocalizations.of(context).tooltipDelete,
@@ -260,10 +261,10 @@ class _CountryRow extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Icon(
                   country.isBundled
-                      ? Icons.flag_rounded
+                      ? AppIcons.flag_rounded
                       : (downloaded
-                          ? Icons.public_rounded
-                          : Icons.cloud_outlined),
+                          ? AppIcons.public_rounded
+                          : AppIcons.cloud_outlined),
                   size: 18,
                   color: isCurrent
                       ? theme.colorScheme.primary

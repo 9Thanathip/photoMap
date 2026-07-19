@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
@@ -54,7 +55,7 @@ class ViewModeSheet extends StatelessWidget {
                     style: TextStyle(fontSize: 14)),
                 trailing: currentMode == m
                     ? Icon(
-                        Icons.check_rounded,
+                        AppIcons.check_rounded,
                         color: theme.colorScheme.primary,
                       )
                     : null,

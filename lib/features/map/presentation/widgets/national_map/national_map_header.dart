@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import '../../providers/country_provider.dart';
@@ -38,7 +39,7 @@ class NationalMapHeader extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.map_outlined,
+              AppIcons.map_outlined,
               size: 15,
               color: iconColor,
             ),
@@ -54,7 +55,7 @@ class NationalMapHeader extends ConsumerWidget {
             ),
             const SizedBox(width: 4),
             Icon(
-              Icons.expand_more_rounded,
+              AppIcons.expand_more_rounded,
               size: 16,
               color: iconColor,
             ),

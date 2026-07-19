@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -413,7 +414,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: t.textPrimary),
                     )
-                  : const Icon(Icons.ios_share_rounded, size: 18),
+                  : const Icon(AppIcons.ios_share_rounded, size: 18),
               label: Text(l10n.frameShare),
               style: OutlinedButton.styleFrom(
                 foregroundColor: t.textPrimary,
@@ -436,7 +437,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: t.surfaceBase),
                     )
-                  : const Icon(Icons.download_rounded, size: 18),
+                  : const Icon(AppIcons.download_rounded, size: 18),
               label: Text(l10n.frameSave),
               style: FilledButton.styleFrom(
                 backgroundColor: t.textPrimary,

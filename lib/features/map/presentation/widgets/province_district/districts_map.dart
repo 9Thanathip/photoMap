@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/common_widgets/app_button.dart';
 import 'package:photo_map/features/map/presentation/providers/province_map_provider.dart';
@@ -98,7 +99,7 @@ class _DistrictsMapState extends ConsumerState<DistrictsMap> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.map_outlined, size: 48, color: Colors.grey),
+            const Icon(AppIcons.map_outlined, size: 48, color: Colors.grey),
             const SizedBox(height: 16),
             Text(state.error!),
             const SizedBox(height: 16),

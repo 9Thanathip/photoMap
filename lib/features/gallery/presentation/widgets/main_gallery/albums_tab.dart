@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
@@ -174,7 +175,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     final byCountry = widget.gallery.photosByCountry;
     if (byCountry.isEmpty) {
       return AppEmptyState(
-        icon: Icons.photo_library_outlined,
+        icon: AppIcons.photo_library_outlined,
         title: widget.gallery.isGeocoding
             ? l10n.detectingLocations
             : l10n.noPhotosFound,
@@ -208,7 +209,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
         widget.gallery.photosByProvince(widget.gallery.selectedCountry);
     if (byProvince.isEmpty) {
       return AppEmptyState(
-          icon: Icons.photo_library_outlined,
+          icon: AppIcons.photo_library_outlined,
           title: l10n.noPhotosIn(widget.gallery.selectedCountry),
           subtitle: '');
     }
@@ -246,7 +247,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     final photos = widget.gallery.filteredPhotos;
     if (photos.isEmpty) {
       return AppEmptyState(
-          icon: Icons.photo_library_outlined,
+          icon: AppIcons.photo_library_outlined,
           title: l10n.noPhotosHere,
           subtitle: l10n.libraryEmpty);
     }

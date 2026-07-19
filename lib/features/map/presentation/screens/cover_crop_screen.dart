@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:photo_map/core/theme/app_icons.dart';
 
 import 'package:flutter/material.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
@@ -306,7 +307,7 @@ class _CoverCropScreenState extends State<CoverCropScreen> {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Colors.white),
+                  icon: const Icon(AppIcons.close_rounded, color: Colors.white),
                   onPressed: () => Navigator.pop(context),
                 ),
                 Expanded(

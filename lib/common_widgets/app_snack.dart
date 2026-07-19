@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 
 /// Kind of status message — drives the leading icon + accent colour.
@@ -108,12 +109,12 @@ class _AppSnackViewState extends State<_AppSnackView>
 
   ({IconData icon, Color accent}) _style(AppTokens t) => switch (widget.type) {
         AppSnackType.success => (
-            icon: Icons.check_circle_rounded,
+            icon: AppIcons.check_circle_rounded,
             accent: const Color(0xFF2FBF71),
           ),
-        AppSnackType.error => (icon: Icons.error_rounded, accent: t.accentCoral),
+        AppSnackType.error => (icon: AppIcons.error_rounded, accent: t.accentCoral),
         AppSnackType.info => (
-            icon: Icons.info_rounded,
+            icon: AppIcons.info_rounded,
             accent: t.textSecondary,
           ),
       };

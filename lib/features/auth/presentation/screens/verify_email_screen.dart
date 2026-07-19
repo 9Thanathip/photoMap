@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:photo_map/core/theme/app_icons.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -104,7 +105,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             children: [
               const Gap(48),
               Icon(
-                Icons.mark_email_unread_outlined,
+                AppIcons.mark_email_unread_outlined,
                 size: 64,
                 color: theme.colorScheme.primary,
               ),

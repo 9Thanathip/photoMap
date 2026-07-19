@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -180,7 +181,7 @@ class SettingsSheet extends ConsumerWidget {
                             ),
                             const SizedBox(width: 6),
                             Icon(
-                              Icons.chevron_right_rounded,
+                              AppIcons.chevron_right_rounded,
                               size: 18,
                               color: theme.colorScheme.onSurface.withValues(
                                 alpha: 0.4,
@@ -318,7 +319,7 @@ class ColorCard extends StatelessWidget {
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.colorize_rounded, size: 14, color: textColor),
+                child: Icon(AppIcons.colorize_rounded, size: 14, color: textColor),
               ),
             ),
           ],
@@ -457,7 +458,7 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
                   ],
                 ),
               ),
-              child: const Icon(Icons.add, color: Colors.white),
+              child: const Icon(AppIcons.add, color: Colors.white),
             ),
           );
         }
@@ -642,7 +643,7 @@ class _HsvPickerState extends State<_HsvPicker> {
             children: [
               TextButton.icon(
                 onPressed: widget.onBack,
-                icon: const Icon(Icons.grid_view_rounded, size: 16),
+                icon: const Icon(AppIcons.grid_view_rounded, size: 16),
                 label: Text(l10n.mapBackToPresets),
                 style: TextButton.styleFrom(
                   foregroundColor: onSurface.withValues(alpha: 0.7),
@@ -650,7 +651,7 @@ class _HsvPickerState extends State<_HsvPicker> {
               ),
               TextButton.icon(
                 onPressed: () => _commit(HSVColor.fromColor(widget.initial)),
-                icon: const Icon(Icons.refresh_rounded, size: 16),
+                icon: const Icon(AppIcons.refresh_rounded, size: 16),
                 label: Text(l10n.mapResetColor),
                 style: TextButton.styleFrom(
                   foregroundColor: onSurface.withValues(alpha: 0.55),

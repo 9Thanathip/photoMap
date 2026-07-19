@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
@@ -213,7 +214,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.error_outline_rounded,
+                AppIcons.error_outline_rounded,
                 size: 64,
                 color: theme.colorScheme.error.withAlpha(128),
               ),

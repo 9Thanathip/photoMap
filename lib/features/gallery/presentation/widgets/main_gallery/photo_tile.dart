@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:shimmer/shimmer.dart';
@@ -67,7 +68,7 @@ class _PhotoTileState extends State<PhotoTile> {
               thumbnail,
               const Align(
                 alignment: Alignment.center,
-                child: Icon(Icons.play_circle_filled_rounded,
+                child: Icon(AppIcons.play_circle_filled_rounded,
                     color: Colors.white, size: 28),
               ),
               Positioned(
@@ -114,7 +115,7 @@ class _PhotoTileState extends State<PhotoTile> {
                     ),
                   ),
                   child: widget.isSelected
-                      ? const Icon(Icons.check_rounded,
+                      ? const Icon(AppIcons.check_rounded,
                           size: 14, color: Colors.white)
                       : null,
                 ),

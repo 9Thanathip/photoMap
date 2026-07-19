@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
@@ -53,12 +54,12 @@ class PhotoOptionsSheet extends StatelessWidget {
         // Menu items
         if (onFrame != null)
           _OptionTile(
-            icon: Icons.filter_frames_rounded,
+            icon: AppIcons.filter_frames_rounded,
             label: AppLocalizations.of(context).frameTitle,
             onTap: onFrame!,
           ),
         _OptionTile(
-          icon: Icons.delete_outline_rounded,
+          icon: AppIcons.delete_outline_rounded,
           label: AppLocalizations.of(context).commonRemove,
           color: theme.colorScheme.error,
           onTap: onDelete,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
@@ -112,7 +113,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
                   ? const Center(child: CircularProgressIndicator())
                   : (photos.isEmpty && !gallery.isGeocoding)
                       ? AppEmptyState(
-                          icon: Icons.photo_library_outlined,
+                          icon: AppIcons.photo_library_outlined,
                           title: AppLocalizations.of(context).noPhotosIn(
                               widget.districtName ?? widget.provinceName),
                           subtitle: AppLocalizations.of(context)
@@ -143,7 +144,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.touch_app_outlined,
+                      AppIcons.touch_app_outlined,
                       size: 16,
                       color: theme.colorScheme.onSecondaryContainer,
                     ),
@@ -256,7 +257,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
                     padding: const EdgeInsets.all(8),
                     onTap: _showFilterSheet,
                     child: Icon(
-                      Icons.filter_list_rounded,
+                      AppIcons.filter_list_rounded,
                       size: 20,
                       color: theme.colorScheme.onSurface,
                     ),

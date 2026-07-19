@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -96,7 +97,7 @@ class _AlbumCardState extends State<AlbumCard>
                       )
                     : Container(
                         color: theme.colorScheme.surfaceContainerHighest,
-                        child: Icon(Icons.photo_library_outlined,
+                        child: Icon(AppIcons.photo_library_outlined,
                             color: theme.colorScheme.onSurfaceVariant,
                             size: 40),
                       ),

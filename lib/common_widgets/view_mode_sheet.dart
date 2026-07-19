@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/features/gallery/presentation/widgets/main_gallery/photos_tab.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
@@ -55,7 +56,7 @@ class _ViewModeSheet extends StatelessWidget {
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
               trailing: current == v
-                  ? Icon(Icons.check_rounded, color: theme.colorScheme.primary)
+                  ? Icon(AppIcons.check_rounded, color: theme.colorScheme.primary)
                   : null,
               onTap: () {
                 Navigator.pop(context);

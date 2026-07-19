@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import '../../providers/gallery_notifier.dart';
@@ -111,7 +112,7 @@ class _ImageViewerPageState extends State<ImageViewerPage>
     super.build(context);
     if (widget.photo.assetEntity == null) {
       return const Center(
-        child: Icon(Icons.broken_image, color: Colors.white, size: 64),
+        child: Icon(AppIcons.broken_image, color: Colors.white, size: 64),
       );
     }
 

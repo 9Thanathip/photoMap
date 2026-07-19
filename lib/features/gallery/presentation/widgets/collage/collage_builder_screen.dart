@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -391,7 +392,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
           TextButton.icon(
             onPressed: _pickMultiple,
             style: TextButton.styleFrom(foregroundColor: t.textPrimary),
-            icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
+            icon: const Icon(AppIcons.add_photo_alternate_outlined, size: 18),
             label: Text(l10n.collageAddPhotos,
                 style: const TextStyle(fontSize: 13)),
           ),
@@ -453,7 +454,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                 height: 15,
                 child: CircularProgressIndicator(
                     strokeWidth: 2, color: t.textPrimary))
-            : const Icon(Icons.gradient_rounded, size: 18),
+            : const Icon(AppIcons.gradient_rounded, size: 18),
         label: Text(l10n.collageColorSort, style: const TextStyle(fontSize: 13)),
       ),
     );
@@ -493,7 +494,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
       children: [
         Text(label, style: TextStyle(color: t.textSecondary, fontSize: 12)),
         const SizedBox(width: 8),
-        _stepBtn(t, Icons.remove_rounded,
+        _stepBtn(t, AppIcons.remove_rounded,
             value > _minAxis ? () => onChanged(value - 1) : null),
         SizedBox(
           width: 24,
@@ -504,7 +505,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                   fontSize: 16,
                   fontWeight: FontWeight.w700)),
         ),
-        _stepBtn(t, Icons.add_rounded,
+        _stepBtn(t, AppIcons.add_rounded,
             value < _maxAxis ? () => onChanged(value + 1) : null),
       ],
     );
@@ -651,7 +652,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                       height: 16,
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: t.textPrimary))
-                  : const Icon(Icons.ios_share_rounded, size: 18),
+                  : const Icon(AppIcons.ios_share_rounded, size: 18),
               label: Text(l10n.frameShare),
               style: OutlinedButton.styleFrom(
                 foregroundColor: t.textPrimary,
@@ -672,7 +673,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                       height: 16,
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: t.surfaceBase))
-                  : const Icon(Icons.download_rounded, size: 18),
+                  : const Icon(AppIcons.download_rounded, size: 18),
               label: Text(l10n.frameSave),
               style: FilledButton.styleFrom(
                 backgroundColor: t.textPrimary,

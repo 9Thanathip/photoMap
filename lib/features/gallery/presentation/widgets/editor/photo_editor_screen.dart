@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'package:photo_map/core/theme/app_icons.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -405,55 +406,55 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
       children: [
         _ToolButton(
-          icon: Icons.exposure_rounded,
+          icon: AppIcons.exposure_rounded,
           label: l10n.adjExposure,
           isActive: _exposure != 0,
           onTap: () => setState(() => _activeTool = _AdjustTool.exposure),
         ),
         _ToolButton(
-          icon: Icons.contrast_rounded,
+          icon: AppIcons.contrast_rounded,
           label: l10n.adjContrast,
           isActive: _contrast != 1.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.contrast),
         ),
         _ToolButton(
-          icon: Icons.water_drop_outlined,
+          icon: AppIcons.water_drop_outlined,
           label: l10n.adjSaturation,
           isActive: _saturation != 1.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.saturation),
         ),
         _ToolButton(
-          icon: Icons.thermostat_rounded,
+          icon: AppIcons.thermostat_rounded,
           label: l10n.adjTemperature,
           isActive: _temperature != 0.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.temperature),
         ),
         _ToolButton(
-          icon: Icons.invert_colors_rounded,
+          icon: AppIcons.invert_colors_rounded,
           label: l10n.adjTint,
           isActive: _tint != 0.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.tint),
         ),
         _ToolButton(
-          icon: Icons.gradient_rounded,
+          icon: AppIcons.gradient_rounded,
           label: l10n.adjFade,
           isActive: _fade != 0.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.fade),
         ),
         _ToolButton(
-          icon: Icons.grain_rounded,
+          icon: AppIcons.grain_rounded,
           label: l10n.adjGrain,
           isActive: _grain != 0.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.grain),
         ),
         _ToolButton(
-          icon: Icons.vignette_rounded,
+          icon: AppIcons.vignette_rounded,
           label: l10n.adjVignette,
           isActive: _vignette != 0.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.vignette),
         ),
         _ToolButton(
-          icon: Icons.flare_rounded,
+          icon: AppIcons.flare_rounded,
           label: l10n.adjLightLeak,
           isActive: _lightLeak != 0.0,
           onTap: () => setState(() => _activeTool = _AdjustTool.lightLeak),
@@ -465,7 +466,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
               HapticFeedback.lightImpact();
               _resetAdjustments();
             },
-            icon: const Icon(Icons.settings_backup_restore_rounded,
+            icon: const Icon(AppIcons.settings_backup_restore_rounded,
                 color: Colors.white54),
             tooltip: l10n.editorReset,
           ),
@@ -543,7 +544,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
               TextButton(
                 onPressed: () => setState(() => _activeTool = null),
                 style: TextButton.styleFrom(foregroundColor: Colors.white54),
-                child: const Icon(Icons.close_rounded, size: 20),
+                child: const Icon(AppIcons.close_rounded, size: 20),
               ),
               Text(
                 label,
@@ -555,7 +556,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
               TextButton(
                 onPressed: () => setState(() => _activeTool = null),
                 style: TextButton.styleFrom(foregroundColor: Colors.white),
-                child: const Icon(Icons.check_rounded, size: 20),
+                child: const Icon(AppIcons.check_rounded, size: 20),
               ),
             ],
           ),
@@ -618,10 +619,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
 
   Widget _buildLeakDirectionRow() {
     const dirs = <(IconData, Alignment)>[
-      (Icons.north_west_rounded, Alignment.topLeft),
-      (Icons.north_east_rounded, Alignment.topRight),
-      (Icons.south_west_rounded, Alignment.bottomLeft),
-      (Icons.south_east_rounded, Alignment.bottomRight),
+      (AppIcons.north_west_rounded, Alignment.topLeft),
+      (AppIcons.north_east_rounded, Alignment.topRight),
+      (AppIcons.south_west_rounded, Alignment.bottomLeft),
+      (AppIcons.south_east_rounded, Alignment.bottomRight),
     ];
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),

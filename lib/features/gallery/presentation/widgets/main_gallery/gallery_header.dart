@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
@@ -110,7 +111,7 @@ class GalleryHeader extends StatelessWidget {
                 GestureDetector(
                   onTap: onBack,
                   child: Icon(
-                    Icons.arrow_back_ios_new_rounded,
+                    AppIcons.arrow_back_ios_new_rounded,
                     size: 20,
                     color: theme.colorScheme.primary,
                   ),
@@ -164,7 +165,7 @@ class GalleryHeader extends StatelessWidget {
                             borderRadius: 100,
                             padding: const EdgeInsets.all(10),
                             child: Icon(
-                              Icons.dashboard_customize_outlined,
+                              AppIcons.dashboard_customize_outlined,
                               size: 20,
                               color: theme.colorScheme.onSurface,
                             ),
@@ -176,7 +177,7 @@ class GalleryHeader extends StatelessWidget {
                           borderRadius: 100,
                           padding: const EdgeInsets.all(10),
                           child: Icon(
-                            Icons.filter_list_rounded,
+                            AppIcons.filter_list_rounded,
                             size: 20,
                             color: theme.colorScheme.onSurface,
                           ),

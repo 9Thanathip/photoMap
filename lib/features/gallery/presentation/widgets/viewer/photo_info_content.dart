@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart' hide LatLng;
 import 'package:url_launcher/url_launcher.dart';
@@ -162,8 +163,8 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                       children: [
                         Icon(
                           asset?.type == AssetType.video
-                              ? Icons.videocam_rounded
-                              : Icons.camera_alt_rounded,
+                              ? AppIcons.videocam_rounded
+                              : AppIcons.camera_alt_rounded,
                           size: 20,
                           color: Colors.white54,
                         ),
@@ -276,7 +277,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: const Icon(
-                              Icons.location_on_rounded,
+                              AppIcons.location_on_rounded,
                               color: Colors.red,
                               size: 32,
                             ),
@@ -313,7 +314,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                                 Row(
                                   children: [
                                     const Icon(
-                                      Icons.map_rounded,
+                                      AppIcons.map_rounded,
                                       size: 12,
                                       color: Colors.white54,
                                     ),
@@ -331,7 +332,7 @@ class _PhotoInfoContentState extends State<PhotoInfoContent> {
                             ),
                           ),
                           const Icon(
-                            Icons.chevron_right_rounded,
+                            AppIcons.chevron_right_rounded,
                             color: Colors.white54,
                           ),
                         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
@@ -58,7 +59,7 @@ class SettingsScreen extends ConsumerWidget {
                     Row(
                       children: [
                         _IconBadge(
-                          icon: Icons.palette_outlined,
+                          icon: AppIcons.palette_outlined,
                           color: t.textPrimary,
                         ),
                         const SizedBox(width: 12),
@@ -94,7 +95,7 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsCard(
             children: [
               _SettingsTile(
-                icon: Icons.language_outlined,
+                icon: AppIcons.language_outlined,
                 iconColor: t.textPrimary,
                 title: l10n.settingsLanguage,
                 trailing: Text(
@@ -130,7 +131,7 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsCard(
             children: [
               _SettingsTile(
-                icon: Icons.info_outline_rounded,
+                icon: AppIcons.info_outline_rounded,
                 iconColor: t.textSecondary,
                 title: l10n.settingsVersion,
                 trailing: Text(
@@ -202,7 +203,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                   trailing: current?.languageCode == value?.languageCode
-                      ? Icon(Icons.check_rounded, color: t.textPrimary)
+                      ? Icon(AppIcons.check_rounded, color: t.textPrimary)
                       : null,
                   onTap: () {
                     ref.read(localeProvider.notifier).setLocale(value);
@@ -306,7 +307,7 @@ class _SettingsTile extends StatelessWidget {
               trailing!,
             ] else if (onTap != null)
               Icon(
-                Icons.chevron_right_rounded,
+                AppIcons.chevron_right_rounded,
                 size: 18,
                 color: t.textTertiary,
               ),
@@ -389,7 +390,7 @@ class _ProfileTile extends StatelessWidget {
             if (onTap != null) ...[
               const SizedBox(width: 8),
               Icon(
-                Icons.chevron_right_rounded,
+                AppIcons.chevron_right_rounded,
                 size: 18,
                 color: t.textTertiary,
               ),
@@ -446,19 +447,19 @@ class _ThemeSelector extends StatelessWidget {
       child: Row(
         children: [
           _ThemeOption(
-            icon: Icons.light_mode_outlined,
+            icon: AppIcons.light_mode_outlined,
             label: lightLabel,
             selected: value == ThemeMode.light,
             onTap: () => onChanged(ThemeMode.light),
           ),
           _ThemeOption(
-            icon: Icons.auto_mode_outlined,
+            icon: AppIcons.auto_mode_outlined,
             label: systemLabel,
             selected: value == ThemeMode.system,
             onTap: () => onChanged(ThemeMode.system),
           ),
           _ThemeOption(
-            icon: Icons.dark_mode_outlined,
+            icon: AppIcons.dark_mode_outlined,
             label: darkLabel,
             selected: value == ThemeMode.dark,
             onTap: () => onChanged(ThemeMode.dark),

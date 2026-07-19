@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
@@ -20,17 +21,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   List<_PageData> _pages(AppLocalizations l10n) => [
         _PageData(
-          icon: Icons.photo_library_rounded,
+          icon: AppIcons.photo_library_rounded,
           title: l10n.onboard1Title,
           description: l10n.onboard1Body,
         ),
         _PageData(
-          icon: Icons.map_rounded,
+          icon: AppIcons.map_rounded,
           title: l10n.onboard2Title,
           description: l10n.onboard2Body,
         ),
         _PageData(
-          icon: Icons.emoji_events_rounded,
+          icon: AppIcons.emoji_events_rounded,
           title: l10n.onboard3Title,
           description: l10n.onboard3Body,
         ),

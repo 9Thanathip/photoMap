@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
@@ -47,7 +48,7 @@ class ProfileScreen extends ConsumerWidget {
           _Card(
             children: [
               _ActionTile(
-                icon: Icons.verified_user_outlined,
+                icon: AppIcons.verified_user_outlined,
                 iconColor: t.textPrimary,
                 title: l10n.profileAccountStatus,
                 trailing: Text(
@@ -61,7 +62,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
               _Divider(),
               _ActionTile(
-                icon: Icons.logout_rounded,
+                icon: AppIcons.logout_rounded,
                 iconColor: t.textSecondary,
                 title: l10n.profileSignOut,
                 onTap: () => _confirmSignOut(context, ref),
@@ -76,7 +77,7 @@ class ProfileScreen extends ConsumerWidget {
           _Card(
             children: [
               _ActionTile(
-                icon: Icons.manage_accounts_outlined,
+                icon: AppIcons.manage_accounts_outlined,
                 iconColor: t.textSecondary,
                 title: l10n.profileManageAccount,
                 subtitle: l10n.profileManageAccountSubtitle,
@@ -187,7 +188,7 @@ class _ProfileHeader extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                verified ? Icons.check_circle_rounded : Icons.error_outline,
+                verified ? AppIcons.check_circle_rounded : AppIcons.error_outline,
                 size: 14,
                 color: verified ? t.textPrimary : t.textSecondary,
               ),
@@ -318,7 +319,7 @@ class _ActionTile extends StatelessWidget {
               trailing!,
             ] else if (onTap != null)
               Icon(
-                Icons.chevron_right_rounded,
+                AppIcons.chevron_right_rounded,
                 size: 18,
                 color: t.textTertiary,
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -58,7 +59,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       appBar: AppBar(
         backgroundColor: t.surfaceBase,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: const Icon(AppIcons.arrow_back_ios_new_rounded),
           onPressed: () => context.go('/login'),
         ),
       ),
@@ -101,7 +102,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.error_outline,
+                        Icon(AppIcons.error_outline,
                             color: theme.colorScheme.onErrorContainer, size: 18),
                         const Gap(8),
                         Expanded(
@@ -121,7 +122,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   label: l10n.fieldFullName,
                   controller: _nameCtrl,
                   textInputAction: TextInputAction.next,
-                  prefixIcon: const Icon(Icons.person_outlined),
+                  prefixIcon: const Icon(AppIcons.person_outlined),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
                       return l10n.validationNameRequired;
@@ -135,7 +136,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  prefixIcon: const Icon(Icons.email_outlined),
+                  prefixIcon: const Icon(AppIcons.email_outlined),
                   validator: (v) {
                     if (v == null || v.isEmpty) {
                       return l10n.validationEmailRequired;
@@ -150,12 +151,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   controller: _passwordCtrl,
                   obscureText: _obscure,
                   textInputAction: TextInputAction.next,
-                  prefixIcon: const Icon(Icons.lock_outlined),
+                  prefixIcon: const Icon(AppIcons.lock_outlined),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscure
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
+                          ? AppIcons.visibility_off_outlined
+                          : AppIcons.visibility_outlined,
                     ),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
@@ -173,12 +174,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   controller: _confirmCtrl,
                   obscureText: _obscureConfirm,
                   textInputAction: TextInputAction.done,
-                  prefixIcon: const Icon(Icons.lock_outlined),
+                  prefixIcon: const Icon(AppIcons.lock_outlined),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirm
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
+                          ? AppIcons.visibility_off_outlined
+                          : AppIcons.visibility_outlined,
                     ),
                     onPressed: () =>
                         setState(() => _obscureConfirm = !_obscureConfirm),

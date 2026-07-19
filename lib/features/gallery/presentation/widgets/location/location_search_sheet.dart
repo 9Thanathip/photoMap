@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -250,10 +251,10 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
                   onSubmitted: _search,
                   decoration: InputDecoration(
                     hintText: AppLocalizations.of(context).searchPlaceHint,
-                    prefixIcon: const Icon(Icons.search_rounded),
+                    prefixIcon: const Icon(AppIcons.search_rounded),
                     suffixIcon: _controller.text.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear_rounded),
+                            icon: const Icon(AppIcons.clear_rounded),
                             onPressed: () {
                               _controller.clear();
                               setState(() {
@@ -312,7 +313,7 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.location_on_outlined,
+                              AppIcons.location_on_outlined,
                               size: 48,
                               color: theme.colorScheme.onSurfaceVariant
                                   .withAlpha(80),
@@ -349,7 +350,7 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                Icons.location_on_rounded,
+                                AppIcons.location_on_rounded,
                                 size: 18,
                                 color: theme.colorScheme.primary,
                               ),

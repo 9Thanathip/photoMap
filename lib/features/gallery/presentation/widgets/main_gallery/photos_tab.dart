@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
@@ -42,7 +43,7 @@ class PhotosTab extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     if (isEmpty) {
       return AppEmptyState(
-          icon: Icons.photo_library_outlined,
+          icon: AppIcons.photo_library_outlined,
           title: l10n.noPhotosFound,
           subtitle: l10n.libraryEmpty);
     }

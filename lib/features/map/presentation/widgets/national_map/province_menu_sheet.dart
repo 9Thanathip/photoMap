@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
@@ -42,7 +43,7 @@ class ProvinceMenuSheet extends ConsumerWidget {
             color: theme.colorScheme.outlineVariant.withAlpha(80),
           ),
         ListTile(
-          leading: const Icon(Icons.map_outlined),
+          leading: const Icon(AppIcons.map_outlined),
           title: Text(l10n.menuViewDistricts),
           subtitle: Text(l10n.menuViewDistrictsSub),
           onTap: () {
@@ -58,7 +59,7 @@ class ProvinceMenuSheet extends ConsumerWidget {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.photo_library_outlined),
+          leading: const Icon(AppIcons.photo_library_outlined),
           title: Text(l10n.menuViewGallery),
           subtitle: Text(l10n.menuViewGallerySub),
           onTap: () {
@@ -74,7 +75,7 @@ class ProvinceMenuSheet extends ConsumerWidget {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.image_outlined),
+          leading: const Icon(AppIcons.image_outlined),
           title: Text(l10n.menuChangeCover),
           subtitle: Text(l10n.menuChangeCoverSub),
           onTap: () {

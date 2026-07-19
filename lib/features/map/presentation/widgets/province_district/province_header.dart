@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 
 enum ProvinceViewMode { map, grid }
@@ -27,7 +28,7 @@ class ProvinceHeader extends StatelessWidget {
         GlassCard(
           onTap: onBack,
           padding: const EdgeInsets.all(10),
-          child: Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: color),
+          child: Icon(AppIcons.arrow_back_ios_new_rounded, size: 16, color: color),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -37,7 +38,7 @@ class ProvinceHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.location_on_outlined,
+                  AppIcons.location_on_outlined,
                   size: 15,
                   color: color.withValues(alpha: 0.55),
                 ),
@@ -65,8 +66,8 @@ class ProvinceHeader extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             child: Icon(
               viewMode == ProvinceViewMode.map
-                  ? Icons.grid_view_rounded
-                  : Icons.map_outlined,
+                  ? AppIcons.grid_view_rounded
+                  : AppIcons.map_outlined,
               size: 18,
               color: color,
             ),

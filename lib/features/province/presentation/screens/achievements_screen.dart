@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
@@ -237,7 +238,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                           ),
                           child: visited
                               ? Icon(
-                                  Icons.check_rounded,
+                                  AppIcons.check_rounded,
                                   size: 14,
                                   color: dark ? Colors.black : Colors.white,
                                 )
@@ -263,7 +264,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                           ),
                           const SizedBox(width: 4),
                           Icon(
-                            Icons.chevron_right_rounded,
+                            AppIcons.chevron_right_rounded,
                             size: 16,
                             color: tt,
                           ),

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
@@ -508,7 +509,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
               child: Row(
                 children: [
                   _ViewerIconButton(
-                    icon: Icons.arrow_back_ios_new_rounded,
+                    icon: AppIcons.arrow_back_ios_new_rounded,
                     size: 18,
                     onTap: () => Navigator.pop(context),
                   ),
@@ -557,25 +558,25 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _ViewerIconButton(
-                        icon: Icons.ios_share_rounded,
+                        icon: AppIcons.ios_share_rounded,
                         onTap: _shareCurrent,
                       ),
                       _ViewerIconButton(
-                        icon: Icons.info_outline_rounded,
+                        icon: AppIcons.info_outline_rounded,
                         onTap: () => _snapTo(-520, 0),
                       ),
                       if (!_isVideo)
                         _ViewerIconButton(
-                          icon: Icons.tune_rounded,
+                          icon: AppIcons.tune_rounded,
                           onTap: _openEditor,
                         ),
                       if (!_isVideo)
                         _ViewerIconButton(
-                          icon: Icons.filter_frames_rounded,
+                          icon: AppIcons.filter_frames_rounded,
                           onTap: _openFrame,
                         ),
                       _ViewerIconButton(
-                        icon: Icons.delete_outline_rounded,
+                        icon: AppIcons.delete_outline_rounded,
                         onTap: _deleteCurrentPhoto,
                       ),
                     ],

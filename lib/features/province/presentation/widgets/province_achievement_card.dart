@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/core/theme/app_palette.dart';
@@ -114,10 +115,10 @@ class _CardRow extends StatelessWidget {
                 gradient: kGoldGrad,
                 borderRadius: BorderRadius.circular(7),
               ),
-              child: const Icon(Icons.star_rounded, size: 14, color: Colors.black),
+              child: const Icon(AppIcons.star_rounded, size: 14, color: Colors.black),
             )
           else
-            Icon(Icons.lock_outline_rounded, size: 15, color: context.tokens.textTertiary),
+            Icon(AppIcons.lock_outline_rounded, size: 15, color: context.tokens.textTertiary),
           const SizedBox(width: 10),
           Expanded(
             child: visited && context.isDark
@@ -151,7 +152,7 @@ class _CardRow extends StatelessWidget {
             turns: isExpanded ? 0.5 : 0.0,
             duration: const Duration(milliseconds: 220),
             child: Icon(
-              Icons.keyboard_arrow_down_rounded,
+              AppIcons.keyboard_arrow_down_rounded,
               size: 18,
               color: visited
                   ? (context.isDark
@@ -187,7 +188,7 @@ class _CardExpanded extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
         child: Row(
           children: [
-            Icon(Icons.explore_outlined, size: 14, color: context.dim(0.2, 0.2)),
+            Icon(AppIcons.explore_outlined, size: 14, color: context.dim(0.2, 0.2)),
             const SizedBox(width: 6),
             Text(AppLocalizations.of(context).noPhotosYet,
                 style: TextStyle(fontSize: 12, color: context.dim(0.3, 0.25))),
@@ -276,7 +277,7 @@ class _CardExpanded extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                   color: Colors.black)),
                           const SizedBox(width: 4),
-                          const Icon(Icons.arrow_forward_rounded, size: 13, color: Colors.black),
+                          const Icon(AppIcons.arrow_forward_rounded, size: 13, color: Colors.black),
                         ],
                       ),
                     ),

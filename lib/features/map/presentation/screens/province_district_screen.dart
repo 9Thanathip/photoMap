@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -273,7 +274,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     MapActionButton(
-                      icon: Icons.palette_outlined,
+                      icon: AppIcons.palette_outlined,
                       tooltip: AppLocalizations.of(context).tooltipColors,
                       onTap: _showSettings,
                     ),
@@ -283,7 +284,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                       color: Colors.black.withValues(alpha: 0.08),
                     ),
                     MapActionButton(
-                      icon: Icons.center_focus_strong_outlined,
+                      icon: AppIcons.center_focus_strong_outlined,
                       tooltip: AppLocalizations.of(context).tooltipCenter,
                       onTap: _resetView,
                     ),
@@ -294,8 +295,8 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                     ),
                     MapActionButton(
                       icon: _downloading
-                          ? Icons.hourglass_top_rounded
-                          : Icons.download_rounded,
+                          ? AppIcons.hourglass_top_rounded
+                          : AppIcons.download_rounded,
                       tooltip: AppLocalizations.of(context).tooltipSaveToPhotos,
                       onTap: _download,
                     ),
@@ -305,7 +306,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                       color: Colors.black.withValues(alpha: 0.08),
                     ),
                     MapActionButton(
-                      icon: Icons.ios_share,
+                      icon: AppIcons.ios_share,
                       tooltip: AppLocalizations.of(context).tooltipShareMap,
                       onTap: _share,
                     ),

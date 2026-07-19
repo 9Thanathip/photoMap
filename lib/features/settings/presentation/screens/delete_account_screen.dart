@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -57,7 +58,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.warning_amber_rounded,
+                AppIcons.warning_amber_rounded,
                 size: 36,
                 color: t.accentCoral,
               ),
@@ -100,7 +101,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
-                        Icons.remove_circle_outline,
+                        AppIcons.remove_circle_outline,
                         size: 18,
                         color: t.accentCoral,
                       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'gold_text.dart';
@@ -33,7 +34,7 @@ class AchievementsStatsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Icon(Icons.emoji_events_rounded, color: t.accentGold, size: 16),
+            Icon(AppIcons.emoji_events_rounded, color: t.accentGold, size: 16),
             const SizedBox(width: 6),
             GoldText(l10n.thailandExplorer, fontSize: 12, fontWeight: FontWeight.w600),
           ]),
