@@ -9,6 +9,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:photo_map/common_widgets/app_snack.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
@@ -302,7 +303,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     if (_busy.isNotEmpty) return;
     setState(() => _busy = 'save');
     final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
+    final overlay = Overlay.of(context, rootOverlay: true);
     try {
       final png = await _renderPng();
       if (png == null) throw StateError('encode failed');
@@ -310,11 +311,10 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
           'jaruek_collage_${DateTime.now().millisecondsSinceEpoch}.png';
       await PhotoManager.editor.saveImage(png,
           filename: filename, title: filename, desc: 'Collage in Jaruek');
-      if (!mounted) return;
-      messenger.showSnackBar(_snack(l10n.frameSaved));
+      AppSnack.showOnOverlay(overlay, l10n.frameSaved);
     } catch (_) {
-      if (!mounted) return;
-      messenger.showSnackBar(_snack(l10n.frameSaveFailed));
+      AppSnack.showOnOverlay(overlay, l10n.frameSaveFailed,
+          type: AppSnackType.error);
     } finally {
       if (mounted) setState(() => _busy = '');
     }
@@ -324,7 +324,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     if (_busy.isNotEmpty) return;
     setState(() => _busy = 'share');
     final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
+    final overlay = Overlay.of(context, rootOverlay: true);
     try {
       final png = await _renderPng();
       if (png == null) throw StateError('encode failed');
@@ -334,18 +334,12 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
       await file.writeAsBytes(png);
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     } catch (_) {
-      if (!mounted) return;
-      messenger.showSnackBar(_snack(l10n.frameSaveFailed));
+      AppSnack.showOnOverlay(overlay, l10n.frameSaveFailed,
+          type: AppSnackType.error);
     } finally {
       if (mounted) setState(() => _busy = '');
     }
   }
-
-  SnackBar _snack(String text) => SnackBar(
-        content: Text(text),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      );
 
   // ── UI ────────────────────────────────────────────────────────────────────
   @override

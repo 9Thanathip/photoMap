@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:photo_map/common_widgets/app_snack.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
@@ -141,7 +142,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
     if (_busy.isNotEmpty || _photoImage == null || _data == null) return;
     setState(() => _busy = 'save');
     final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
+    final overlay = Overlay.of(context, rootOverlay: true);
     try {
       final png = await _renderPng();
       if (png == null) throw StateError('Failed to encode frame.');
@@ -152,11 +153,10 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
         title: filename,
         desc: 'Framed in Jaruek',
       );
-      if (!mounted) return;
-      messenger.showSnackBar(_snack(l10n.frameSaved));
+      AppSnack.showOnOverlay(overlay, l10n.frameSaved);
     } catch (_) {
-      if (!mounted) return;
-      messenger.showSnackBar(_snack(l10n.frameSaveFailed));
+      AppSnack.showOnOverlay(overlay, l10n.frameSaveFailed,
+          type: AppSnackType.error);
     } finally {
       if (mounted) setState(() => _busy = '');
     }
@@ -166,7 +166,7 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
     if (_busy.isNotEmpty || _photoImage == null || _data == null) return;
     setState(() => _busy = 'share');
     final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
+    final overlay = Overlay.of(context, rootOverlay: true);
     try {
       final png = await _renderPng();
       if (png == null) throw StateError('Failed to encode frame.');
@@ -177,18 +177,12 @@ class _FrameExportScreenState extends State<FrameExportScreen> {
       await file.writeAsBytes(png);
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     } catch (_) {
-      if (!mounted) return;
-      messenger.showSnackBar(_snack(l10n.frameSaveFailed));
+      AppSnack.showOnOverlay(overlay, l10n.frameSaveFailed,
+          type: AppSnackType.error);
     } finally {
       if (mounted) setState(() => _busy = '');
     }
   }
-
-  SnackBar _snack(String text) => SnackBar(
-        content: Text(text),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      );
 
   @override
   Widget build(BuildContext context) {

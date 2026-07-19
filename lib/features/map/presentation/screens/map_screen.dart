@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../../../province/data/province_data.dart';
+import 'package:photo_map/common_widgets/app_snack.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_actions.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_header.dart';
@@ -103,27 +104,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).mapSavedToPhotos),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+        AppSnack.success(context, AppLocalizations.of(context).mapSavedToPhotos);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).mapSaveFailed),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+        AppSnack.error(context, AppLocalizations.of(context).mapSaveFailed);
       }
     } finally {
       if (mounted) setState(() => _downloading = false);

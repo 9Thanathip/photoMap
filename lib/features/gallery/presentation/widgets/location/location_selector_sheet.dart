@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_map/common_widgets/app_snack.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
 
@@ -38,14 +39,7 @@ class _LocationSelectorSheetState
     ref
         .read(galleryStateProvider.notifier)
         .updatePhotoLocation(widget.photo.path, country, province);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context).addedTo(province)),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    AppSnack.success(context, AppLocalizations.of(context).addedTo(province));
     Navigator.pop(context);
   }
 

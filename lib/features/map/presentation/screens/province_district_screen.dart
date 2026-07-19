@@ -8,6 +8,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
+import 'package:photo_map/common_widgets/app_snack.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'province_gallery_screen.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/districts_grid.dart';
@@ -95,27 +96,11 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).mapSavedToPhotos),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+        AppSnack.success(context, AppLocalizations.of(context).mapSavedToPhotos);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).mapSaveFailed),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+        AppSnack.error(context, AppLocalizations.of(context).mapSaveFailed);
       }
     } finally {
       if (mounted) setState(() => _downloading = false);

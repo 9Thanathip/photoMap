@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:gap/gap.dart';
 import '../../../../common_widgets/app_button.dart';
+import '../../../../common_widgets/app_snack.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../auth_error_l10n.dart';
 import '../providers/auth_provider.dart';
@@ -63,7 +64,8 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     if (!mounted) return;
     setState(() => _checking = false);
     if (!verified) {
-      _snack(AppLocalizations.of(context).verifyNotVerifiedYet);
+      _snack(AppLocalizations.of(context).verifyNotVerifiedYet,
+          AppSnackType.info);
     }
   }
 
@@ -74,16 +76,14 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     final l10n = AppLocalizations.of(context);
     if (err == null) {
       _startCooldown();
-      _snack(l10n.verifyEmailSent);
+      _snack(l10n.verifyEmailSent, AppSnackType.success);
     } else {
-      _snack(localizedAuthError(l10n, err));
+      _snack(localizedAuthError(l10n, err), AppSnackType.error);
     }
   }
 
-  void _snack(String msg) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(msg)));
+  void _snack(String msg, AppSnackType type) {
+    AppSnack.show(context, msg, type: type);
   }
 
   @override

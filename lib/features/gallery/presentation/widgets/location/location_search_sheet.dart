@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_map/common_widgets/app_snack.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
 
@@ -178,36 +179,20 @@ class _LocationSearchSheetState extends ConsumerState<LocationSearchSheet> {
           place.shortName,
         );
 
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final errorColor = Theme.of(context).colorScheme.error;
+    final overlay = Overlay.of(context, rootOverlay: true);
     final l10n = AppLocalizations.of(context);
 
     Navigator.pop(context);
 
-    scaffoldMessenger.showSnackBar(
-      SnackBar(
-        content: Text(l10n.settingLocationTo(place.shortName)),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    AppSnack.showOnOverlay(overlay, l10n.settingLocationTo(place.shortName));
 
     // Write GPS EXIF in background
     _writeGpsToPhoto(widget.photo, place.lat, place.lng).then((success) {
       if (success) {
         ref.read(galleryStateProvider.notifier).silentReload();
       } else {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text(l10n.failedWriteGps),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: errorColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+        AppSnack.showOnOverlay(overlay, l10n.failedWriteGps,
+            type: AppSnackType.error);
       }
     });
   }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_map/common_widgets/app_snack.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
@@ -116,7 +117,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     setState(() => _saving = true);
 
     final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
+    final overlay = Overlay.of(context, rootOverlay: true);
 
     try {
       final origin = await asset.originBytes;
@@ -161,24 +162,11 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         desc: 'Edited in Jaruek',
       );
 
-      if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.editorSaved),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
-      Navigator.pop(context);
+      AppSnack.showOnOverlay(overlay, l10n.editorSaved);
+      if (mounted) Navigator.pop(context);
     } catch (_) {
-      if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.editorSaveFailed),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      AppSnack.showOnOverlay(overlay, l10n.editorSaveFailed,
+          type: AppSnackType.error);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
