@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -92,17 +93,18 @@ class ProfileScreen extends ConsumerWidget {
 
   void _confirmSignOut(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    showDialog<void>(
+    showCupertinoDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => CupertinoAlertDialog(
         title: Text(l10n.signOutConfirmTitle),
         content: Text(l10n.signOutConfirmBody),
         actions: [
-          TextButton(
+          CupertinoDialogAction(
             onPressed: () => Navigator.pop(ctx),
             child: Text(l10n.commonCancel),
           ),
-          FilledButton(
+          CupertinoDialogAction(
+            isDestructiveAction: true,
             onPressed: () {
               Navigator.pop(ctx);
               ref.read(authNotifierProvider.notifier).signOut();

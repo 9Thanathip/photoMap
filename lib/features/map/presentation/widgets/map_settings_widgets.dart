@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
+import 'package:photo_map/common_widgets/glass_sheet.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/core/theme/app_palette.dart';
 import 'package:photo_map/features/map/presentation/providers/map_settings_provider.dart';
@@ -75,183 +76,184 @@ class SettingsSheet extends ConsumerWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    return Container(
-      padding: EdgeInsets.only(bottom: botPad),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const AppSheetHandle(),
-          // ── Fill colors ───────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ColorCard(
-                    label: l10n.mapSettingsProvince,
-                    color: settings.provinceColor,
-                    onTap: () => _openColorPicker(
-                      context,
-                      title: l10n.mapSettingsProvinceColor,
-                      current: settings.provinceColor,
-                      presets: kProvincePresets,
-                      onSelect: notifier.updateProvinceColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ColorCard(
-                    label: l10n.mapSettingsBackground,
-                    color: settings.canvasColor,
-                    onTap: () => _openColorPicker(
-                      context,
-                      title: l10n.mapSettingsBackgroundColor,
-                      current: settings.canvasColor,
-                      presets: kCanvasPresets,
-                      onSelect: notifier.updateCanvasColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // ── Border controls ───────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return GlassSheet(
+      child: Container(
+        padding: EdgeInsets.only(bottom: botPad),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AppSheetHandle(),
+            // ── Fill colors ───────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Row(
                 children: [
-                  Text(
-                    l10n.mapSettingsBorder,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface.withValues(
-                        alpha: 0.55,
+                  Expanded(
+                    child: ColorCard(
+                      label: l10n.mapSettingsProvince,
+                      color: settings.provinceColor,
+                      onTap: () => _openColorPicker(
+                        context,
+                        title: l10n.mapSettingsProvinceColor,
+                        current: settings.provinceColor,
+                        presets: kProvincePresets,
+                        onSelect: notifier.updateProvinceColor,
                       ),
-                      letterSpacing: -0.1,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  // Color row
-                  Row(
-                    children: [
-                      Text(
-                        l10n.mapSettingsColor,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: theme.colorScheme.onSurface,
-                        ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ColorCard(
+                      label: l10n.mapSettingsBackground,
+                      color: settings.canvasColor,
+                      onTap: () => _openColorPicker(
+                        context,
+                        title: l10n.mapSettingsBackgroundColor,
+                        current: settings.canvasColor,
+                        presets: kCanvasPresets,
+                        onSelect: notifier.updateCanvasColor,
                       ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () => _openColorPicker(
-                          context,
-                          title: l10n.mapSettingsBorderColor,
-                          current: settings.strokeColor,
-                          presets: kStrokePresets,
-                          onSelect: notifier.updateStrokeColor,
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: settings.strokeColor,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: theme.colorScheme.outline.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Icon(
-                              AppIcons.chevron_right_rounded,
-                              size: 18,
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  // Width slider
-                  Row(
-                    children: [
-                      Text(
-                        l10n.mapSettingsWidth,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        settings.strokeWidth.toStringAsFixed(1),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.55,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      trackHeight: 3,
-                      thumbShape: const RoundSliderThumbShape(
-                        enabledThumbRadius: 8,
-                      ),
-                      overlayShape: const RoundSliderOverlayShape(
-                        overlayRadius: 16,
-                      ),
-                      activeTrackColor: theme.colorScheme.onSurface,
-                      inactiveTrackColor: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.15),
-                      thumbColor: theme.colorScheme.onSurface,
-                    ),
-                    child: Slider(
-                      value: settings.strokeWidth,
-                      min: 0.3,
-                      max: 3.0,
-                      divisions: 27,
-                      onChanged: (v) {
-                        final stepped = (v * 10).round() / 10;
-                        if (stepped !=
-                            (settings.strokeWidth * 10).round() / 10) {
-                          HapticFeedback.selectionClick();
-                        }
-                        notifier.updateStrokeWidth(v);
-                      },
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+            // ── Border controls ───────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.mapSettingsBorder,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.55,
+                        ),
+                        letterSpacing: -0.1,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Color row
+                    Row(
+                      children: [
+                        Text(
+                          l10n.mapSettingsColor,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () => _openColorPicker(
+                            context,
+                            title: l10n.mapSettingsBorderColor,
+                            current: settings.strokeColor,
+                            presets: kStrokePresets,
+                            onSelect: notifier.updateStrokeColor,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: settings.strokeColor,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: theme.colorScheme.outline.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(
+                                AppIcons.chevron_right_rounded,
+                                size: 18,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    // Width slider
+                    Row(
+                      children: [
+                        Text(
+                          l10n.mapSettingsWidth,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          settings.strokeWidth.toStringAsFixed(1),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.55,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 3,
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: 8,
+                        ),
+                        overlayShape: const RoundSliderOverlayShape(
+                          overlayRadius: 16,
+                        ),
+                        activeTrackColor: theme.colorScheme.onSurface,
+                        inactiveTrackColor: theme.colorScheme.onSurface
+                            .withValues(alpha: 0.15),
+                        thumbColor: theme.colorScheme.onSurface,
+                      ),
+                      child: Slider(
+                        value: settings.strokeWidth,
+                        min: 0.3,
+                        max: 3.0,
+                        divisions: 27,
+                        onChanged: (v) {
+                          final stepped = (v * 10).round() / 10;
+                          if (stepped !=
+                              (settings.strokeWidth * 10).round() / 10) {
+                            HapticFeedback.selectionClick();
+                          }
+                          notifier.updateStrokeWidth(v);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -319,7 +321,11 @@ class ColorCard extends StatelessWidget {
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(AppIcons.colorize_rounded, size: 14, color: textColor),
+                child: Icon(
+                  AppIcons.colorize_rounded,
+                  size: 14,
+                  color: textColor,
+                ),
               ),
             ),
           ],
@@ -364,68 +370,66 @@ class _ColorPickerSheetState extends State<ColorPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const AppSheetHandle(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
-            child: Row(
-              children: [
-                Text(
-                  widget.title,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
+    return GlassSheet(
+      child: Container(
+        padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AppSheetHandle(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
+              child: Row(
+                children: [
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                Container(
-                  width: 52,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: _selected,
-                    borderRadius: BorderRadius.circular(14),
+                  const Spacer(),
+                  Container(
+                    width: 52,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: _selected,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          AnimatedCrossFade(
-            duration: const Duration(milliseconds: 220),
-            crossFadeState: _showHuePicker
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            firstChild: _buildGrid(),
-            secondChild: _buildHuePicker(),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _apply,
-                style: FilledButton.styleFrom(
-                  backgroundColor: Palette.mapPickerBg,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 220),
+              crossFadeState: _showHuePicker
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              firstChild: _buildGrid(),
+              secondChild: _buildHuePicker(),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _apply,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Palette.mapPickerBg,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: Text(
-                  AppLocalizations.of(context).mapSettingsApply,
-                  style: const TextStyle(color: Colors.black87),
+                  child: Text(
+                    AppLocalizations.of(context).mapSettingsApply,
+                    style: const TextStyle(color: Colors.black87),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -593,8 +597,7 @@ class _HsvPickerState extends State<_HsvPicker> {
             saturation: _hsv.saturation,
             value: _hsv.value,
             thumbColor: color,
-            onChanged: (s, v) =>
-                _commit(_hsv.withSaturation(s).withValue(v)),
+            onChanged: (s, v) => _commit(_hsv.withSaturation(s).withValue(v)),
           ),
           const SizedBox(height: 18),
 
@@ -683,74 +686,74 @@ class _SVField extends StatelessWidget {
     return SizedBox(
       height: _height,
       child: LayoutBuilder(
-      builder: (context, constraints) {
-        final size = Size(constraints.maxWidth, _height);
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onPanDown: (d) => _handle(d.localPosition, size),
-          onPanStart: (d) => _handle(d.localPosition, size),
-          onPanUpdate: (d) => _handle(d.localPosition, size),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(_radius),
-            child: Stack(
-              children: [
-                // Base hue → white (saturation), then → black (brightness).
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.white, hueColor],
+        builder: (context, constraints) {
+          final size = Size(constraints.maxWidth, _height);
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onPanDown: (d) => _handle(d.localPosition, size),
+            onPanStart: (d) => _handle(d.localPosition, size),
+            onPanUpdate: (d) => _handle(d.localPosition, size),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(_radius),
+              child: Stack(
+                children: [
+                  // Base hue → white (saturation), then → black (brightness).
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.white, hueColor],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Colors.transparent, Colors.black],
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.transparent, Colors.black],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(_radius),
-                      border: Border.all(
-                        color: onSurface.withValues(alpha: 0.08),
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(_radius),
+                        border: Border.all(
+                          color: onSurface.withValues(alpha: 0.08),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                // Thumb
-                Positioned(
-                  left: saturation * size.width - 11,
-                  top: (1 - value) * _height - 11,
-                  child: Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      color: thumbColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: thumbOnDark ? Colors.white : Colors.black,
-                        width: 2,
+                  // Thumb
+                  Positioned(
+                    left: saturation * size.width - 11,
+                    top: (1 - value) * _height - 11,
+                    child: Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: thumbColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: thumbOnDark ? Colors.white : Colors.black,
+                          width: 2,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(color: Color(0x33000000), blurRadius: 6),
+                        ],
                       ),
-                      boxShadow: const [
-                        BoxShadow(color: Color(0x33000000), blurRadius: 6),
-                      ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    ),
+          );
+        },
+      ),
     );
   }
 }

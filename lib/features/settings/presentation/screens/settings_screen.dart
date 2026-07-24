@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
+import 'package:photo_map/common_widgets/glass_sheet.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
@@ -100,10 +101,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: l10n.settingsLanguage,
                 trailing: Text(
                   _localeLabel(l10n, locale),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: t.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 13, color: t.textSecondary),
                 ),
                 onTap: () => _showLanguageSheet(context, ref, locale),
               ),
@@ -136,10 +134,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: l10n.settingsVersion,
                 trailing: Text(
                   '1.0.0',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: t.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 13, color: t.textSecondary),
                 ),
               ),
             ],
@@ -160,58 +155,61 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  void _showLanguageSheet(BuildContext context, WidgetRef ref, Locale? current) {
+  void _showLanguageSheet(
+    BuildContext context,
+    WidgetRef ref,
+    Locale? current,
+  ) {
     final l10n = AppLocalizations.of(context);
     final t = context.tokens;
     showModalBottomSheet<void>(
       context: context,
       useRootNavigator: true,
-      backgroundColor: t.surfaceCard,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         final options = <(String, Locale?)>[
           (l10n.languageSystemDefault, null),
           (l10n.languageEnglish, const Locale('en')),
           (l10n.languageThai, const Locale('th')),
         ];
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-                child: Text(
-                  l10n.settingsLanguage,
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: t.textPrimary,
-                  ),
-                ),
-              ),
-              for (final (label, value) in options)
-                ListTile(
-                  title: Text(
-                    label,
+        return GlassSheet(
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                  child: Text(
+                    l10n.settingsLanguage,
                     style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
                       color: t.textPrimary,
                     ),
                   ),
-                  trailing: current?.languageCode == value?.languageCode
-                      ? Icon(AppIcons.check_rounded, color: t.textPrimary)
-                      : null,
-                  onTap: () {
-                    ref.read(localeProvider.notifier).setLocale(value);
-                    Navigator.of(sheetContext).pop();
-                  },
                 ),
-              const SizedBox(height: 8),
-            ],
+                for (final (label, value) in options)
+                  ListTile(
+                    title: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: t.textPrimary,
+                      ),
+                    ),
+                    trailing: current?.languageCode == value?.languageCode
+                        ? Icon(AppIcons.check_rounded, color: t.textPrimary)
+                        : null,
+                    onTap: () {
+                      ref.read(localeProvider.notifier).setLocale(value);
+                      Navigator.of(sheetContext).pop();
+                    },
+                  ),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         );
       },
@@ -319,11 +317,7 @@ class _SettingsTile extends StatelessWidget {
 }
 
 class _ProfileTile extends StatelessWidget {
-  const _ProfileTile({
-    required this.name,
-    required this.email,
-    this.onTap,
-  });
+  const _ProfileTile({required this.name, required this.email, this.onTap});
 
   final String name;
   final String email;
@@ -378,10 +372,7 @@ class _ProfileTile extends StatelessWidget {
                       email,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: t.textSecondary,
-                      ),
+                      style: TextStyle(fontSize: 12, color: t.textSecondary),
                     ),
                   ],
                 ],
@@ -524,4 +515,3 @@ class _ThemeOption extends StatelessWidget {
     );
   }
 }
-

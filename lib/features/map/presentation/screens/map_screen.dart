@@ -206,6 +206,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     showModalBottomSheet<void>(
       context: context,
       useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (_) =>
           ProvinceMenuSheet(countryId: countryId, provinceName: provinceName),
     );

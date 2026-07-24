@@ -6,7 +6,9 @@ import 'package:photo_map/features/gallery/presentation/providers/gallery_notifi
 import 'package:photo_map/features/gallery/presentation/providers/gallery_select_provider.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/common_widgets/shell_active_index.dart';
+import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
+import 'package:photo_map/l10n/app_localizations.dart';
 
 class ShellScreen extends ConsumerStatefulWidget {
   const ShellScreen({super.key, required this.navigationShell});
@@ -214,23 +216,23 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
                               children: [
                                 _NavIcon(
                                   isSelected: currentIndex == 0,
-                                  icon: Icons.photo_library_outlined,
-                                  selectedIcon: Icons.photo_library,
+                                  icon: AppIcons.photo_library_outlined,
+                                  selectedIcon: AppIcons.photo_library,
                                 ),
                                 _NavIcon(
                                   isSelected: currentIndex == 1,
-                                  icon: Icons.map_outlined,
-                                  selectedIcon: Icons.map,
+                                  icon: AppIcons.map_outlined,
+                                  selectedIcon: AppIcons.map,
                                 ),
                                 _NavIcon(
                                   isSelected: currentIndex == 2,
-                                  icon: Icons.emoji_events_outlined,
-                                  selectedIcon: Icons.emoji_events,
+                                  icon: AppIcons.emoji_events_outlined,
+                                  selectedIcon: AppIcons.emoji_events,
                                 ),
                                 _NavIcon(
                                   isSelected: currentIndex == 3,
-                                  icon: Icons.settings_outlined,
-                                  selectedIcon: Icons.settings,
+                                  icon: AppIcons.settings_outlined,
+                                  selectedIcon: AppIcons.settings,
                                 ),
                               ],
                             ),
@@ -298,25 +300,26 @@ class _DeleteActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            '$selectedCount selected',
+            l10n.selectedCount(selectedCount),
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           IconButton(
             icon: Icon(
-              Icons.delete_outline,
+              AppIcons.delete_outline,
               color: onDelete != null
                   ? theme.colorScheme.error
                   : theme.colorScheme.onSurface.withAlpha(60),
             ),
             iconSize: 28,
             onPressed: onDelete,
-            tooltip: 'Delete',
+            tooltip: l10n.commonDelete,
           ),
         ],
       ),

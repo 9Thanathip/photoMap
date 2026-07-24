@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
+import 'package:photo_map/common_widgets/glass_sheet.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
@@ -25,48 +26,50 @@ class PhotoOptionsSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final asset = photo.assetEntity;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const AppSheetHandle(),
+    return GlassSheet(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const AppSheetHandle(),
 
-        // Thumbnail preview
-        if (asset != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                height: 180,
-                width: double.infinity,
-                child: Image(
-                  image: AssetEntityImageProvider(
-                    asset,
-                    isOriginal: false,
-                    thumbnailSize: const ThumbnailSize(600, 400),
+          // Thumbnail preview
+          if (asset != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  height: 180,
+                  width: double.infinity,
+                  child: Image(
+                    image: AssetEntityImageProvider(
+                      asset,
+                      isOriginal: false,
+                      thumbnailSize: const ThumbnailSize(600, 400),
+                    ),
+                    fit: BoxFit.cover,
                   ),
-                  fit: BoxFit.cover,
                 ),
               ),
             ),
-          ),
 
-        // Menu items
-        if (onFrame != null)
+          // Menu items
+          if (onFrame != null)
+            _OptionTile(
+              icon: AppIcons.filter_frames_rounded,
+              label: AppLocalizations.of(context).frameTitle,
+              onTap: onFrame!,
+            ),
           _OptionTile(
-            icon: AppIcons.filter_frames_rounded,
-            label: AppLocalizations.of(context).frameTitle,
-            onTap: onFrame!,
+            icon: AppIcons.delete_outline_rounded,
+            label: AppLocalizations.of(context).commonRemove,
+            color: theme.colorScheme.error,
+            onTap: onDelete,
           ),
-        _OptionTile(
-          icon: AppIcons.delete_outline_rounded,
-          label: AppLocalizations.of(context).commonRemove,
-          color: theme.colorScheme.error,
-          onTap: onDelete,
-        ),
 
-        SizedBox(height: MediaQuery.paddingOf(context).bottom + 8),
-      ],
+          SizedBox(height: MediaQuery.paddingOf(context).bottom + 8),
+        ],
+      ),
     );
   }
 }

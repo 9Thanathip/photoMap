@@ -11,6 +11,7 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:photo_map/common_widgets/app_snack.dart';
+import 'package:photo_map/common_widgets/glass_sheet.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
@@ -86,7 +87,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     return showModalBottomSheet<List<PhotoItem>>(
       context: context,
       useRootNavigator: true,
-      backgroundColor: context.tokens.surfaceCard,
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => _PhotoPickerSheet(
         photos: photos,
@@ -116,7 +117,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   Future<void> _pickMultiple() async {
     final targets = [
       for (var i = 0; i < _grid.count; i++)
-        if (!_images.containsKey(i)) i
+        if (!_images.containsKey(i)) i,
     ];
     if (targets.isEmpty) return;
     final res = await _openPicker(multi: true, capacity: targets.length);
@@ -140,8 +141,9 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   }
 
   Future<ui.Image?> _decode(PhotoItem photo) async {
-    final bytes = await photo.assetEntity!
-        .thumbnailDataWithSize(const ThumbnailSize(1280, 1280));
+    final bytes = await photo.assetEntity!.thumbnailDataWithSize(
+      const ThumbnailSize(1280, 1280),
+    );
     if (bytes == null) return null;
     final codec = await ui.instantiateImageCodec(bytes);
     final frame = await codec.getNextFrame();
@@ -150,14 +152,20 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
 
   void _onTapUp(TapUpDetails d) {
     final index = _grid.indexAt(
-        d.localPosition, Offset.zero & _canvasSize, _gapPx(_canvasSize));
+      d.localPosition,
+      Offset.zero & _canvasSize,
+      _gapPx(_canvasSize),
+    );
     if (index != null) _pickPhotoFor(index);
   }
 
   // ── Drag to swap ────────────────────────────────────────────────────────
   void _onDragStart(LongPressStartDetails d) {
     final i = _grid.indexAt(
-        d.localPosition, Offset.zero & _canvasSize, _gapPx(_canvasSize));
+      d.localPosition,
+      Offset.zero & _canvasSize,
+      _gapPx(_canvasSize),
+    );
     if (i != null && _images.containsKey(i)) {
       HapticFeedback.mediumImpact();
       setState(() {
@@ -173,7 +181,10 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     setState(() {
       _dragPos = d.localPosition;
       _dragTarget = _grid.indexAt(
-          d.localPosition, Offset.zero & _canvasSize, _gapPx(_canvasSize));
+        d.localPosition,
+        Offset.zero & _canvasSize,
+        _gapPx(_canvasSize),
+      );
     });
   }
 
@@ -266,7 +277,11 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
       bl += b[i + 2];
     }
     final color = Color.fromARGB(
-        255, (r / n).round(), (g / n).round(), (bl / n).round());
+      255,
+      (r / n).round(),
+      (g / n).round(),
+      (bl / n).round(),
+    );
     final hsv = HSVColor.fromColor(color);
     return (hsv.hue, hsv.value);
   }
@@ -291,8 +306,10 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
       images: _images,
     );
     final picture = recorder.endRecording();
-    final image =
-        await picture.toImage(size.width.round(), size.height.round());
+    final image = await picture.toImage(
+      size.width.round(),
+      size.height.round(),
+    );
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
     return bytes?.buffer.asUint8List();
@@ -310,12 +327,19 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
       if (png == null) throw StateError('encode failed');
       final filename =
           'jaruek_collage_${DateTime.now().millisecondsSinceEpoch}.png';
-      await PhotoManager.editor.saveImage(png,
-          filename: filename, title: filename, desc: 'Collage in Jaruek');
+      await PhotoManager.editor.saveImage(
+        png,
+        filename: filename,
+        title: filename,
+        desc: 'Collage in Jaruek',
+      );
       AppSnack.showOnOverlay(overlay, l10n.frameSaved);
     } catch (_) {
-      AppSnack.showOnOverlay(overlay, l10n.frameSaveFailed,
-          type: AppSnackType.error);
+      AppSnack.showOnOverlay(
+        overlay,
+        l10n.frameSaveFailed,
+        type: AppSnackType.error,
+      );
     } finally {
       if (mounted) setState(() => _busy = '');
     }
@@ -331,12 +355,16 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
       if (png == null) throw StateError('encode failed');
       final dir = await getTemporaryDirectory();
       final file = File(
-          '${dir.path}/jaruek_collage_${DateTime.now().millisecondsSinceEpoch}.png');
+        '${dir.path}/jaruek_collage_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
       await file.writeAsBytes(png);
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     } catch (_) {
-      AppSnack.showOnOverlay(overlay, l10n.frameSaveFailed,
-          type: AppSnackType.error);
+      AppSnack.showOnOverlay(
+        overlay,
+        l10n.frameSaveFailed,
+        type: AppSnackType.error,
+      );
     } finally {
       if (mounted) setState(() => _busy = '');
     }
@@ -382,19 +410,27 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             style: TextButton.styleFrom(foregroundColor: t.textSecondary),
-            child: Text(l10n.commonCancel, style: const TextStyle(fontSize: 15)),
+            child: Text(
+              l10n.commonCancel,
+              style: const TextStyle(fontSize: 15),
+            ),
           ),
-          Text(l10n.collageTitle,
-              style: TextStyle(
-                  color: t.textPrimary,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16)),
+          Text(
+            l10n.collageTitle,
+            style: TextStyle(
+              color: t.textPrimary,
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
+            ),
+          ),
           TextButton.icon(
             onPressed: _pickMultiple,
             style: TextButton.styleFrom(foregroundColor: t.textPrimary),
             icon: const Icon(AppIcons.add_photo_alternate_outlined, size: 18),
-            label: Text(l10n.collageAddPhotos,
-                style: const TextStyle(fontSize: 13)),
+            label: Text(
+              l10n.collageAddPhotos,
+              style: const TextStyle(fontSize: 13),
+            ),
           ),
         ],
       ),
@@ -439,7 +475,9 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   }
 
   Widget _buildColorSort(AppLocalizations l10n, AppTokens t) {
-    final enabled = _busy.isEmpty && (_images.keys.where((i) => i < _grid.count).length >= 2);
+    final enabled =
+        _busy.isEmpty &&
+        (_images.keys.where((i) => i < _grid.count).length >= 2);
     return Padding(
       padding: const EdgeInsets.only(top: 2),
       child: TextButton.icon(
@@ -453,9 +491,15 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                 width: 15,
                 height: 15,
                 child: CircularProgressIndicator(
-                    strokeWidth: 2, color: t.textPrimary))
+                  strokeWidth: 2,
+                  color: t.textPrimary,
+                ),
+              )
             : const Icon(AppIcons.gradient_rounded, size: 18),
-        label: Text(l10n.collageColorSort, style: const TextStyle(fontSize: 13)),
+        label: Text(
+          l10n.collageColorSort,
+          style: const TextStyle(fontSize: 13),
+        ),
       ),
     );
   }
@@ -488,25 +532,38 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   }
 
   Widget _stepper(
-      AppTokens t, String label, int value, ValueChanged<int> onChanged) {
+    AppTokens t,
+    String label,
+    int value,
+    ValueChanged<int> onChanged,
+  ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(label, style: TextStyle(color: t.textSecondary, fontSize: 12)),
         const SizedBox(width: 8),
-        _stepBtn(t, AppIcons.remove_rounded,
-            value > _minAxis ? () => onChanged(value - 1) : null),
+        _stepBtn(
+          t,
+          AppIcons.remove_rounded,
+          value > _minAxis ? () => onChanged(value - 1) : null,
+        ),
         SizedBox(
           width: 24,
-          child: Text('$value',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: t.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700)),
+          child: Text(
+            '$value',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: t.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
-        _stepBtn(t, AppIcons.add_rounded,
-            value < _maxAxis ? () => onChanged(value + 1) : null),
+        _stepBtn(
+          t,
+          AppIcons.add_rounded,
+          value < _maxAxis ? () => onChanged(value + 1) : null,
+        ),
       ],
     );
   }
@@ -527,8 +584,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
           color: on ? t.surfaceElevated : t.surfaceMuted,
           shape: BoxShape.circle,
         ),
-        child:
-            Icon(icon, size: 18, color: on ? t.textPrimary : t.textTertiary),
+        child: Icon(icon, size: 18, color: on ? t.textPrimary : t.textTertiary),
       ),
     );
   }
@@ -561,21 +617,22 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
-                            color:
-                                _ratio == r ? t.textPrimary : t.textTertiary,
+                            color: _ratio == r ? t.textPrimary : t.textTertiary,
                             width: _ratio == r ? 2 : 1,
                           ),
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Text(r.label,
-                          style: TextStyle(
-                            color:
-                                _ratio == r ? t.textPrimary : t.textSecondary,
-                            fontSize: 11,
-                            fontWeight:
-                                _ratio == r ? FontWeight.w700 : FontWeight.w500,
-                          )),
+                      Text(
+                        r.label,
+                        style: TextStyle(
+                          color: _ratio == r ? t.textPrimary : t.textSecondary,
+                          fontSize: 11,
+                          fontWeight: _ratio == r
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -593,8 +650,10 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
         children: [
           SizedBox(
             width: 40,
-            child: Text(l10n.collageGap,
-                style: TextStyle(color: t.textSecondary, fontSize: 12)),
+            child: Text(
+              l10n.collageGap,
+              style: TextStyle(color: t.textSecondary, fontSize: 12),
+            ),
           ),
           Expanded(
             child: SliderTheme(
@@ -640,7 +699,11 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     final ready = _busy.isEmpty && _hasPhoto;
     return Padding(
       padding: EdgeInsets.fromLTRB(
-          20, 10, 20, 12 + MediaQuery.paddingOf(context).bottom),
+        20,
+        10,
+        20,
+        12 + MediaQuery.paddingOf(context).bottom,
+      ),
       child: Row(
         children: [
           Expanded(
@@ -651,7 +714,10 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: t.textPrimary))
+                        strokeWidth: 2,
+                        color: t.textPrimary,
+                      ),
+                    )
                   : const Icon(AppIcons.ios_share_rounded, size: 18),
               label: Text(l10n.frameShare),
               style: OutlinedButton.styleFrom(
@@ -659,7 +725,8 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                 side: BorderSide(color: t.borderStrong),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
             ),
           ),
@@ -672,7 +739,10 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: t.surfaceBase))
+                        strokeWidth: 2,
+                        color: t.surfaceBase,
+                      ),
+                    )
                   : const Icon(AppIcons.download_rounded, size: 18),
               label: Text(l10n.frameSave),
               style: FilledButton.styleFrom(
@@ -680,7 +750,8 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                 foregroundColor: t.surfaceBase,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
             ),
           ),
@@ -730,110 +801,121 @@ class _PhotoPickerSheetState extends State<_PhotoPickerSheet> {
       minChildSize: 0.4,
       maxChildSize: 0.95,
       expand: false,
-      builder: (context, controller) => Column(
-        children: [
-          if (widget.multi)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('${_selected.length} / ${widget.capacity}',
+      builder: (context, controller) => GlassSheet(
+        child: Column(
+          children: [
+            if (widget.multi)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${_selected.length} / ${widget.capacity}',
                           style: TextStyle(
-                              color: t.textPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700)),
-                      Text(
-                        l10n.collagePickerHint(
-                            widget.filled, widget.total),
-                        style: TextStyle(
-                            color: t.textSecondary, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  FilledButton(
-                    onPressed: _selected.isEmpty
-                        ? null
-                        : () => Navigator.pop(context, _selected),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: t.textPrimary,
-                      foregroundColor: t.surfaceBase,
-                    ),
-                    child: Text(l10n.commonDone),
-                  ),
-                ],
-              ),
-            ),
-          Expanded(
-            child: GridView.builder(
-              controller: controller,
-              padding: const EdgeInsets.all(4),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 4,
-                crossAxisSpacing: 4,
-              ),
-              itemCount: images.length,
-              itemBuilder: (context, i) {
-                final p = images[i];
-                final order = _selected.indexOf(p);
-                return GestureDetector(
-                  onTap: () {
-                    if (!widget.multi) {
-                      Navigator.pop(context, [p]);
-                      return;
-                    }
-                    if (order < 0 && _selected.length >= widget.capacity) {
-                      HapticFeedback.lightImpact();
-                      return; // grid full — no more slots
-                    }
-                    setState(() {
-                      order >= 0 ? _selected.remove(p) : _selected.add(p);
-                    });
-                  },
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image(
-                        image: AssetEntityImageProvider(
-                          p.assetEntity!,
-                          isOriginal: false,
-                          thumbnailSize: const ThumbnailSize.square(300),
+                            color: t.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                        fit: BoxFit.cover,
-                      ),
-                      if (widget.multi && order >= 0) ...[
-                        Container(color: Colors.black.withValues(alpha: 0.35)),
-                        Positioned(
-                          top: 6,
-                          right: 6,
-                          child: Container(
-                            width: 22,
-                            height: 22,
-                            alignment: Alignment.center,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF4C9AFF),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text('${order + 1}',
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700)),
+                        Text(
+                          l10n.collagePickerHint(widget.filled, widget.total),
+                          style: TextStyle(
+                            color: t.textSecondary,
+                            fontSize: 12,
                           ),
                         ),
                       ],
-                    ],
-                  ),
-                );
-              },
+                    ),
+                    const Spacer(),
+                    FilledButton(
+                      onPressed: _selected.isEmpty
+                          ? null
+                          : () => Navigator.pop(context, _selected),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: t.textPrimary,
+                        foregroundColor: t.surfaceBase,
+                      ),
+                      child: Text(l10n.commonDone),
+                    ),
+                  ],
+                ),
+              ),
+            Expanded(
+              child: GridView.builder(
+                controller: controller,
+                padding: const EdgeInsets.all(4),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 4,
+                  crossAxisSpacing: 4,
+                ),
+                itemCount: images.length,
+                itemBuilder: (context, i) {
+                  final p = images[i];
+                  final order = _selected.indexOf(p);
+                  return GestureDetector(
+                    onTap: () {
+                      if (!widget.multi) {
+                        Navigator.pop(context, [p]);
+                        return;
+                      }
+                      if (order < 0 && _selected.length >= widget.capacity) {
+                        HapticFeedback.lightImpact();
+                        return; // grid full — no more slots
+                      }
+                      setState(() {
+                        order >= 0 ? _selected.remove(p) : _selected.add(p);
+                      });
+                    },
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image(
+                          image: AssetEntityImageProvider(
+                            p.assetEntity!,
+                            isOriginal: false,
+                            thumbnailSize: const ThumbnailSize.square(300),
+                          ),
+                          fit: BoxFit.cover,
+                        ),
+                        if (widget.multi && order >= 0) ...[
+                          Container(
+                            color: Colors.black.withValues(alpha: 0.35),
+                          ),
+                          Positioned(
+                            top: 6,
+                            right: 6,
+                            child: Container(
+                              width: 22,
+                              height: 22,
+                              alignment: Alignment.center,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF4C9AFF),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '${order + 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
