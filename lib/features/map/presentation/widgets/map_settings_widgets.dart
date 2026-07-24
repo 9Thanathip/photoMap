@@ -587,6 +587,17 @@ class _HsvPickerState extends State<_HsvPicker> {
           ),
           const SizedBox(height: 22),
 
+          // 2D saturation/brightness field — drag anywhere to pick.
+          _SVField(
+            hue: _hsv.hue,
+            saturation: _hsv.saturation,
+            value: _hsv.value,
+            thumbColor: color,
+            onChanged: (s, v) =>
+                _commit(_hsv.withSaturation(s).withValue(v)),
+          ),
+          const SizedBox(height: 18),
+
           _ChannelSlider(
             label: l10n.mapHue,
             valueText: '${_hsv.hue.round()}°',
@@ -604,36 +615,6 @@ class _HsvPickerState extends State<_HsvPicker> {
             ),
             thumbColor: HSVColor.fromAHSV(1, _hsv.hue, 1, 1).toColor(),
             onChanged: (p) => _commit(_hsv.withHue(p * 360)),
-          ),
-          const SizedBox(height: 18),
-
-          _ChannelSlider(
-            label: l10n.mapSaturation,
-            valueText: '${(_hsv.saturation * 100).round()}%',
-            position: _hsv.saturation,
-            trackGradient: LinearGradient(
-              colors: [
-                HSVColor.fromAHSV(1, _hsv.hue, 0, _hsv.value).toColor(),
-                HSVColor.fromAHSV(1, _hsv.hue, 1, _hsv.value).toColor(),
-              ],
-            ),
-            thumbColor: color,
-            onChanged: (p) => _commit(_hsv.withSaturation(p)),
-          ),
-          const SizedBox(height: 18),
-
-          _ChannelSlider(
-            label: l10n.mapBrightness,
-            valueText: '${(_hsv.value * 100).round()}%',
-            position: _hsv.value,
-            trackGradient: LinearGradient(
-              colors: [
-                HSVColor.fromAHSV(1, _hsv.hue, _hsv.saturation, 0).toColor(),
-                HSVColor.fromAHSV(1, _hsv.hue, _hsv.saturation, 1).toColor(),
-              ],
-            ),
-            thumbColor: color,
-            onChanged: (p) => _commit(_hsv.withValue(p)),
           ),
 
           const SizedBox(height: 18),
@@ -662,6 +643,114 @@ class _HsvPickerState extends State<_HsvPicker> {
           const SizedBox(height: 4),
         ],
       ),
+    );
+  }
+}
+
+/// 2D saturation × brightness field. X = saturation (0 left → 1 right),
+/// Y = brightness (1 top → 0 bottom). Drag anywhere to pick both at once.
+class _SVField extends StatelessWidget {
+  const _SVField({
+    required this.hue,
+    required this.saturation,
+    required this.value,
+    required this.thumbColor,
+    required this.onChanged,
+  });
+
+  final double hue;
+  final double saturation;
+  final double value;
+  final Color thumbColor;
+  final void Function(double saturation, double value) onChanged;
+
+  static const double _height = 200;
+  static const double _radius = 18;
+
+  void _handle(Offset local, Size size) {
+    final s = (local.dx / size.width).clamp(0.0, 1.0);
+    final v = 1.0 - (local.dy / size.height).clamp(0.0, 1.0);
+    onChanged(s, v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hueColor = HSVColor.fromAHSV(1, hue, 1, 1).toColor();
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final thumbOnDark =
+        ThemeData.estimateBrightnessForColor(thumbColor) == Brightness.dark;
+
+    return SizedBox(
+      height: _height,
+      child: LayoutBuilder(
+      builder: (context, constraints) {
+        final size = Size(constraints.maxWidth, _height);
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onPanDown: (d) => _handle(d.localPosition, size),
+          onPanStart: (d) => _handle(d.localPosition, size),
+          onPanUpdate: (d) => _handle(d.localPosition, size),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(_radius),
+            child: Stack(
+              children: [
+                // Base hue → white (saturation), then → black (brightness).
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.white, hueColor],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Colors.black],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(_radius),
+                      border: Border.all(
+                        color: onSurface.withValues(alpha: 0.08),
+                      ),
+                    ),
+                  ),
+                ),
+                // Thumb
+                Positioned(
+                  left: saturation * size.width - 11,
+                  top: (1 - value) * _height - 11,
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: thumbColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: thumbOnDark ? Colors.white : Colors.black,
+                        width: 2,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(color: Color(0x33000000), blurRadius: 6),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ),
     );
   }
 }
