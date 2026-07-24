@@ -36,6 +36,7 @@ extension AppL10nX on AppLocalizations {
         ViewMode.year => viewModeYear,
         ViewMode.month => viewModeMonth,
         ViewMode.day => viewModeDay,
+        ViewMode.hue => viewModeHue,
       };
 
   /// Maps a [FilterPreset.id] to its localized display name.

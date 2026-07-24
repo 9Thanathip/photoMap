@@ -4,9 +4,10 @@ import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
+import '../../../utils/hue_sort.dart';
 import 'photo_tile.dart';
 
-enum ViewMode { all, year, month, day }
+enum ViewMode { all, year, month, day, hue }
 
 const photoGridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
   crossAxisCount: 3,
@@ -50,6 +51,10 @@ class PhotosTab extends StatelessWidget {
     final months = l10n.monthsShort;
     return switch (viewMode) {
       ViewMode.all => _flatGrid(photos),
+      ViewMode.hue => HueGrid(
+          photos: photos,
+          builder: _flatGrid,
+        ),
       ViewMode.year => _sectionedGrid(
           _groupBy(photos, (p) => '${p.timestamp.year}'),
           (k) => k,
@@ -167,5 +172,85 @@ class PhotosTab extends StatelessWidget {
         const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
       ],
     );
+  }
+}
+
+/// Async wrapper for the hue view: sorts (and tone-computes) off the build
+/// path, showing progress on the first pass over a large library. Once the
+/// tone cache is warm the sort is effectively instant.
+class HueGrid extends StatefulWidget {
+  const HueGrid({super.key, required this.photos, required this.builder});
+
+  final List<PhotoItem> photos;
+  final Widget Function(List<PhotoItem>) builder;
+
+  @override
+  State<HueGrid> createState() => _HueGridState();
+}
+
+class _HueGridState extends State<HueGrid> {
+  List<PhotoItem>? _sorted;
+  double _progress = 0;
+  int _generation = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _sort();
+  }
+
+  @override
+  void didUpdateWidget(HueGrid old) {
+    super.didUpdateWidget(old);
+    if (!identical(old.photos, widget.photos)) {
+      _sort();
+    }
+  }
+
+  Future<void> _sort() async {
+    final gen = ++_generation;
+    final sorted = await HueSortCache.sortByHue(
+      widget.photos,
+      onProgress: (p) {
+        if (mounted && gen == _generation) {
+          setState(() => _progress = p);
+        }
+      },
+    );
+    // A newer sort may have started while this one was computing.
+    if (mounted && gen == _generation) {
+      setState(() => _sorted = sorted);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sorted = _sorted;
+    if (sorted == null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                value: _progress > 0 ? _progress : null,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              AppLocalizations.of(context).viewModeHueSorting,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return widget.builder(sorted);
   }
 }

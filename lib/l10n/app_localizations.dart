@@ -806,6 +806,18 @@ abstract class AppLocalizations {
   /// **'Day'**
   String get viewModeDay;
 
+  /// No description provided for @viewModeHue.
+  ///
+  /// In en, this message translates to:
+  /// **'Color Gradient'**
+  String get viewModeHue;
+
+  /// No description provided for @viewModeHueSorting.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting by color…'**
+  String get viewModeHueSorting;
+
   /// No description provided for @deletePhotoTitle.
   ///
   /// In en, this message translates to:

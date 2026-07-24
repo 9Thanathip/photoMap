@@ -7,7 +7,7 @@ import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
 import 'album_card.dart';
 import 'photo_tile.dart';
-import 'photos_tab.dart' show photoGridDelegate, ViewMode;
+import 'photos_tab.dart' show photoGridDelegate, ViewMode, HueGrid;
 
 const _albumGridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
   crossAxisCount: 2,
@@ -254,6 +254,10 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
 
     return switch (widget.viewMode) {
       ViewMode.all => _flatGrid(photos),
+      ViewMode.hue => HueGrid(
+          photos: photos,
+          builder: _flatGrid,
+        ),
       ViewMode.year => _sectionedGrid(
           _groupBy(photos, (p) => '${p.timestamp.year}'),
           (k) => k,

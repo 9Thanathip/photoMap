@@ -384,6 +384,12 @@ class AppLocalizationsTh extends AppLocalizations {
   String get viewModeDay => 'วัน';
 
   @override
+  String get viewModeHue => 'ไล่เฉดสี';
+
+  @override
+  String get viewModeHueSorting => 'กำลังเรียงตามสี…';
+
+  @override
   String get deletePhotoTitle => 'ลบรูปภาพ';
 
   @override

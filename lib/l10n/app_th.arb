@@ -134,6 +134,8 @@
   "viewModeYear": "ปี",
   "viewModeMonth": "เดือน",
   "viewModeDay": "วัน",
+  "viewModeHue": "ไล่เฉดสี",
+  "viewModeHueSorting": "กำลังเรียงตามสี…",
 
   "deletePhotoTitle": "ลบรูปภาพ",
   "deletePhotoBody": "ต้องการลบรูปภาพนี้ใช่หรือไม่",

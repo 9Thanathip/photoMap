@@ -381,6 +381,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get viewModeDay => 'Day';
 
   @override
+  String get viewModeHue => 'Color Gradient';
+
+  @override
+  String get viewModeHueSorting => 'Sorting by color…';
+
+  @override
   String get deletePhotoTitle => 'Delete Photo';
 
   @override

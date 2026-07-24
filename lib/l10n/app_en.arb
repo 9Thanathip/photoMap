@@ -141,6 +141,8 @@
   "viewModeYear": "Year",
   "viewModeMonth": "Month",
   "viewModeDay": "Day",
+  "viewModeHue": "Color Gradient",
+  "viewModeHueSorting": "Sorting by color…",
 
   "deletePhotoTitle": "Delete Photo",
   "deletePhotoBody": "Are you sure you want to delete this photo?",
