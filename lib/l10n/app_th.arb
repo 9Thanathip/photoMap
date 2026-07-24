@@ -216,6 +216,10 @@
   "presetBw": "ขาวดำ",
 
   "mapSavedToPhotos": "บันทึกลงรูปภาพแล้ว",
+  "shareCardTitle": "การ์ดแชร์",
+  "shareCardProvinces": "{visited} จาก {total} จังหวัด",
+  "shareCardExplored": "สำรวจแล้ว {percent}%",
+  "shareCardPhotos": "{count} รูป",
   "mapSaveFailed": "บันทึกรูปภาพไม่สำเร็จ",
   "mapNoData": "ไม่พบข้อมูลแผนที่",
   "mapNoPhotosByDistrict": "ยังไม่มีรูปภาพที่แยกตามอำเภอ",

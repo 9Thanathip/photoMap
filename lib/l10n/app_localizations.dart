@@ -1256,6 +1256,30 @@ abstract class AppLocalizations {
   /// **'Failed to save image'**
   String get mapSaveFailed;
 
+  /// No description provided for @shareCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Card'**
+  String get shareCardTitle;
+
+  /// No description provided for @shareCardProvinces.
+  ///
+  /// In en, this message translates to:
+  /// **'{visited} of {total} provinces'**
+  String shareCardProvinces(int visited, int total);
+
+  /// No description provided for @shareCardExplored.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% explored'**
+  String shareCardExplored(int percent);
+
+  /// No description provided for @shareCardPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photos'**
+  String shareCardPhotos(int count);
+
   /// No description provided for @mapNoData.
   ///
   /// In en, this message translates to:

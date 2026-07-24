@@ -229,6 +229,26 @@
 
   "mapSavedToPhotos": "Saved to Photos",
   "mapSaveFailed": "Failed to save image",
+  "shareCardTitle": "Share Card",
+  "shareCardProvinces": "{visited} of {total} provinces",
+  "@shareCardProvinces": {
+    "placeholders": {
+      "visited": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "shareCardExplored": "{percent}% explored",
+  "@shareCardExplored": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "shareCardPhotos": "{count} photos",
+  "@shareCardPhotos": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "mapNoData": "No Map Data Found",
   "mapNoPhotosByDistrict": "No photos categorized by district",
   "provinceGallerySubtitle": "Photos you take here will appear here.",

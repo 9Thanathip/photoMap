@@ -624,6 +624,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapSaveFailed => 'Failed to save image';
 
   @override
+  String get shareCardTitle => 'Share Card';
+
+  @override
+  String shareCardProvinces(int visited, int total) {
+    return '$visited of $total provinces';
+  }
+
+  @override
+  String shareCardExplored(int percent) {
+    return '$percent% explored';
+  }
+
+  @override
+  String shareCardPhotos(int count) {
+    return '$count photos';
+  }
+
+  @override
   String get mapNoData => 'No Map Data Found';
 
   @override

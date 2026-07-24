@@ -12,6 +12,7 @@ class NationalMapActions extends StatelessWidget {
     required this.onResetView,
     required this.onDownload,
     required this.onShare,
+    required this.onShareCard,
   });
 
   final bool isDownloading;
@@ -19,6 +20,7 @@ class NationalMapActions extends StatelessWidget {
   final VoidCallback onResetView;
   final VoidCallback onDownload;
   final VoidCallback onShare;
+  final VoidCallback onShareCard;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +66,16 @@ class NationalMapActions extends StatelessWidget {
             icon: AppIcons.ios_share,
             tooltip: l10n.tooltipShare,
             onTap: onShare,
+          ),
+          Divider(
+            height: 1,
+            thickness: 0.5,
+            color: dividerColor,
+          ),
+          MapActionButton(
+            icon: AppIcons.filter_frames_rounded,
+            tooltip: l10n.shareCardTitle,
+            onTap: onShareCard,
           ),
         ],
       ),

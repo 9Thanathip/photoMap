@@ -622,6 +622,24 @@ class AppLocalizationsTh extends AppLocalizations {
   String get mapSaveFailed => 'บันทึกรูปภาพไม่สำเร็จ';
 
   @override
+  String get shareCardTitle => 'การ์ดแชร์';
+
+  @override
+  String shareCardProvinces(int visited, int total) {
+    return '$visited จาก $total จังหวัด';
+  }
+
+  @override
+  String shareCardExplored(int percent) {
+    return 'สำรวจแล้ว $percent%';
+  }
+
+  @override
+  String shareCardPhotos(int count) {
+    return '$count รูป';
+  }
+
+  @override
   String get mapNoData => 'ไม่พบข้อมูลแผนที่';
 
   @override

@@ -16,6 +16,7 @@ import 'package:photo_map/features/map/presentation/widgets/national_map/nationa
 import 'package:photo_map/features/map/presentation/widgets/national_map/province_menu_sheet.dart';
 import '../providers/map_provider.dart';
 import '../providers/map_settings_provider.dart';
+import 'share_card_screen.dart';
 import '../widgets/map_settings_widgets.dart';
 import '../widgets/thailand_map_painter.dart';
 
@@ -395,6 +396,13 @@ class _MapScreenState extends ConsumerState<MapScreen>
               onResetView: _resetView,
               onDownload: _download,
               onShare: _share,
+              onShareCard: () {
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const ShareCardScreen(),
+                  ),
+                );
+              },
             ),
           ),
         ],
