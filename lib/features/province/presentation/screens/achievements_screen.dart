@@ -9,6 +9,7 @@ import 'package:photo_map/features/auth/presentation/providers/auth_provider.dar
 import '../widgets/achievements_stats.dart';
 import '../widgets/country_pills.dart';
 import '../widgets/province_progress_card.dart';
+import '../widgets/top_provinces_card.dart';
 
 const Map<String, int> _kDistrictCount = {
   'Amnat Charoen': 7,
@@ -183,6 +184,15 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                     visited: visitedCount,
                     total: total,
                     userName: userName,
+                  ),
+                  const SizedBox(height: 14),
+
+                  // ── Top provinces ── (scoped to the selected country)
+                  TopProvincesCard(
+                    photosByProvince: {
+                      for (final e in stats.photosByProvince.entries)
+                        if (visitedSet.contains(e.key)) e.key: e.value,
+                    },
                   ),
                   const SizedBox(height: 28),
                 ],

@@ -229,6 +229,7 @@
 
   "mapSavedToPhotos": "Saved to Photos",
   "mapSaveFailed": "Failed to save image",
+  "statsTopProvinces": "Most Photographed",
   "shareCardTitle": "Share Card",
   "shareCardProvinces": "{visited} of {total} provinces",
   "@shareCardProvinces": {

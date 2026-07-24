@@ -622,6 +622,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get mapSaveFailed => 'บันทึกรูปภาพไม่สำเร็จ';
 
   @override
+  String get statsTopProvinces => 'จังหวัดที่ถ่ายรูปเยอะที่สุด';
+
+  @override
   String get shareCardTitle => 'การ์ดแชร์';
 
   @override

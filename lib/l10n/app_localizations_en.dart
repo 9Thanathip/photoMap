@@ -624,6 +624,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapSaveFailed => 'Failed to save image';
 
   @override
+  String get statsTopProvinces => 'Most Photographed';
+
+  @override
   String get shareCardTitle => 'Share Card';
 
   @override

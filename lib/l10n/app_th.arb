@@ -216,6 +216,7 @@
   "presetBw": "ขาวดำ",
 
   "mapSavedToPhotos": "บันทึกลงรูปภาพแล้ว",
+  "statsTopProvinces": "จังหวัดที่ถ่ายรูปเยอะที่สุด",
   "shareCardTitle": "การ์ดแชร์",
   "shareCardProvinces": "{visited} จาก {total} จังหวัด",
   "shareCardExplored": "สำรวจแล้ว {percent}%",

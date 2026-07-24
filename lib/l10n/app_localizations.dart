@@ -1256,6 +1256,12 @@ abstract class AppLocalizations {
   /// **'Failed to save image'**
   String get mapSaveFailed;
 
+  /// No description provided for @statsTopProvinces.
+  ///
+  /// In en, this message translates to:
+  /// **'Most Photographed'**
+  String get statsTopProvinces;
+
   /// No description provided for @shareCardTitle.
   ///
   /// In en, this message translates to:
