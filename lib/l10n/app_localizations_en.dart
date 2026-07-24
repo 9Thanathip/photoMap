@@ -627,6 +627,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsTopProvinces => 'Most Photographed';
 
   @override
+  String get tripsTitle => 'Trips';
+
+  @override
+  String tripsCount(int count) {
+    return '$count trips';
+  }
+
+  @override
+  String tripDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get tripsEmptyTitle => 'No trips yet';
+
+  @override
+  String get tripsEmptySubtitle =>
+      'Trips appear automatically from photos taken away from home.';
+
+  @override
   String get shareCardTitle => 'Share Card';
 
   @override

@@ -1262,6 +1262,36 @@ abstract class AppLocalizations {
   /// **'Most Photographed'**
   String get statsTopProvinces;
 
+  /// No description provided for @tripsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get tripsTitle;
+
+  /// No description provided for @tripsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} trips'**
+  String tripsCount(int count);
+
+  /// No description provided for @tripDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String tripDays(int days);
+
+  /// No description provided for @tripsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No trips yet'**
+  String get tripsEmptyTitle;
+
+  /// No description provided for @tripsEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips appear automatically from photos taken away from home.'**
+  String get tripsEmptySubtitle;
+
   /// No description provided for @shareCardTitle.
   ///
   /// In en, this message translates to:

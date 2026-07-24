@@ -230,6 +230,21 @@
   "mapSavedToPhotos": "Saved to Photos",
   "mapSaveFailed": "Failed to save image",
   "statsTopProvinces": "Most Photographed",
+  "tripsTitle": "Trips",
+  "tripsCount": "{count} trips",
+  "@tripsCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "tripDays": "{days} days",
+  "@tripDays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "tripsEmptyTitle": "No trips yet",
+  "tripsEmptySubtitle": "Trips appear automatically from photos taken away from home.",
   "shareCardTitle": "Share Card",
   "shareCardProvinces": "{visited} of {total} provinces",
   "@shareCardProvinces": {

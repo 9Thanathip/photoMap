@@ -217,6 +217,11 @@
 
   "mapSavedToPhotos": "บันทึกลงรูปภาพแล้ว",
   "statsTopProvinces": "จังหวัดที่ถ่ายรูปเยอะที่สุด",
+  "tripsTitle": "ทริป",
+  "tripsCount": "{count} ทริป",
+  "tripDays": "{days} วัน",
+  "tripsEmptyTitle": "ยังไม่มีทริป",
+  "tripsEmptySubtitle": "ทริปจะแสดงอัตโนมัติจากรูปที่ถ่ายระหว่างเดินทาง",
   "shareCardTitle": "การ์ดแชร์",
   "shareCardProvinces": "{visited} จาก {total} จังหวัด",
   "shareCardExplored": "สำรวจแล้ว {percent}%",

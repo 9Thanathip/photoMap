@@ -625,6 +625,26 @@ class AppLocalizationsTh extends AppLocalizations {
   String get statsTopProvinces => 'จังหวัดที่ถ่ายรูปเยอะที่สุด';
 
   @override
+  String get tripsTitle => 'ทริป';
+
+  @override
+  String tripsCount(int count) {
+    return '$count ทริป';
+  }
+
+  @override
+  String tripDays(int days) {
+    return '$days วัน';
+  }
+
+  @override
+  String get tripsEmptyTitle => 'ยังไม่มีทริป';
+
+  @override
+  String get tripsEmptySubtitle =>
+      'ทริปจะแสดงอัตโนมัติจากรูปที่ถ่ายระหว่างเดินทาง';
+
+  @override
   String get shareCardTitle => 'การ์ดแชร์';
 
   @override

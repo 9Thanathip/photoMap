@@ -6,6 +6,8 @@ import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/features/map/presentation/screens/province_gallery_screen.dart';
 import 'package:photo_map/features/auth/presentation/providers/auth_provider.dart';
+import 'package:photo_map/features/trips/domain/trip.dart';
+import 'package:photo_map/features/trips/presentation/screens/trip_timeline_screen.dart';
 import '../widgets/achievements_stats.dart';
 import '../widgets/country_pills.dart';
 import '../widgets/province_progress_card.dart';
@@ -194,6 +196,10 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                         if (visitedSet.contains(e.key)) e.key: e.value,
                     },
                   ),
+                  const SizedBox(height: 14),
+
+                  // ── Trips entry ──
+                  _TripsTile(tripCount: Trip.cluster(photos).length),
                   const SizedBox(height: 28),
                 ],
               ),
@@ -287,6 +293,63 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Compact entry tile into the trip timeline.
+class _TripsTile extends StatelessWidget {
+  const _TripsTile({required this.tripCount});
+
+  final int tripCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final t = context.tokens;
+
+    return GestureDetector(
+      onTap: tripCount == 0
+          ? null
+          : () => Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const TripTimelineScreen(),
+                ),
+              ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: t.surfaceCard,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: t.borderSubtle),
+        ),
+        child: Row(
+          children: [
+            Icon(AppIcons.explore_outlined, size: 20, color: t.accentGold),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l10n.tripsTitle,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: t.textPrimary,
+                ),
+              ),
+            ),
+            Text(
+              l10n.tripsCount(tripCount),
+              style: TextStyle(fontSize: 12, color: t.textSecondary),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              AppIcons.chevron_right_rounded,
+              size: 16,
+              color: t.textTertiary,
+            ),
+          ],
+        ),
       ),
     );
   }
