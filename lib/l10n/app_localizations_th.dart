@@ -556,6 +556,42 @@ class AppLocalizationsTh extends AppLocalizations {
   String get adjLightLeak => 'แสงรั่ว';
 
   @override
+  String get editorLocal => 'เฉพาะจุด';
+
+  @override
+  String get adjShadows => 'เงา';
+
+  @override
+  String get adjHighlights => 'ไฮไลท์';
+
+  @override
+  String get adjWarmth => 'โทนอุ่น';
+
+  @override
+  String get localMaskRadial => 'วงกลม';
+
+  @override
+  String get localMaskLinear => 'ไล่ระดับ';
+
+  @override
+  String get localMaskBrush => 'แปรง';
+
+  @override
+  String get localAddMaskHint => 'เพิ่มมาส์กเพื่อปรับแสงเฉพาะจุดของภาพ';
+
+  @override
+  String get localSize => 'ขนาด';
+
+  @override
+  String get localFeather => 'ขอบฟุ้ง';
+
+  @override
+  String get localBrushSize => 'ขนาดแปรง';
+
+  @override
+  String get localShowMask => 'แสดงมาส์ก';
+
+  @override
   String get presetOriginal => 'ต้นฉบับ';
 
   @override

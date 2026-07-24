@@ -558,6 +558,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adjLightLeak => 'Light Leak';
 
   @override
+  String get editorLocal => 'Local';
+
+  @override
+  String get adjShadows => 'Shadows';
+
+  @override
+  String get adjHighlights => 'Highlights';
+
+  @override
+  String get adjWarmth => 'Warmth';
+
+  @override
+  String get localMaskRadial => 'Radial';
+
+  @override
+  String get localMaskLinear => 'Linear';
+
+  @override
+  String get localMaskBrush => 'Brush';
+
+  @override
+  String get localAddMaskHint => 'Add a mask to adjust part of the photo';
+
+  @override
+  String get localSize => 'Size';
+
+  @override
+  String get localFeather => 'Feather';
+
+  @override
+  String get localBrushSize => 'Brush Size';
+
+  @override
+  String get localShowMask => 'Show Mask';
+
+  @override
   String get presetOriginal => 'Original';
 
   @override

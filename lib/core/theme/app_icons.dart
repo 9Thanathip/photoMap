@@ -126,6 +126,17 @@ abstract final class AppIcons {
   static const IconData grain_rounded = Icons.grain_rounded;
   static const IconData vignette_rounded = Icons.vignette_rounded;
 
+  // ── Local adjust (masks) ──
+  static const IconData mask_radial = CupertinoIcons.circle_grid_hex;
+  static const IconData mask_linear = CupertinoIcons.line_horizontal_3;
+  static const IconData mask_brush = CupertinoIcons.paintbrush;
+  static const IconData adj_shadows = CupertinoIcons.moon;
+  static const IconData adj_highlights = CupertinoIcons.sun_min;
+  static const IconData mask_show = CupertinoIcons.eye;
+  static const IconData mask_hide = CupertinoIcons.eye_slash;
+  static const IconData mask_size = CupertinoIcons.arrow_up_left_arrow_down_right;
+  static const IconData mask_feather = CupertinoIcons.wind;
+
   // ── Misc ──
   static const IconData remove_rounded = CupertinoIcons.minus;
   static const IconData remove_circle_outline = CupertinoIcons.minus_circle;

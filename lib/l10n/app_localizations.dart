@@ -1124,6 +1124,78 @@ abstract class AppLocalizations {
   /// **'Light Leak'**
   String get adjLightLeak;
 
+  /// No description provided for @editorLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Local'**
+  String get editorLocal;
+
+  /// No description provided for @adjShadows.
+  ///
+  /// In en, this message translates to:
+  /// **'Shadows'**
+  String get adjShadows;
+
+  /// No description provided for @adjHighlights.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlights'**
+  String get adjHighlights;
+
+  /// No description provided for @adjWarmth.
+  ///
+  /// In en, this message translates to:
+  /// **'Warmth'**
+  String get adjWarmth;
+
+  /// No description provided for @localMaskRadial.
+  ///
+  /// In en, this message translates to:
+  /// **'Radial'**
+  String get localMaskRadial;
+
+  /// No description provided for @localMaskLinear.
+  ///
+  /// In en, this message translates to:
+  /// **'Linear'**
+  String get localMaskLinear;
+
+  /// No description provided for @localMaskBrush.
+  ///
+  /// In en, this message translates to:
+  /// **'Brush'**
+  String get localMaskBrush;
+
+  /// No description provided for @localAddMaskHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a mask to adjust part of the photo'**
+  String get localAddMaskHint;
+
+  /// No description provided for @localSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get localSize;
+
+  /// No description provided for @localFeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Feather'**
+  String get localFeather;
+
+  /// No description provided for @localBrushSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Brush Size'**
+  String get localBrushSize;
+
+  /// No description provided for @localShowMask.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Mask'**
+  String get localShowMask;
+
   /// No description provided for @presetOriginal.
   ///
   /// In en, this message translates to:
