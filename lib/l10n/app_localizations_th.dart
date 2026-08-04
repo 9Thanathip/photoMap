@@ -638,6 +638,16 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
+  String tripDaysShort(int days) {
+    return '$days วัน';
+  }
+
+  @override
+  String tripStops(int count) {
+    return '$count จุด';
+  }
+
+  @override
   String get tripsEmptyTitle => 'ยังไม่มีทริป';
 
   @override

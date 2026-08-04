@@ -220,6 +220,8 @@
   "tripsTitle": "ทริป",
   "tripsCount": "{count} ทริป",
   "tripDays": "{days} วัน",
+  "tripDaysShort": "{days} วัน",
+  "tripStops": "{count} จุด",
   "tripsEmptyTitle": "ยังไม่มีทริป",
   "tripsEmptySubtitle": "ทริปจะแสดงอัตโนมัติจากรูปที่ถ่ายระหว่างเดินทาง",
   "shareCardTitle": "การ์ดแชร์",

@@ -640,6 +640,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String tripDaysShort(int days) {
+    return '${days}d';
+  }
+
+  @override
+  String tripStops(int count) {
+    return '$count stops';
+  }
+
+  @override
   String get tripsEmptyTitle => 'No trips yet';
 
   @override

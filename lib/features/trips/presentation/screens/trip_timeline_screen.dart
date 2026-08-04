@@ -6,11 +6,11 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
-import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/features/gallery/presentation/widgets/viewer/photo_viewer_screen.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
 import '../../domain/trip.dart';
+import '../providers/trips_provider.dart';
 
 /// Story-style timeline of auto-detected trips: date range, provinces,
 /// and a thumbnail strip per trip. Tapping a thumbnail opens the shared
@@ -22,8 +22,7 @@ class TripTimelineScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final t = context.tokens;
-    final photos = ref.watch(galleryStateProvider).allPhotos;
-    final trips = Trip.cluster(photos);
+    final trips = ref.watch(tripsProvider);
 
     return Scaffold(
       backgroundColor: t.surfaceBase,
@@ -99,7 +98,6 @@ class _TripCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final t = context.tokens;
-    final provinces = trip.provinces.toList()..sort();
 
     return IntrinsicHeight(
       child: Row(
@@ -147,25 +145,41 @@ class _TripCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _dateRange(l10n),
+                    trip.destination,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: t.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 2),
                   Text(
-                    '${l10n.tripDays(trip.days)} · ${l10n.shareCardPhotos(trip.photos.length)}',
+                    _dateRange(l10n),
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: t.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    [
+                      l10n.tripDays(trip.days),
+                      l10n.shareCardPhotos(trip.photos.length),
+                      if (trip.stops.length > 1) l10n.tripStops(trip.stops.length),
+                    ].join(' · '),
                     style: TextStyle(fontSize: 12, color: t.textSecondary),
                   ),
                   const SizedBox(height: 10),
-                  // Province chips
+                  // Itinerary — stops in the order they were travelled, each
+                  // carrying how long the trip stayed there.
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
                     children: [
-                      for (final p in provinces)
+                      for (final s in trip.stops)
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 4),
@@ -174,7 +188,7 @@ class _TripCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            p,
+                            '${s.province} · ${l10n.tripDaysShort(s.days)}',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,

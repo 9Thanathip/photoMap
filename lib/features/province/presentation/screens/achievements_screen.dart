@@ -6,7 +6,7 @@ import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/features/map/presentation/screens/province_gallery_screen.dart';
 import 'package:photo_map/features/auth/presentation/providers/auth_provider.dart';
-import 'package:photo_map/features/trips/domain/trip.dart';
+import 'package:photo_map/features/trips/presentation/providers/trips_provider.dart';
 import 'package:photo_map/features/trips/presentation/screens/trip_timeline_screen.dart';
 import '../widgets/achievements_stats.dart';
 import '../widgets/country_pills.dart';
@@ -199,7 +199,7 @@ class _ProvinceScreenState extends ConsumerState<ProvinceScreen> {
                   const SizedBox(height: 14),
 
                   // ── Trips entry ──
-                  _TripsTile(tripCount: Trip.cluster(photos).length),
+                  _TripsTile(tripCount: ref.watch(tripsProvider).length),
                   const SizedBox(height: 28),
                 ],
               ),

@@ -243,6 +243,18 @@
       "days": {"type": "int"}
     }
   },
+  "tripDaysShort": "{days}d",
+  "@tripDaysShort": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "tripStops": "{count} stops",
+  "@tripStops": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "tripsEmptyTitle": "No trips yet",
   "tripsEmptySubtitle": "Trips appear automatically from photos taken away from home.",
   "shareCardTitle": "Share Card",

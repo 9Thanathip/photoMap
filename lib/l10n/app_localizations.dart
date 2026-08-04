@@ -1280,6 +1280,18 @@ abstract class AppLocalizations {
   /// **'{days} days'**
   String tripDays(int days);
 
+  /// No description provided for @tripDaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d'**
+  String tripDaysShort(int days);
+
+  /// No description provided for @tripStops.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} stops'**
+  String tripStops(int count);
+
   /// No description provided for @tripsEmptyTitle.
   ///
   /// In en, this message translates to:
