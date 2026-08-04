@@ -221,6 +221,8 @@
   "tripsCount": "{count} ทริป",
   "tripDays": "{days} วัน",
   "tripDaysShort": "{days} วัน",
+  "tripDaysNights": "{days} วัน {nights} คืน",
+  "tripDaysNightsShort": "{days} วัน {nights} คืน",
   "tripStops": "{count} จุด",
   "tripsEmptyTitle": "ยังไม่มีทริป",
   "tripsEmptySubtitle": "ทริปจะแสดงอัตโนมัติจากรูปที่ถ่ายระหว่างเดินทาง",

@@ -31,6 +31,26 @@ extension AppL10nX on AppLocalizations {
         weekdaySun,
       ];
 
+  /// "12 Feb – 15 Feb 2025", collapsed to one date when the range is a day.
+  String dateRange(DateTime start, DateTime end) {
+    final months = monthsShort;
+    final from = '${start.day} ${months[start.month - 1]}';
+    if (start.year == end.year &&
+        start.month == end.month &&
+        start.day == end.day) {
+      return '$from ${start.year}';
+    }
+    return '$from – ${end.day} ${months[end.month - 1]} ${end.year}';
+  }
+
+  /// "3 days, 2 nights" — a day trip has no nights half to show.
+  String tripStay(int days, int nights) =>
+      nights > 0 ? tripDaysNights(days, nights) : tripDays(days);
+
+  /// Same, sized for an itinerary chip.
+  String tripStayShort(int days, int nights) =>
+      nights > 0 ? tripDaysNightsShort(days, nights) : tripDaysShort(days);
+
   String viewModeLabel(ViewMode mode) => switch (mode) {
         ViewMode.all => viewModeAll,
         ViewMode.year => viewModeYear,

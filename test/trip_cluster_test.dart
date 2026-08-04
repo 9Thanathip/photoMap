@@ -31,6 +31,20 @@ List<PhotoItem> homeDays(int count, {int startDay = 1}) => [
         p('Bangkok', homeLat, homeLng, 2025, 1, startDay + i),
     ];
 
+/// The itinerary has to be a clean partition of the trip: every calendar day,
+/// every night and every photo belongs to exactly one stop.
+void expectPartition(Trip trip) {
+  var days = 0, nights = 0, photos = 0;
+  for (final s in trip.stops) {
+    days += s.days;
+    nights += s.nights;
+    photos += s.photoCount;
+  }
+  expect(days, trip.days, reason: 'stop days must add up to trip days');
+  expect(nights, trip.nights, reason: 'stop nights must add up to trip nights');
+  expect(photos, trip.photos.length, reason: 'every photo lands in a stop');
+}
+
 void main() {
   test('home-only library yields no trips', () {
     expect(Trip.cluster(homeDays(20)), isEmpty);
@@ -138,6 +152,69 @@ void main() {
     final trip = Trip.cluster(photos).single;
     expect(trip.stops.length, 1);
     expect(trip.stops.single.province, 'Chiang Mai');
+  });
+
+  test('stops partition the trip they belong to', () {
+    final photos = [
+      ...homeDays(20),
+      p('Lampang', 18.29, 99.49, 2025, 7, 1, 15),
+      p('Lampang', 18.29, 99.49, 2025, 7, 2, 10),
+      p('Chiang Mai', cmLat, cmLng, 2025, 7, 3, 11),
+      // Nothing shot on the 4th — a lazy day still belongs to the stay.
+      p('Chiang Mai', cmLat, cmLng, 2025, 7, 5, 16),
+    ];
+    final trip = Trip.cluster(photos).single;
+    expect(trip.stops.length, greaterThan(1));
+    expectPartition(trip);
+  });
+
+  test('an afternoon out does not become its own stop', () {
+    final photos = [
+      ...homeDays(20),
+      p('Chiang Mai', cmLat, cmLng, 2026, 1, 1, 9),
+      p('Chiang Mai', cmLat, cmLng, 2026, 1, 2, 8),
+      // Outnumbers the day's Chiang Mai shots, but only owns a few hours.
+      p('Lamphun', 18.57, 99.00, 2026, 1, 2, 13),
+      p('Lamphun', 18.57, 99.00, 2026, 1, 2, 14),
+      p('Lamphun', 18.57, 99.00, 2026, 1, 2, 15),
+      p('Chiang Mai', cmLat, cmLng, 2026, 1, 2, 19),
+      p('Chiang Mai', cmLat, cmLng, 2026, 1, 3, 9),
+    ];
+    final trip = Trip.cluster(photos).single;
+    expect(trip.stops.single.province, 'Chiang Mai');
+    // The Lamphun shots stay reachable from the stop they were taken during.
+    expect(trip.stops.single.photoCount, trip.photos.length);
+    expectPartition(trip);
+  });
+
+  test('a rest stop on the way north folds into the stay', () {
+    final photos = [
+      ...homeDays(20),
+      p('Lampang', 18.29, 99.49, 2026, 2, 1, 22), // late arrival, drive on
+      p('Chiang Mai', cmLat, cmLng, 2026, 2, 2, 8),
+      p('Chiang Mai', cmLat, cmLng, 2026, 2, 2, 12),
+      p('Chiang Mai', cmLat, cmLng, 2026, 2, 3, 12),
+    ];
+    final trip = Trip.cluster(photos).single;
+    expect(trip.stops.single.province, 'Chiang Mai');
+    expect(trip.stops.single.days, 3);
+    expect(trip.stops.single.nights, 2);
+    expectPartition(trip);
+  });
+
+  test('a night on the road counts at the destination', () {
+    final photos = [
+      ...homeDays(20),
+      p('Lampang', 18.29, 99.49, 2026, 3, 1, 9),
+      p('Lampang', 18.29, 99.49, 2026, 3, 1, 20),
+      p('Chiang Mai', cmLat, cmLng, 2026, 3, 2, 6),
+      p('Chiang Mai', cmLat, cmLng, 2026, 3, 2, 18),
+      p('Chiang Mai', cmLat, cmLng, 2026, 3, 3, 12),
+    ];
+    final trip = Trip.cluster(photos).single;
+    final chiangMai = trip.stops.firstWhere((s) => s.province == 'Chiang Mai');
+    expect(chiangMai.nights, 2);
+    expectPartition(trip);
   });
 
   test('home is found from repeat visits, not just day count', () {

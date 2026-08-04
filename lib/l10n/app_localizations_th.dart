@@ -643,6 +643,16 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
+  String tripDaysNights(int days, int nights) {
+    return '$days วัน $nights คืน';
+  }
+
+  @override
+  String tripDaysNightsShort(int days, int nights) {
+    return '$days วัน $nights คืน';
+  }
+
+  @override
   String tripStops(int count) {
     return '$count จุด';
   }

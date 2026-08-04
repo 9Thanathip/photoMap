@@ -645,6 +645,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String tripDaysNights(int days, int nights) {
+    return '$days days, $nights nights';
+  }
+
+  @override
+  String tripDaysNightsShort(int days, int nights) {
+    return '${days}d ${nights}n';
+  }
+
+  @override
   String tripStops(int count) {
     return '$count stops';
   }

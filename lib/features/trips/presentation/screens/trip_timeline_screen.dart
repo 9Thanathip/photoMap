@@ -11,10 +11,11 @@ import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
 import '../../domain/trip.dart';
 import '../providers/trips_provider.dart';
+import 'trip_detail_screen.dart';
 
 /// Story-style timeline of auto-detected trips: date range, provinces,
-/// and a thumbnail strip per trip. Tapping a thumbnail opens the shared
-/// photo viewer scoped to that trip's photos.
+/// and a thumbnail strip per trip. Tapping the card opens the trip in full;
+/// tapping a thumbnail jumps straight into the viewer at that photo.
 class TripTimelineScreen extends ConsumerWidget {
   const TripTimelineScreen({super.key});
 
@@ -67,16 +68,10 @@ class _TripCard extends StatelessWidget {
   final bool isFirst;
   final bool isLast;
 
-  String _dateRange(AppLocalizations l10n) {
-    final months = l10n.monthsShort;
-    final s = trip.start;
-    final e = trip.end;
-    final sLabel = '${s.day} ${months[s.month - 1]}';
-    if (s.year == e.year && s.month == e.month && s.day == e.day) {
-      return '$sLabel ${s.year}';
-    }
-    final eLabel = '${e.day} ${months[e.month - 1]}';
-    return '$sLabel – $eLabel ${e.year}';
+  void _openDetail(BuildContext context) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(builder: (_) => TripDetailScreen(trip: trip)),
+    );
   }
 
   void _openViewer(BuildContext context, int index) {
@@ -133,102 +128,120 @@ class _TripCard extends StatelessWidget {
           const SizedBox(width: 10),
           // ── Card ──
           Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 18),
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-              decoration: BoxDecoration(
-                color: t.surfaceCard,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: t.borderSubtle),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    trip.destination,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: t.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _dateRange(l10n),
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: t.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    [
-                      l10n.tripDays(trip.days),
-                      l10n.shareCardPhotos(trip.photos.length),
-                      if (trip.stops.length > 1) l10n.tripStops(trip.stops.length),
-                    ].join(' · '),
-                    style: TextStyle(fontSize: 12, color: t.textSecondary),
-                  ),
-                  const SizedBox(height: 10),
-                  // Itinerary — stops in the order they were travelled, each
-                  // carrying how long the trip stayed there.
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      for (final s in trip.stops)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: t.textPrimary.withValues(alpha: 0.07),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+            child: GestureDetector(
+              onTap: () => _openDetail(context),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 18),
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                decoration: BoxDecoration(
+                  color: t.surfaceCard,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: t.borderSubtle),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
                           child: Text(
-                            '${s.province} · ${l10n.tripDaysShort(s.days)}',
+                            trip.destination,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: t.textSecondary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: t.textPrimary,
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Thumbnail strip
-                  SizedBox(
-                    height: 64,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: trip.photos.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 6),
-                      itemBuilder: (context, i) {
-                        final asset = trip.photos[i].assetEntity;
-                        if (asset == null) return const SizedBox.shrink();
-                        return GestureDetector(
-                          onTap: () => _openViewer(context, i),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image(
-                              image: AssetEntityImageProvider(
-                                asset,
-                                isOriginal: false,
-                                thumbnailSize: const ThumbnailSize.square(160),
+                        Icon(
+                          AppIcons.chevron_right_rounded,
+                          size: 18,
+                          color: t.textSecondary,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.dateRange(trip.start, trip.end),
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: t.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      [
+                        l10n.tripStay(trip.days, trip.nights),
+                        l10n.shareCardPhotos(trip.photos.length),
+                        if (trip.stops.length > 1)
+                          l10n.tripStops(trip.stops.length),
+                      ].join(' · '),
+                      style: TextStyle(fontSize: 12, color: t.textSecondary),
+                    ),
+                    const SizedBox(height: 10),
+                    // Itinerary — stops in the order they were travelled, each
+                    // carrying how long the trip stayed there.
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final s in trip.stops)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: t.textPrimary.withValues(alpha: 0.07),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${s.province} · '
+                              '${l10n.tripStayShort(s.days, s.nights)}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: t.textSecondary,
                               ),
-                              width: 64,
-                              height: 64,
-                              fit: BoxFit.cover,
                             ),
                           ),
-                        );
-                      },
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    // Thumbnail strip
+                    SizedBox(
+                      height: 64,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: trip.photos.length,
+                        separatorBuilder: (_, _) => const SizedBox(width: 6),
+                        itemBuilder: (context, i) {
+                          final asset = trip.photos[i].assetEntity;
+                          if (asset == null) return const SizedBox.shrink();
+                          return GestureDetector(
+                            onTap: () => _openViewer(context, i),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image(
+                                image: AssetEntityImageProvider(
+                                  asset,
+                                  isOriginal: false,
+                                  thumbnailSize:
+                                      const ThumbnailSize.square(160),
+                                ),
+                                width: 64,
+                                height: 64,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

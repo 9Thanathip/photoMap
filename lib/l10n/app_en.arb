@@ -249,6 +249,20 @@
       "days": {"type": "int"}
     }
   },
+  "tripDaysNights": "{days} days, {nights} nights",
+  "@tripDaysNights": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "nights": {"type": "int"}
+    }
+  },
+  "tripDaysNightsShort": "{days}d {nights}n",
+  "@tripDaysNightsShort": {
+    "placeholders": {
+      "days": {"type": "int"},
+      "nights": {"type": "int"}
+    }
+  },
   "tripStops": "{count} stops",
   "@tripStops": {
     "placeholders": {
