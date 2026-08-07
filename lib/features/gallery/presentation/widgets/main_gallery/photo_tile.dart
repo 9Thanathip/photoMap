@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:photo_map/common_widgets/asset_thumb.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
@@ -43,13 +43,9 @@ class _PhotoTileState extends State<PhotoTile> {
     final isVideo = asset?.type == AssetType.video;
 
     Widget thumbnail = asset != null
-        ? Image(
-            image: AssetEntityImageProvider(
-              asset,
-              isOriginal: false,
-              thumbnailSize: const ThumbnailSize.square(200),
-            ),
-            fit: BoxFit.cover,
+        ? AssetThumb(
+            asset: asset,
+            maxPixels: 800,
             frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
               if (wasSynchronouslyLoaded) return child;
               if (frame == null) {

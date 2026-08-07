@@ -7,10 +7,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:photo_map/common_widgets/app_snack.dart';
+import 'package:photo_map/common_widgets/asset_thumb.dart';
 import 'package:photo_map/common_widgets/glass_sheet.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
@@ -874,14 +874,7 @@ class _PhotoPickerSheetState extends State<_PhotoPickerSheet> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        Image(
-                          image: AssetEntityImageProvider(
-                            p.assetEntity!,
-                            isOriginal: false,
-                            thumbnailSize: const ThumbnailSize.square(300),
-                          ),
-                          fit: BoxFit.cover,
-                        ),
+                        AssetThumb(asset: p.assetEntity!, maxPixels: 800),
                         if (widget.multi && order >= 0) ...[
                           Container(
                             color: Colors.black.withValues(alpha: 0.35),

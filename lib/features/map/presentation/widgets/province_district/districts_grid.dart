@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_map/common_widgets/asset_thumb.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 
@@ -110,11 +110,6 @@ class DistrictThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AssetEntityImage(
-      entity,
-      isOriginal: false,
-      thumbnailSize: const ThumbnailSize(400, 400),
-      fit: BoxFit.cover,
-    );
+    return AssetThumb(asset: entity, maxPixels: 1000);
   }
 }

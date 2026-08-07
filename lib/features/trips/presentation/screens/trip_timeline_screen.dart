@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_map/common_widgets/asset_thumb.dart';
 
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
@@ -224,16 +223,11 @@ class _TripCard extends StatelessWidget {
                             onTap: () => _openViewer(context, i),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10),
-                              child: Image(
-                                image: AssetEntityImageProvider(
-                                  asset,
-                                  isOriginal: false,
-                                  thumbnailSize:
-                                      const ThumbnailSize.square(160),
-                                ),
+                              child: AssetThumb(
+                                asset: asset,
                                 width: 64,
                                 height: 64,
-                                fit: BoxFit.cover,
+                                maxPixels: 400,
                               ),
                             ),
                           );

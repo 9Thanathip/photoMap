@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_map/common_widgets/asset_thumb.dart';
 import 'package:photo_map/common_widgets/app_snack.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
@@ -303,14 +302,10 @@ class _AlbumPickerCardState extends State<_AlbumPickerCard>
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: asset != null
-                    ? Image(
-                        image: AssetEntityImageProvider(
-                          asset,
-                          isOriginal: false,
-                          thumbnailSize: const ThumbnailSize.square(300),
-                        ),
-                        fit: BoxFit.cover,
+                    ? AssetThumb(
+                        asset: asset,
                         width: double.infinity,
+                        maxPixels: 1000,
                         frameBuilder:
                             (_, child, frame, wasSynchronouslyLoaded) {
                           if (wasSynchronouslyLoaded) return child;

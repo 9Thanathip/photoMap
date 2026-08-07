@@ -1,13 +1,26 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import '../../providers/gallery_notifier.dart';
 
-// Display size for the full viewer image
-const kDisplaySize = ThumbnailSize(1920, 1920);
-// Thumbnail size matching the gallery grid — used for Hero flight
-const kThumbSize = ThumbnailSize.square(200);
+// Cheap placeholder + Hero flight image. Matches the grid tile request so the
+// decode is already cached when the viewer opens.
+const kThumbSize = ThumbnailSize.square(600);
+
+/// Full-viewer size in **pixels**, derived from the screen. A fixed 1920 was
+/// below the panel resolution on 3x devices and softened every photo; zooming
+/// (up to 4x) needs headroom on top of that.
+ThumbnailSize viewerDisplaySize(BuildContext context) {
+  final size = MediaQuery.sizeOf(context);
+  final dpr = MediaQuery.devicePixelRatioOf(context);
+  final side = (math.max(size.width, size.height) * dpr * 1.5)
+      .clamp(1920.0, 4096.0)
+      .round();
+  return ThumbnailSize(side, side);
+}
 
 class ImageViewerPage extends StatefulWidget {
   const ImageViewerPage({
@@ -129,7 +142,7 @@ class _ImageViewerPageState extends State<ImageViewerPage>
     final fullProvider = AssetEntityImageProvider(
       asset,
       isOriginal: false,
-      thumbnailSize: kDisplaySize,
+      thumbnailSize: viewerDisplaySize(context),
     );
 
     return GestureDetector(
@@ -256,6 +269,7 @@ class _TwoPhaseImageState extends State<_TwoPhaseImage> {
           image: widget.thumbProvider,
           fit: BoxFit.cover,
           alignment: widget.alignment,
+          filterQuality: FilterQuality.medium,
         ),
         // Full-res fades in on top once loaded
         AnimatedOpacity(
@@ -266,6 +280,7 @@ class _TwoPhaseImageState extends State<_TwoPhaseImage> {
                   image: widget.fullProvider,
                   fit: BoxFit.cover,
                   alignment: widget.alignment,
+                  filterQuality: FilterQuality.medium,
                   errorBuilder: (_, _, _) => const SizedBox.shrink(),
                 )
               : const SizedBox.shrink(),

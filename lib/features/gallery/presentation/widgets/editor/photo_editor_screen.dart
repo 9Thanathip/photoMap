@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/common_widgets/app_snack.dart';
+import 'package:photo_map/common_widgets/asset_thumb.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
@@ -588,16 +589,11 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(isSelected ? 2 : 4),
                     child: widget.photo.assetEntity != null
-                        ? ColorFiltered(
-                            colorFilter: ColorFilter.matrix(preset.matrix.matrix),
-                            child: Image(
-                              image: AssetEntityImageProvider(
-                                widget.photo.assetEntity!,
-                                isOriginal: false,
-                                thumbnailSize: const ThumbnailSize.square(100),
-                              ),
-                              fit: BoxFit.cover,
-                            ),
+                        ? AssetThumb(
+                            asset: widget.photo.assetEntity!,
+                            maxPixels: 400,
+                            colorFilter:
+                                ColorFilter.matrix(preset.matrix.matrix),
                           )
                         : const SizedBox(),
                   ),

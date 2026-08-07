@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
-import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_map/common_widgets/asset_thumb.dart';
 import 'package:photo_map/core/theme/app_palette.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
@@ -218,15 +217,11 @@ class _CardExpanded extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: p.assetEntity != null
-                              ? Image(
-                                  image: AssetEntityImageProvider(
-                                    p.assetEntity!,
-                                    isOriginal: false,
-                                    thumbnailSize: const ThumbnailSize.square(150),
-                                  ),
+                              ? AssetThumb(
+                                  asset: p.assetEntity!,
                                   width: 72,
                                   height: 72,
-                                  fit: BoxFit.cover,
+                                  maxPixels: 400,
                                 )
                               : _Placeholder(),
                         ),

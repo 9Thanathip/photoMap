@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/common_widgets/app_sheet_handle.dart';
+import 'package:photo_map/common_widgets/asset_thumb.dart';
 import 'package:photo_map/common_widgets/glass_sheet.dart';
-import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
 
@@ -41,14 +40,7 @@ class PhotoOptionsSheet extends StatelessWidget {
                 child: SizedBox(
                   height: 180,
                   width: double.infinity,
-                  child: Image(
-                    image: AssetEntityImageProvider(
-                      asset,
-                      isOriginal: false,
-                      thumbnailSize: const ThumbnailSize(600, 400),
-                    ),
-                    fit: BoxFit.cover,
-                  ),
+                  child: AssetThumb(asset: asset, maxPixels: 1600),
                 ),
               ),
             ),

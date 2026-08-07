@@ -7,6 +7,8 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:video_player/video_player.dart';
 
+import 'image_viewer_page.dart' show viewerDisplaySize;
+
 class VideoViewerPage extends StatefulWidget {
   const VideoViewerPage({
     super.key,
@@ -113,9 +115,10 @@ class _VideoViewerPageState extends State<VideoViewerPage>
                   image: AssetEntityImageProvider(
                     widget.asset!,
                     isOriginal: false,
-                    thumbnailSize: const ThumbnailSize(800, 800),
+                    thumbnailSize: viewerDisplaySize(context),
                   ),
                   fit: BoxFit.contain,
+                  filterQuality: FilterQuality.medium,
                 ),
               )
             else
@@ -159,9 +162,10 @@ class _VideoViewerPageState extends State<VideoViewerPage>
                           image: AssetEntityImageProvider(
                             widget.asset!,
                             isOriginal: false,
-                            thumbnailSize: const ThumbnailSize(800, 800),
+                            thumbnailSize: viewerDisplaySize(context),
                           ),
                           fit: BoxFit.cover,
+                          filterQuality: FilterQuality.medium,
                           gaplessPlayback: true,
                         ),
                       );

@@ -141,7 +141,7 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
         AssetEntityImageProvider(
           asset,
           isOriginal: false,
-          thumbnailSize: kDisplaySize,
+          thumbnailSize: viewerDisplaySize(context),
         ),
         context,
       );
