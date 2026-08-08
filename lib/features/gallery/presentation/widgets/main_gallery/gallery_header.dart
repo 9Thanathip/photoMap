@@ -1,13 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
+import 'package:photo_map/common_widgets/top_scrim.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 
 class GalleryHeader extends StatelessWidget {
   const GalleryHeader({
     super.key,
     required this.topPad,
+    required this.scrim,
     required this.inAlbumsTab,
     required this.inCountry,
     required this.inProvince,
@@ -27,6 +30,12 @@ class GalleryHeader extends StatelessWidget {
   });
 
   final double topPad;
+
+  /// Strength of the screen's top scrim, 0 → 1. Bare (non-glass) header
+  /// content is drawn on top of it, so its colour has to travel with it —
+  /// dark type at rest, light type once the scrim has darkened.
+  final ValueListenable<double> scrim;
+
   final bool inAlbumsTab;
   final bool inCountry;
   final bool inProvince;
@@ -54,9 +63,17 @@ class GalleryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<double>(
+      valueListenable: scrim,
+      builder: (context, t, _) => _build(context, t),
+    );
+  }
+
+  Widget _build(BuildContext context, double scrimT) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final title = _titleText(l10n);
+    final fg = topScrimForeground(context, scrimT);
 
     if (isSelectMode) {
       return Padding(
@@ -69,6 +86,7 @@ class GalleryHeader extends StatelessWidget {
               children: [
                 TextButton(
                   onPressed: onSelectAll,
+                  style: TextButton.styleFrom(foregroundColor: fg),
                   child: Text(
                     selectedCount == totalCount && totalCount > 0
                         ? l10n.deselectAll
@@ -84,11 +102,13 @@ class GalleryHeader extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: fg,
                     ),
                   ),
                 ),
                 TextButton(
                   onPressed: onCancelSelect,
+                  style: TextButton.styleFrom(foregroundColor: fg),
                   child: Text(l10n.commonCancel),
                 ),
               ],
@@ -113,7 +133,7 @@ class GalleryHeader extends StatelessWidget {
                   child: Icon(
                     AppIcons.arrow_back_ios_new_rounded,
                     size: 20,
-                    color: theme.colorScheme.primary,
+                    color: fg,
                   ),
                 ),
                 const Gap(8),
@@ -143,7 +163,7 @@ class GalleryHeader extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w700,
-                      color: theme.colorScheme.onSurface,
+                      color: fg,
                     ),
                   ),
                 ),
@@ -214,12 +234,14 @@ class GalleryHeader extends StatelessWidget {
                 label: l10n.tabPhotos,
                 selected: !inAlbumsTab,
                 onTap: onPhotoTab,
+                color: fg,
               ),
               const SizedBox(width: 18),
               _TabToggle(
                 label: l10n.tabAlbums,
                 selected: inAlbumsTab,
                 onTap: onAlbumTab,
+                color: fg,
               ),
             ],
           ),
@@ -234,15 +256,16 @@ class _TabToggle extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    required this.color,
   });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Text(
@@ -250,9 +273,7 @@ class _TabToggle extends StatelessWidget {
         style: TextStyle(
           fontSize: 13,
           fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-          color: selected
-              ? theme.colorScheme.onSurface
-              : theme.colorScheme.onSurface.withAlpha(100),
+          color: selected ? color : color.withValues(alpha: 0.45),
         ),
       ),
     );

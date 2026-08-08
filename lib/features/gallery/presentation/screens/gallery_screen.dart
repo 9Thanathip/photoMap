@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:photo_map/common_widgets/shell_active_index.dart';
+import 'package:photo_map/common_widgets/top_scrim.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/gallery_notifier.dart';
@@ -31,21 +32,41 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
   late final TabController _tabs;
   ViewMode _viewMode = ViewMode.all;
   double _contentTopPad = 0;
-  bool _isScrolled = false;
+
+  /// Top-scrim strength, 0 (resting at the top — no scrim at all) → 1.
+  /// A notifier keeps the per-frame rebuild to the scrim + header rather than
+  /// the whole grid.
+  final _scrim = ValueNotifier<double>(0);
+
+  /// Tab the header should render as active. Tracked separately from
+  /// `_tabs.index` because that only lands when a swipe settles — this flips
+  /// at the halfway point so the toggle follows the finger.
+  int _tabIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _tabs = TabController(length: 2, vsync: this);
-    _tabs.addListener(() => setState(() => _isScrolled = false));
+    _tabs.animation!.addListener(_onTabAnimation);
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _tabs.animation!.removeListener(_onTabAnimation);
+    _scrim.dispose();
     _tabs.dispose();
     super.dispose();
+  }
+
+  void _onTabAnimation() {
+    final index = _tabs.animation!.value.round();
+    if (index == _tabIndex) return;
+    setState(() => _tabIndex = index);
+    // Tabs keep independent scroll offsets; the incoming one is reported by its
+    // own scroll notifications, so start it clean instead of inheriting.
+    _scrim.value = 0;
   }
 
   @override
@@ -55,7 +76,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
     }
   }
 
-  bool get _inAlbumsTab => _tabs.index == 1;
+  bool get _inAlbumsTab => _tabIndex == 1;
 
   @override
   Widget build(BuildContext context) {
@@ -84,13 +105,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
       body: Stack(
         children: [
           NotificationListener<ScrollNotification>(
-            onNotification: (n) {
-              final scrolled = n.metrics.pixels > 0;
-              if (scrolled != _isScrolled) {
-                setState(() => _isScrolled = scrolled);
-              }
-              return false;
-            },
+            onNotification: (n) => updateTopScrim(_scrim, n),
             child: _buildBody(
               context,
               gallery,
@@ -104,27 +119,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
             top: 0,
             left: 0,
             right: 0,
-            height: _contentTopPad + 28,
-            child: IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: _isScrolled ? 0.6 : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        context.tokens.surfaceBase,
-                        context.tokens.surfaceBase,
-                        context.tokens.surfaceBase.withValues(alpha: 0),
-                      ],
-                      stops: const [0.0, 0.72, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            child: TopScrim(progress: _scrim, height: _contentTopPad + 28),
           ),
           Positioned(
             top: 0,
@@ -138,6 +133,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
 
               return GalleryHeader(
                 topPad: topPad,
+                scrim: _scrim,
                 inAlbumsTab: _inAlbumsTab,
                 inCountry: inCountry,
                 inProvince: inProvince,
