@@ -3,6 +3,7 @@ import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
+import 'package:photo_map/common_widgets/top_scrim.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
@@ -38,7 +39,15 @@ class ProvinceGalleryScreen extends ConsumerStatefulWidget {
 
 class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
   ViewMode _viewMode = ViewMode.day;
-  bool _isScrolled = false;
+
+  /// Top-scrim strength, 0 (resting at the top) → 1. See [TopScrim].
+  final _scrim = ValueNotifier<double>(0);
+
+  @override
+  void dispose() {
+    _scrim.dispose();
+    super.dispose();
+  }
 
   Map<String, List<PhotoItem>> _groupBy(
     List<PhotoItem> items,
@@ -101,13 +110,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
         children: [
           // Content
           NotificationListener<ScrollNotification>(
-            onNotification: (n) {
-              final scrolled = n.metrics.pixels > 0;
-              if (scrolled != _isScrolled) {
-                setState(() => _isScrolled = scrolled);
-              }
-              return false;
-            },
+            onNotification: (n) => updateTopScrim(_scrim, n),
             child: Positioned.fill(
               child: (mapState.isLoading || (gallery.isLoading && photos.isEmpty))
                   ? const Center(child: CircularProgressIndicator())
@@ -162,76 +165,12 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
               ),
             ),
 
-          // Top gradient protection (always-on, deepens on scroll).
-          // Light theme → black scrim (matches map_screen).
-          // Dark theme → surface-tinted scrim that solidifies on scroll.
+          // Top scrim — absent at rest, fading in with the scroll offset.
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height: topPad + 110,
-            child: IgnorePointer(
-              child: context.isDark
-                  ? Stack(
-                      children: [
-                        Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  context.tokens.surfaceBase.withValues(alpha: 0.85),
-                                  context.tokens.surfaceBase.withValues(alpha: 0.55),
-                                  context.tokens.surfaceBase.withValues(alpha: 0.0),
-                                ],
-                                stops: const [0.0, 0.55, 1.0],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned.fill(
-                          child: AnimatedOpacity(
-                            opacity: _isScrolled ? 1.0 : 0.0,
-                            duration: const Duration(milliseconds: 200),
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    context.tokens.surfaceBase,
-                                    context.tokens.surfaceBase,
-                                    context.tokens.surfaceBase.withAlpha(0),
-                                  ],
-                                  stops: const [0.0, 0.72, 1.0],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withValues(
-                              alpha: _isScrolled ? 0.55 : 0.32,
-                            ),
-                            Colors.black.withValues(
-                              alpha: _isScrolled ? 0.25 : 0.12,
-                            ),
-                            Colors.black.withValues(alpha: 0.0),
-                          ],
-                          stops: const [0.0, 0.55, 1.0],
-                        ),
-                      ),
-                    ),
-            ),
+            child: TopScrim(progress: _scrim, height: topPad + 110),
           ),
 
           // Header

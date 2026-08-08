@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_map/common_widgets/top_scrim.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/common_widgets/glass_card.dart';
 import 'package:photo_map/common_widgets/app_snack.dart';
@@ -37,6 +38,11 @@ class ProvinceDistrictScreen extends ConsumerStatefulWidget {
 class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
     with SingleTickerProviderStateMixin {
   ProvinceViewMode _viewMode = ProvinceViewMode.map;
+
+  /// Top-scrim strength for the district grid, 0 (resting at the top) → 1.
+  /// Map view keeps its own fixed status-bar scrim — there's nothing to scroll.
+  final _scrim = ValueNotifier<double>(0);
+
   final TransformationController _transformController =
       TransformationController();
   final GlobalKey _repaintKey = GlobalKey();
@@ -67,6 +73,7 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
   @override
   void dispose() {
     _ticker.dispose();
+    _scrim.dispose();
     _transformController.dispose();
     super.dispose();
   }
@@ -215,34 +222,43 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                       onSelectDistrict: (d) => _onSelectDistrict(d),
                     ),
                   )
-                : DistrictsGrid(
-                    key: const ValueKey('districts'),
-                    byDistrict: byDistrict,
-                    provinceName: widget.provinceName,
-                    onSelectDistrict: (d) => _onSelectDistrict(d),
+                : NotificationListener<ScrollNotification>(
+                    onNotification: (n) => updateTopScrim(_scrim, n),
+                    child: DistrictsGrid(
+                      key: const ValueKey('districts'),
+                      byDistrict: byDistrict,
+                      provinceName: widget.provinceName,
+                      onSelectDistrict: (d) => _onSelectDistrict(d),
+                    ),
                   ),
           ),
 
-          // Top Background Scrim Overlay (For Status Bar readability)
+          // Top scrim. Grid view follows the gallery treatment (absent at rest,
+          // fading in with scroll); map view keeps a fixed status-bar scrim
+          // since it never scrolls.
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height: topPad + 40,
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.25),
-                      Colors.black.withValues(alpha: 0),
-                    ],
+            child: _viewMode == ProvinceViewMode.grid
+                ? TopScrim(progress: _scrim, height: topPad + 110)
+                : IgnorePointer(
+                    child: SizedBox(
+                      height: topPad + 40,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.25),
+                              Colors.black.withValues(alpha: 0),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
           ),
 
           // Breadcrumbs Header
@@ -259,6 +275,9 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
                 _viewMode = _viewMode == ProvinceViewMode.map
                     ? ProvinceViewMode.grid
                     : ProvinceViewMode.map;
+                // The grid comes back at the top — don't inherit the last
+                // scroll's scrim.
+                _scrim.value = 0;
               }),
             ),
           ),
