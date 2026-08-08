@@ -1208,6 +1208,66 @@ abstract class AppLocalizations {
   /// **'Show Mask'**
   String get localShowMask;
 
+  /// No description provided for @localAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get localAdd;
+
+  /// No description provided for @localErase.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase'**
+  String get localErase;
+
+  /// No description provided for @localAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get localAmount;
+
+  /// No description provided for @localFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Flow'**
+  String get localFlow;
+
+  /// No description provided for @localInvert.
+  ///
+  /// In en, this message translates to:
+  /// **'Invert'**
+  String get localInvert;
+
+  /// No description provided for @editorUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get editorUndo;
+
+  /// No description provided for @editorHeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get editorHeal;
+
+  /// No description provided for @healHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Brush over anything you want gone'**
+  String get healHint;
+
+  /// No description provided for @healWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Removing…'**
+  String get healWorking;
+
+  /// No description provided for @healCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 spot removed} other{{count} spots removed}}'**
+  String healCount(int count);
+
   /// No description provided for @presetOriginal.
   ///
   /// In en, this message translates to:

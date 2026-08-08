@@ -220,6 +220,21 @@
   "localFeather": "Feather",
   "localBrushSize": "Brush Size",
   "localShowMask": "Show Mask",
+  "localAdd": "Add",
+  "localErase": "Erase",
+  "localAmount": "Amount",
+  "localFlow": "Flow",
+  "localInvert": "Invert",
+  "editorUndo": "Undo",
+  "editorHeal": "Remove",
+  "healHint": "Brush over anything you want gone",
+  "healWorking": "Removing…",
+  "healCount": "{count, plural, =1{1 spot removed} other{{count} spots removed}}",
+  "@healCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "presetOriginal": "Original",
   "presetMoody": "Moody",
   "presetVibrant": "Vibrant",

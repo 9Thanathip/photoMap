@@ -600,6 +600,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get localShowMask => 'Show Mask';
 
   @override
+  String get localAdd => 'Add';
+
+  @override
+  String get localErase => 'Erase';
+
+  @override
+  String get localAmount => 'Amount';
+
+  @override
+  String get localFlow => 'Flow';
+
+  @override
+  String get localInvert => 'Invert';
+
+  @override
+  String get editorUndo => 'Undo';
+
+  @override
+  String get editorHeal => 'Remove';
+
+  @override
+  String get healHint => 'Brush over anything you want gone';
+
+  @override
+  String get healWorking => 'Removing…';
+
+  @override
+  String healCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count spots removed',
+      one: '1 spot removed',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get presetOriginal => 'Original';
 
   @override

@@ -598,6 +598,44 @@ class AppLocalizationsTh extends AppLocalizations {
   String get localShowMask => 'แสดงมาส์ก';
 
   @override
+  String get localAdd => 'เพิ่ม';
+
+  @override
+  String get localErase => 'ลบ';
+
+  @override
+  String get localAmount => 'ความเข้ม';
+
+  @override
+  String get localFlow => 'โฟลว์';
+
+  @override
+  String get localInvert => 'กลับด้าน';
+
+  @override
+  String get editorUndo => 'ย้อนกลับ';
+
+  @override
+  String get editorHeal => 'ลบวัตถุ';
+
+  @override
+  String get healHint => 'ระบายทับสิ่งที่ต้องการลบ';
+
+  @override
+  String get healWorking => 'กำลังลบ…';
+
+  @override
+  String healCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ลบแล้ว $count จุด',
+      one: 'ลบแล้ว 1 จุด',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get presetOriginal => 'ต้นฉบับ';
 
   @override
