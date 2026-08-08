@@ -44,6 +44,12 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
   VideoPlayerController? _videoController;
   bool _videoInitialized = false;
 
+  // Neighbour warming waits for the push transition to land; see
+  // [_schedulePrecache].
+  bool _precacheHooked = false;
+  Animation<double>? _routeAnimation;
+  AnimationStatusListener? _routeStatus;
+
   // Spring controller: value = current Y offset in pixels
   late final AnimationController _spring;
 
@@ -56,9 +62,6 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     PaintingBinding.instance.imageCache.maximumSizeBytes = 256 << 20;
     _initVideo(_currentIndex);
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _precacheAdjacent(_currentIndex),
-    );
 
     _spring = AnimationController(
       vsync: this,
@@ -70,8 +73,17 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _schedulePrecache();
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if (_routeStatus != null) {
+      _routeAnimation?.removeStatusListener(_routeStatus!);
+    }
     _spring.dispose();
     _pageController.dispose();
     _videoController?.dispose();
@@ -132,8 +144,32 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     controller.play();
   }
 
+  /// Neighbours are only warmed once the push transition has finished. Firing
+  /// three full-screen decodes while the hero is still flying is what made
+  /// opening a photo stutter — they compete with the animation for the raster
+  /// thread and the platform's image pipeline.
+  void _schedulePrecache() {
+    if (_precacheHooked) return;
+    _precacheHooked = true;
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation == null || animation.isCompleted) {
+      _precacheAdjacent(_currentIndex);
+      return;
+    }
+    _routeAnimation = animation;
+    _routeStatus = (status) {
+      if (status != AnimationStatus.completed) return;
+      _routeAnimation?.removeStatusListener(_routeStatus!);
+      _routeStatus = null;
+      if (mounted) _precacheAdjacent(_currentIndex);
+    };
+    animation.addStatusListener(_routeStatus!);
+  }
+
   void _precacheAdjacent(int index) {
-    for (final i in [index - 1, index + 1, index + 2]) {
+    // Just the immediate neighbours: each one is a decode plus a texture, and
+    // a swipe only ever reveals one of them next.
+    for (final i in [index + 1, index - 1]) {
       if (i < 0 || i >= _photos.length) continue;
       final asset = _photos[i].assetEntity;
       if (asset == null || asset.type == AssetType.video) continue;
@@ -141,7 +177,9 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
         AssetEntityImageProvider(
           asset,
           isOriginal: false,
-          thumbnailSize: viewerDisplaySize(context),
+          // Must match what ImageViewerPage asks for, or the page decodes the
+          // photo a second time at a different size.
+          thumbnailSize: viewerDisplaySize(context, asset),
         ),
         context,
       );

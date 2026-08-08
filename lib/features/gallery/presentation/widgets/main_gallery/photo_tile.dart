@@ -5,6 +5,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../providers/gallery_notifier.dart';
+import 'photos_tab.dart' show kPhotoTileMaxPixels;
 
 class PhotoTile extends StatefulWidget {
   const PhotoTile({
@@ -45,7 +46,7 @@ class _PhotoTileState extends State<PhotoTile> {
     Widget thumbnail = asset != null
         ? AssetThumb(
             asset: asset,
-            maxPixels: 800,
+            maxPixels: kPhotoTileMaxPixels,
             frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
               if (wasSynchronouslyLoaded) return child;
               if (frame == null) {

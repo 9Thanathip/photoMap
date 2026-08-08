@@ -115,7 +115,7 @@ class _VideoViewerPageState extends State<VideoViewerPage>
                   image: AssetEntityImageProvider(
                     widget.asset!,
                     isOriginal: false,
-                    thumbnailSize: viewerDisplaySize(context),
+                    thumbnailSize: viewerDisplaySize(context, widget.asset),
                   ),
                   fit: BoxFit.contain,
                   filterQuality: FilterQuality.medium,
@@ -162,7 +162,7 @@ class _VideoViewerPageState extends State<VideoViewerPage>
                           image: AssetEntityImageProvider(
                             widget.asset!,
                             isOriginal: false,
-                            thumbnailSize: viewerDisplaySize(context),
+                            thumbnailSize: viewerDisplaySize(context, widget.asset),
                           ),
                           fit: BoxFit.cover,
                           filterQuality: FilterQuality.medium,

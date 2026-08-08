@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
+import 'package:photo_map/common_widgets/asset_thumb.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
@@ -9,11 +11,32 @@ import 'photo_tile.dart';
 
 enum ViewMode { all, year, month, day, hue }
 
+const kPhotoGridColumns = 3;
+const kPhotoGridSpacing = 1.5;
+
+/// Upper bound for a grid tile's decode. Tiles are ~130pt, so this only ever
+/// bites on very large displays.
+const kPhotoTileMaxPixels = 800;
+
 const photoGridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
-  crossAxisCount: 3,
-  crossAxisSpacing: 1.5,
-  mainAxisSpacing: 1.5,
+  crossAxisCount: kPhotoGridColumns,
+  crossAxisSpacing: kPhotoGridSpacing,
+  mainAxisSpacing: kPhotoGridSpacing,
 );
+
+/// The exact pixel size a grid tile asks for.
+///
+/// The viewer reuses it for its placeholder and Hero flight image: a different
+/// size is a different cache key, so asking for anything else starts a fresh
+/// decode in the middle of the open animation — which is precisely when there
+/// is no budget for one.
+ThumbnailSize photoTileThumbSize(BuildContext context) {
+  final width = MediaQuery.sizeOf(context).width;
+  final tile =
+      (width - kPhotoGridSpacing * (kPhotoGridColumns - 1)) / kPhotoGridColumns;
+  return assetThumbPx(context, Size(tile, tile),
+      maxPixels: kPhotoTileMaxPixels);
+}
 
 class PhotosTab extends StatelessWidget {
   const PhotosTab({
