@@ -10,6 +10,8 @@ import 'package:photo_map/l10n/l10n_x.dart';
 import '../../../gallery/presentation/providers/gallery_notifier.dart';
 import '../../../gallery/presentation/widgets/main_gallery/photo_tile.dart';
 import '../../../gallery/presentation/widgets/viewer/photo_viewer_screen.dart';
+import 'package:photo_map/common_widgets/photo_grid.dart';
+import '../../../gallery/presentation/providers/gallery_grid_provider.dart';
 import '../../../gallery/presentation/widgets/main_gallery/photos_tab.dart';
 import '../widgets/province_district/province_header.dart';
 import 'package:photo_map/common_widgets/view_mode_sheet.dart';
@@ -230,7 +232,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
     if (_viewMode == ViewMode.all) {
       return GridView.builder(
         padding: EdgeInsets.fromLTRB(1.5, topPad + 88 + extraTop, 1.5, 32),
-        gridDelegate: photoGridDelegate,
+        gridDelegate: photoGridDelegate(ref.watch(galleryGridProvider).columns),
         itemCount: photos.length,
         itemBuilder: (_, i) => PhotoTile(
           photo: photos[i],
@@ -281,7 +283,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
             ),
           ),
           SliverGrid(
-            gridDelegate: photoGridDelegate,
+            gridDelegate: photoGridDelegate(ref.watch(galleryGridProvider).columns),
             delegate: SliverChildBuilderDelegate((_, i) {
               final sectionPhotos = sections[key]!;
               final globalIndex = offsets[key]! + i;

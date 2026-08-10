@@ -4,14 +4,16 @@ import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
 import '../../../gallery/presentation/widgets/main_gallery/photo_tile.dart';
-import '../../../gallery/presentation/widgets/main_gallery/photos_tab.dart';
+import 'package:photo_map/common_widgets/photo_grid.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../gallery/presentation/providers/gallery_grid_provider.dart';
 import '../../../gallery/presentation/widgets/viewer/photo_viewer_screen.dart';
 import '../../domain/trip.dart';
 
 /// One trip in full: every photo it holds, grouped under the stop it was
 /// taken in. The viewer opens over the whole trip rather than the section,
 /// so a swipe carries on into the next stop instead of dead-ending.
-class TripDetailScreen extends StatelessWidget {
+class TripDetailScreen extends ConsumerWidget {
   const TripDetailScreen({super.key, required this.trip});
 
   final Trip trip;
@@ -32,9 +34,10 @@ class TripDetailScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final t = context.tokens;
+    final columns = ref.watch(galleryGridProvider).columns;
 
     // Stops are contiguous slices of trip.photos, so a running offset maps a
     // tile back to its index in the full trip.
@@ -50,7 +53,7 @@ class TripDetailScreen extends StatelessWidget {
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 1.5),
           sliver: SliverGrid(
-            gridDelegate: photoGridDelegate,
+            gridDelegate: photoGridDelegate(columns),
             delegate: SliverChildBuilderDelegate(
               (_, i) => PhotoTile(
                 photo: stop.photos[i],

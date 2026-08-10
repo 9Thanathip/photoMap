@@ -7,7 +7,9 @@ import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
 import 'album_card.dart';
 import 'photo_tile.dart';
-import 'photos_tab.dart' show photoGridDelegate, ViewMode, HueGrid;
+import 'package:photo_map/common_widgets/photo_grid.dart';
+import '../../providers/gallery_grid_provider.dart';
+import 'photos_tab.dart' show ViewMode, HueGrid;
 
 const _albumGridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
   crossAxisCount: 2,
@@ -291,7 +293,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   Widget _flatGrid(List<PhotoItem> items) {
     return GridView.builder(
       padding: EdgeInsets.only(top: widget.contentTopPad, bottom: 120),
-      gridDelegate: photoGridDelegate,
+      gridDelegate: photoGridDelegate(ref.watch(galleryGridProvider).columns),
       itemCount: items.length,
       itemBuilder: (_, i) {
         final item = items[i];
@@ -329,7 +331,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
             ),
           ),
           SliverGrid(
-            gridDelegate: photoGridDelegate,
+            gridDelegate: photoGridDelegate(ref.watch(galleryGridProvider).columns),
             delegate: SliverChildBuilderDelegate(
               (_, i) {
                 final sectionPhotos = sections[key]!;

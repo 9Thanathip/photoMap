@@ -10,6 +10,14 @@ import 'app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Flutter's 100 MB default holds only ~150 grid tiles, so scrolling a real
+  // library evicts constantly and every trip back up the list re-runs the
+  // platform thumbnail request — which on iOS encodes on the main thread.
+  // Flutter still drops the whole cache on memory pressure, so this is a
+  // ceiling, not a reservation.
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 200 << 20;
+
   String? initialCountryId;
   List<Country> cachedCountries = const [];
 

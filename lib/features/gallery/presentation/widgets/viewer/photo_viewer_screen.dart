@@ -5,7 +5,6 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart' hide LatLng;
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../providers/gallery_notifier.dart';
@@ -60,7 +59,6 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 256 << 20;
     _initVideo(_currentIndex);
 
     _spring = AnimationController(
@@ -173,14 +171,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
       if (i < 0 || i >= _photos.length) continue;
       final asset = _photos[i].assetEntity;
       if (asset == null || asset.type == AssetType.video) continue;
+      // Must be the same provider ImageViewerPage builds, or the page decodes
+      // the photo a second time instead of reusing this one.
       precacheImage(
-        AssetEntityImageProvider(
-          asset,
-          isOriginal: false,
-          // Must match what ImageViewerPage asks for, or the page decodes the
-          // photo a second time at a different size.
-          thumbnailSize: viewerDisplaySize(context, asset),
-        ),
+        viewerImageProvider(asset, viewerDisplaySize(context, asset)),
         context,
       );
     }

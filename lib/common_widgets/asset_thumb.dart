@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+
+import 'asset_thumbnail_provider.dart';
+import 'progressive_image.dart';
 
 /// photo_manager sizes thumbnails in **raw pixels**, so a size picked in
 /// logical units (200 for a ~130pt grid tile) gets upscaled by the device
@@ -12,6 +14,31 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 /// Results are rounded up to [_step] so small layout differences don't spawn a
 /// new decode + cache entry for every tile.
 const int _step = 100;
+
+/// Size of the cheap first pass every thumbnail shows while its real decode is
+/// in flight.
+///
+/// Fixed on purpose: it is the same cache entry at every grid density and on
+/// every screen, so after a photo has been seen once its preview is always
+/// warm — and it is small enough (64 KB decoded) that thousands of them fit in
+/// the image cache.
+const int kThumbPreviewPixels = 128;
+
+/// The shared cheap-preview provider for [asset].
+///
+/// `fast` is the whole point: it asks iOS for the rendition it already has
+/// rather than rendering one, which is the difference between a preview that
+/// beats the real tile and one that arrives alongside it.
+AssetThumbnailProvider assetPreviewProvider(AssetEntity asset) =>
+    AssetThumbnailProvider(
+      asset,
+      size: const ThumbnailSize.square(kThumbPreviewPixels),
+      quality: 55,
+      fast: true,
+      // See AssetThumbnailProvider.format — PNG keeps ImageIO quiet at a size
+      // where the extra bytes cost nothing.
+      format: ThumbnailFormat.png,
+    );
 
 ThumbnailSize assetThumbPx(
   BuildContext context,
@@ -41,7 +68,7 @@ class AssetThumb extends StatelessWidget {
     this.width,
     this.height,
     this.maxPixels = 1600,
-    this.frameBuilder,
+    this.placeholder,
     this.colorFilter,
   });
 
@@ -57,7 +84,9 @@ class AssetThumb extends StatelessWidget {
   /// surfaces, keep it low for dense grids.
   final int maxPixels;
 
-  final ImageFrameBuilder? frameBuilder;
+  /// Shown until the cheap preview decode lands — after that the preview
+  /// itself is the placeholder.
+  final Widget? placeholder;
 
   /// Applied to the decoded image (film presets, previews).
   final ColorFilter? colorFilter;
@@ -79,20 +108,37 @@ class AssetThumb extends StatelessWidget {
           maxPixels: maxPixels,
         );
 
-        Widget image = Image(
-          image: AssetEntityImageProvider(
-            asset,
-            isOriginal: false,
-            thumbnailSize: size,
-          ),
-          fit: fit,
-          alignment: alignment,
-          width: width,
-          height: height,
-          // Default (low) resamples poorly whenever the image isn't drawn 1:1.
-          filterQuality: FilterQuality.medium,
-          frameBuilder: frameBuilder,
-        );
+        final provider = AssetThumbnailProvider(asset, size: size);
+
+        // Below roughly the preview's own resolution a second decode buys
+        // nothing — the tile is already tiny.
+        final worthPreviewing = size.width > kThumbPreviewPixels * 1.5;
+
+        Widget image = worthPreviewing
+            ? ProgressiveImage(
+                preview: assetPreviewProvider(asset),
+                image: provider,
+                fit: fit,
+                alignment: alignment,
+                // Default (low) resamples poorly whenever the image isn't
+                // drawn 1:1.
+                filterQuality: FilterQuality.medium,
+                placeholder: placeholder,
+              )
+            : Image(
+                image: provider,
+                fit: fit,
+                alignment: alignment,
+                filterQuality: FilterQuality.medium,
+                frameBuilder: (context, child, frame, wasSync) =>
+                    (wasSync || frame != null)
+                        ? child
+                        : (placeholder ?? const SizedBox.shrink()),
+              );
+
+        if (width != null || height != null) {
+          image = SizedBox(width: width, height: height, child: image);
+        }
 
         if (colorFilter != null) {
           image = ColorFiltered(colorFilter: colorFilter!, child: image);

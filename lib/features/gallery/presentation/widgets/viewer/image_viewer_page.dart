@@ -1,11 +1,13 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_map/common_widgets/photo_grid.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_map/common_widgets/asset_thumbnail_provider.dart';
+import '../../providers/gallery_grid_provider.dart';
 import '../../providers/gallery_notifier.dart';
-import '../main_gallery/photos_tab.dart' show photoTileThumbSize;
 
 
 /// Logical size the photo actually occupies on screen: it is letterboxed to
@@ -50,12 +52,21 @@ ThumbnailSize viewerDisplaySize(
   return ThumbnailSize(side, side);
 }
 
+/// The viewer's full-screen provider. Shared with the precache in
+/// [PhotoViewerScreen] so warming a neighbour and painting it are one cache
+/// entry, not two.
+AssetThumbnailProvider viewerImageProvider(
+  AssetEntity asset,
+  ThumbnailSize size,
+) =>
+    AssetThumbnailProvider(asset, size: size);
+
 /// Zoom past this and the base image is being upscaled enough to see, so a
 /// sharper one is fetched — only for the photo actually being inspected.
 const double _kHiResZoom = 1.8;
 const double _kHiResScale = 2.0;
 
-class ImageViewerPage extends StatefulWidget {
+class ImageViewerPage extends ConsumerStatefulWidget {
   const ImageViewerPage({
     super.key,
     required this.photo,
@@ -72,14 +83,14 @@ class ImageViewerPage extends StatefulWidget {
   final String? heroTag;
 
   @override
-  State<ImageViewerPage> createState() => _ImageViewerPageState();
+  ConsumerState<ImageViewerPage> createState() => _ImageViewerPageState();
 }
 
 /// Deliberately not kept alive: every page the user swiped past used to hold a
 /// full-screen decode for the life of the viewer, so memory (and jank) grew
 /// with each swipe. Off-screen pages are disposed; the decodes stay in
 /// [PaintingBinding.imageCache], which is what makes coming back cheap.
-class _ImageViewerPageState extends State<ImageViewerPage>
+class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
     with SingleTickerProviderStateMixin {
   final _controller = TransformationController();
   late AnimationController _animationController;
@@ -170,26 +181,23 @@ class _ImageViewerPageState extends State<ImageViewerPage>
 
     final asset = widget.photo.assetEntity!;
 
-    // Placeholder + Hero flight image. Byte-for-byte the size the grid tile
-    // asked for — a different size is a different cache key, so anything else
-    // starts a fresh decode while the Hero is mid-flight, which is exactly
-    // when there is no budget for one.
-    final thumbProvider = AssetEntityImageProvider(
+    // Placeholder + Hero flight image. Must be the exact provider the grid tile
+    // used — same class, same size — because anything else is a different cache
+    // key, and a fresh decode mid-Hero-flight is precisely when there is no
+    // budget for one.
+    final thumbProvider = AssetThumbnailProvider(
       asset,
-      isOriginal: false,
-      thumbnailSize: photoTileThumbSize(context),
+      size: photoTileThumbSize(
+        context,
+        ref.watch(galleryGridProvider).columns,
+      ),
     );
 
     // Display-resolution provider, sized to the box this photo actually
     // covers. Only a page the user has pinched into pays for the sharper one.
-    final fullProvider = AssetEntityImageProvider(
+    final fullProvider = viewerImageProvider(
       asset,
-      isOriginal: false,
-      thumbnailSize: viewerDisplaySize(
-        context,
-        asset,
-        scale: _hiRes ? _kHiResScale : 1.0,
-      ),
+      viewerDisplaySize(context, asset, scale: _hiRes ? _kHiResScale : 1.0),
     );
 
     return GestureDetector(

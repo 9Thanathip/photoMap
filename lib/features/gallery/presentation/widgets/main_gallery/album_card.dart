@@ -79,16 +79,6 @@ class _AlbumCardState extends State<AlbumCard>
                         asset: widget.coverPhoto.assetEntity!,
                         width: double.infinity,
                         maxPixels: 1000,
-                        frameBuilder:
-                            (context, child, frame, wasSynchronouslyLoaded) {
-                          if (wasSynchronouslyLoaded) return child;
-                          return AnimatedOpacity(
-                            opacity: frame == null ? 0.0 : 1.0,
-                            duration: const Duration(milliseconds: 150),
-                            curve: Curves.easeIn,
-                            child: child,
-                          );
-                        },
                       )
                     : Container(
                         color: theme.colorScheme.surfaceContainerHighest,

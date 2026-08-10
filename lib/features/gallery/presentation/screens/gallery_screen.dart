@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:photo_map/common_widgets/shell_active_index.dart';
 import 'package:photo_map/common_widgets/top_scrim.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/gallery_notifier.dart';
+import '../providers/gallery_grid_provider.dart';
 import '../providers/gallery_select_provider.dart';
 import '../widgets/main_gallery/albums_tab.dart';
 import '../widgets/main_gallery/gallery_header.dart';
@@ -255,6 +255,8 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
               ref.read(gallerySelectProvider.notifier).toggle(photo.path),
           onTap: (photos, index) => _openViewer(context, photos, index),
           onLongPress: (photo) => _showPhotoOptions(context, photo),
+          columns: ref.watch(galleryGridProvider).columns,
+          onColumns: ref.read(galleryGridProvider.notifier).setColumns,
         ),
         AlbumsTab(
           gallery: gallery,
@@ -334,16 +336,12 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
   }
 }
 
+/// See [ShimmerThumbnail] — a ShaderMask per tile is an offscreen render pass
+/// per tile, and this grid shows a screenful of them at once.
 class ShimmerPlaceholder extends StatelessWidget {
   const ShimmerPlaceholder({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Shimmer.fromColors(
-      baseColor: t.shimmerBase,
-      highlightColor: t.shimmerHighlight,
-      child: Container(color: Colors.white),
-    );
-  }
+  Widget build(BuildContext context) =>
+      ColoredBox(color: context.tokens.shimmerBase);
 }

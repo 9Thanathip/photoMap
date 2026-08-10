@@ -306,15 +306,6 @@ class _AlbumPickerCardState extends State<_AlbumPickerCard>
                         asset: asset,
                         width: double.infinity,
                         maxPixels: 1000,
-                        frameBuilder:
-                            (_, child, frame, wasSynchronouslyLoaded) {
-                          if (wasSynchronouslyLoaded) return child;
-                          return AnimatedOpacity(
-                            opacity: frame == null ? 0.0 : 1.0,
-                            duration: const Duration(milliseconds: 150),
-                            child: child,
-                          );
-                        },
                       )
                     : Container(
                         color: theme.colorScheme.surfaceContainerHighest,

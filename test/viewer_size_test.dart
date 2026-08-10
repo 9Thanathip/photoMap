@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_map/features/gallery/presentation/widgets/main_gallery/photos_tab.dart';
+import 'package:photo_map/common_widgets/asset_thumb.dart';
+import 'package:photo_map/common_widgets/asset_thumbnail_provider.dart';
+import 'package:photo_map/common_widgets/photo_grid.dart';
 import 'package:photo_map/features/gallery/presentation/widgets/viewer/image_viewer_page.dart';
 
 /// A 3x phone: 400x800 logical, so the panel is 1200x2400 physical.
@@ -65,5 +67,143 @@ void main() {
     // Any drift here means the Hero flight decodes the thumbnail a second time.
     expect(photoTileThumbSize(ctx).width, 400);
     expect(photoTileThumbSize(ctx).height, 400);
+  });
+
+  testWidgets('tile decode follows the grid density', (tester) async {
+    final ctx = await _context(tester);
+    // Coarser grid, bigger tiles, bigger decode — and vice versa. Sizing the
+    // decode off a fixed column count would leave zoomed-out tiles blurry.
+    expect(photoTileThumbSize(ctx, 2).width, greaterThan(400));
+    expect(photoTileThumbSize(ctx, 8).width, lessThan(400));
+  });
+
+  group('thumbnail providers', () {
+    test('the preview asks the platform for its cheapest rendition', () {
+      final preview = assetPreviewProvider(_photo(3000, 4000));
+      // Without `fast` the platform renders at full fidelity even for 128px,
+      // and the preview stops beating the real tile — which is the entire
+      // reason it exists.
+      expect(preview.fast, isTrue);
+      expect(preview.quality, lessThan(70));
+      expect(preview.size.width, kThumbPreviewPixels);
+      // JPEG here makes ImageIO log once per thumbnail, because PhotoKit hands
+      // back an RGBA bitmap and JPEG has nowhere to put the alpha.
+      expect(preview.format, ThumbnailFormat.png);
+    });
+
+    test('the disk key is filesystem-safe and edit-aware', () {
+      // iOS asset ids contain '/', which would silently write outside the
+      // cache directory (or fail) if it reached a filename raw.
+      final key = AssetThumbnailProvider(
+        AssetEntity(id: 'ABC-123/L0/001', typeInt: 1, width: 10, height: 10),
+        size: const ThumbnailSize.square(400),
+      ).diskCacheKey;
+      expect(key, isNot(contains('/')));
+
+      // Re-editing a photo keeps its id but bumps the modified date; without it
+      // in the key the grid would keep serving the pre-edit thumbnail forever.
+      String keyFor(int modified) => AssetThumbnailProvider(
+            AssetEntity(
+              id: 'same-id',
+              typeInt: 1,
+              width: 10,
+              height: 10,
+              modifiedDateSecond: modified,
+            ),
+            size: const ThumbnailSize.square(400),
+          ).diskCacheKey;
+      expect(keyFor(1000), isNot(keyFor(2000)));
+    });
+
+    test('same asset and size is one cache entry', () {
+      final asset = _photo(3000, 4000);
+      const size = ThumbnailSize.square(400);
+      expect(
+        AssetThumbnailProvider(asset, size: size),
+        AssetThumbnailProvider(asset, size: size),
+      );
+      // Differing on any request parameter has to be a different entry, or a
+      // preview would be served where a sharp tile was asked for.
+      expect(
+        AssetThumbnailProvider(asset, size: size),
+        isNot(AssetThumbnailProvider(asset, size: size, fast: true)),
+      );
+      expect(
+        AssetThumbnailProvider(asset, size: size),
+        isNot(AssetThumbnailProvider(asset,
+            size: const ThumbnailSize.square(800))),
+      );
+    });
+  });
+
+  group('pinch snapping', () {
+    test('spreading two fingers coarsens the grid', () {
+      expect(gridColumnsForPinch(3, 1.6), 2); // 3 / 1.6 = 1.9 -> nearest is 2
+      expect(gridColumnsForPinch(5, 1.7), 3);
+      expect(gridColumnsForPinch(2, 4.0), 2); // already at the coarsest step
+    });
+
+    test('closing them makes tiles smaller', () {
+      expect(gridColumnsForPinch(3, 0.6), 5); // 3 / 0.6 = 5
+      expect(gridColumnsForPinch(5, 0.6), 8);
+      expect(gridColumnsForPinch(8, 0.2), 8); // clamped at the finest step
+    });
+
+    test('a still pinch keeps the current density', () {
+      for (final c in kGridColumnSteps) {
+        expect(gridColumnsForPinch(c, 1.0), c);
+      }
+    });
+
+    test('a degenerate span is ignored rather than snapping to a default', () {
+      expect(gridColumnsForPinch(5, 0), 5);
+      expect(gridColumnsForPinch(5, double.nan), 5);
+    });
+  });
+
+  group('pinch zoom animation', () {
+    // What the user sees is the laid-out tile size times the residual scale.
+    double rendered(int startColumns, double pinch) {
+      final columns = gridColumnsForPinch(startColumns, pinch);
+      final scale = gridResidualScale(
+        startColumns: startColumns,
+        columns: columns,
+        pinch: pinch,
+      );
+      return scale / columns;
+    }
+
+    test('tiles do not jump when the density steps', () {
+      // 3 / 2.5 is the pinch factor where 3 columns gives way to 2. Either
+      // side of it the layout differs by 1.5x and the residual by 1/1.5, so
+      // the product — the size on screen — has to stay put.
+      const threshold = 3 / 2.5;
+      expect(
+        rendered(3, threshold - 0.01),
+        closeTo(rendered(3, threshold + 0.01), 0.01),
+      );
+    });
+
+    test('resting at a step needs no scaling at all', () {
+      for (final columns in kGridColumnSteps) {
+        expect(
+          gridResidualScale(
+              startColumns: columns, columns: columns, pinch: 1.0),
+          1.0,
+        );
+      }
+    });
+
+    test('past the last step it rubber-bands instead of running away', () {
+      // Already at the coarsest density and still spreading.
+      expect(
+        gridResidualScale(startColumns: 2, columns: 2, pinch: 6.0),
+        lessThan(2.0),
+      );
+      expect(
+        gridResidualScale(startColumns: 8, columns: 8, pinch: 0.05),
+        greaterThan(0.5),
+      );
+    });
   });
 }

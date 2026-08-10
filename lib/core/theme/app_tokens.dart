@@ -114,8 +114,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
           Palette.goldBgLight1,
         ],
         goldGrad: const [Palette.gold700, Palette.gold400],
-        shimmerBase: const Color(0xFFEEEEEE),
-        shimmerHighlight: const Color(0xFFFAFAFA),
+        // Dark enough to read as "loading" rather than a blank white sheet.
+        shimmerBase: const Color(0xFFDEDEDE),
+        shimmerHighlight: const Color(0xFFF0F0F0),
         glassFill: Colors.white.withValues(alpha: 0.7),
         glassBorder: Colors.white.withValues(alpha: 0.3),
         glassShadow: Colors.black.withValues(alpha: 0.07),

@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:photo_map/common_widgets/asset_thumb.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import '../../providers/gallery_notifier.dart';
-import 'photos_tab.dart' show kPhotoTileMaxPixels;
+import 'package:photo_map/common_widgets/photo_grid.dart' show kPhotoTileMaxPixels;
 
 class PhotoTile extends StatefulWidget {
   const PhotoTile({
@@ -47,13 +46,9 @@ class _PhotoTileState extends State<PhotoTile> {
         ? AssetThumb(
             asset: asset,
             maxPixels: kPhotoTileMaxPixels,
-            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-              if (wasSynchronouslyLoaded) return child;
-              if (frame == null) {
-                return const ShimmerThumbnail();
-              }
-              return child;
-            },
+            // Only seen until the 128px preview lands, which is fast even on a
+            // cold library — the tile's own decode takes far longer.
+            placeholder: const ShimmerThumbnail(),
           )
         : const ShimmerThumbnail();
 
@@ -139,16 +134,17 @@ class _PhotoTileState extends State<PhotoTile> {
   }
 }
 
+/// Flat fill shown under a tile that has nothing to draw yet.
+///
+/// Deliberately not a shimmer: `Shimmer.fromColors` is a [ShaderMask], and a
+/// ShaderMask is a `saveLayer` — an offscreen render pass, per tile, on every
+/// frame. Twenty tiles waiting on their first decode meant twenty extra passes
+/// a frame on the raster thread, which cost far more than the decoding they
+/// were there to apologise for.
 class ShimmerThumbnail extends StatelessWidget {
   const ShimmerThumbnail({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Shimmer.fromColors(
-      baseColor: t.shimmerBase,
-      highlightColor: t.shimmerHighlight,
-      child: Container(color: Colors.white),
-    );
-  }
+  Widget build(BuildContext context) =>
+      ColoredBox(color: context.tokens.shimmerBase);
 }

@@ -4,10 +4,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:video_player/video_player.dart';
 
-import 'image_viewer_page.dart' show viewerDisplaySize;
+import 'image_viewer_page.dart' show viewerDisplaySize, viewerImageProvider;
 
 class VideoViewerPage extends StatefulWidget {
   const VideoViewerPage({
@@ -112,10 +111,9 @@ class _VideoViewerPageState extends State<VideoViewerPage>
               Hero(
                 tag: widget.tag,
                 child: Image(
-                  image: AssetEntityImageProvider(
+                  image: viewerImageProvider(
                     widget.asset!,
-                    isOriginal: false,
-                    thumbnailSize: viewerDisplaySize(context, widget.asset),
+                    viewerDisplaySize(context, widget.asset),
                   ),
                   fit: BoxFit.contain,
                   filterQuality: FilterQuality.medium,
@@ -159,10 +157,9 @@ class _VideoViewerPageState extends State<VideoViewerPage>
                       return Material(
                         color: Colors.transparent,
                         child: Image(
-                          image: AssetEntityImageProvider(
+                          image: viewerImageProvider(
                             widget.asset!,
-                            isOriginal: false,
-                            thumbnailSize: viewerDisplaySize(context, widget.asset),
+                            viewerDisplaySize(context, widget.asset),
                           ),
                           fit: BoxFit.cover,
                           filterQuality: FilterQuality.medium,
