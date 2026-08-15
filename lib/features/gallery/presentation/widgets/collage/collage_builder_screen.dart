@@ -11,6 +11,7 @@ import 'package:share_plus/share_plus.dart';
 
 import 'package:photo_map/common_widgets/app_snack.dart';
 import 'package:photo_map/common_widgets/asset_thumb.dart';
+import 'package:photo_map/common_widgets/color_picker_sheet.dart';
 import 'package:photo_map/common_widgets/glass_sheet.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
@@ -18,6 +19,15 @@ import '../../providers/gallery_notifier.dart';
 import 'collage_painter.dart';
 import 'collage_ratio.dart';
 import 'collage_transform.dart';
+
+/// Colour wheel drawn in the free-colour slot while no custom colour is set.
+const _kWheel = <Color>[
+  Colors.red,
+  Colors.yellow,
+  Colors.green,
+  Colors.blue,
+  Colors.red,
+];
 
 /// Grid collage builder. The user picks a rows×cols grid (equal cells), taps a
 /// cell to fill it with a photo, frames each one in place (drag to reposition,
@@ -67,14 +77,19 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
 
   CollageGrid get _grid => CollageGrid(_rows, _cols);
 
-  static const _bgSwatches = <Color>[
-    Colors.white,
-    Color(0xFFF2EDE4),
-    Color(0xFFBFC4CC),
-    Color(0xFF1A1A1A),
-    Colors.black,
-    Color(0xFF0E1A2B),
+  static const _bgSwatches = <ColorPreset>[
+    ColorPreset('White', Colors.white),
+    ColorPreset('Paper', Color(0xFFF2EDE4)),
+    ColorPreset('Mist', Color(0xFFBFC4CC)),
+    ColorPreset('Charcoal', Color(0xFF1A1A1A)),
+    ColorPreset('Black', Colors.black),
+    ColorPreset('Navy', Color(0xFF0E1A2B)),
   ];
+
+  /// True once the background is something the swatches don't offer — the free
+  /// picker's slot then shows that colour instead of its rainbow.
+  bool get _isCustomBg =>
+      !_bgSwatches.any((p) => p.color.toARGB32() == _bg.toARGB32());
 
   @override
   void dispose() {
@@ -782,51 +797,108 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   Widget _buildGapAndColor(AppLocalizations l10n, AppTokens t) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 2, 20, 0),
-      child: Row(
+      // Swatches sit on their own line: the free-colour slot makes seven, and
+      // sharing a row with the slider left neither enough to be usable.
+      child: Column(
         children: [
-          SizedBox(
-            width: 40,
-            child: Text(
-              l10n.collageGap,
-              style: TextStyle(color: t.textSecondary, fontSize: 12),
-            ),
-          ),
-          Expanded(
-            child: SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: 2,
-                activeTrackColor: t.textPrimary,
-                inactiveTrackColor: t.textTertiary,
-                thumbColor: t.textPrimary,
-                overlayColor: t.textPrimary.withValues(alpha: 0.1),
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+          Row(
+            children: [
+              SizedBox(
+                width: 40,
+                child: Text(
+                  l10n.collageGap,
+                  style: TextStyle(color: t.textSecondary, fontSize: 12),
+                ),
               ),
-              child: Slider(
-                value: _gapFraction,
-                max: 0.05,
-                onChanged: (v) => setState(() => _gapFraction = v),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          for (final c in _bgSwatches)
-            GestureDetector(
-              onTap: () => setState(() => _bg = c),
-              child: Container(
-                width: 24,
-                height: 24,
-                margin: const EdgeInsets.only(left: 6),
-                decoration: BoxDecoration(
-                  color: c,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: _bg == c ? t.textPrimary : t.borderStrong,
-                    width: _bg == c ? 2 : 1,
+              Expanded(
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2,
+                    activeTrackColor: t.textPrimary,
+                    inactiveTrackColor: t.textTertiary,
+                    thumbColor: t.textPrimary,
+                    overlayColor: t.textPrimary.withValues(alpha: 0.1),
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 7),
+                  ),
+                  child: Slider(
+                    value: _gapFraction,
+                    max: 0.05,
+                    onChanged: (v) => setState(() => _gapFraction = v),
                   ),
                 ),
               ),
-            ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (final p in _bgSwatches)
+                _swatch(
+                  t,
+                  color: p.color,
+                  selected:
+                      !_isCustomBg && _bg.toARGB32() == p.color.toARGB32(),
+                  onTap: () => setState(() => _bg = p.color),
+                ),
+              // Free colour. Wears the picked colour once one is in use, so the
+              // row still shows what the background actually is.
+              _swatch(
+                t,
+                color: _isCustomBg ? _bg : null,
+                selected: _isCustomBg,
+                onTap: _openBgPicker,
+              ),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _swatch(
+    AppTokens t, {
+    required Color? color,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 24,
+        height: 24,
+        margin: const EdgeInsets.only(left: 6),
+        decoration: BoxDecoration(
+          color: color,
+          // No colour means the free slot is idle: the rainbow is what marks it
+          // out from the fixed swatches beside it.
+          gradient: color == null ? const SweepGradient(colors: _kWheel) : null,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: selected ? t.textPrimary : t.borderStrong,
+            width: selected ? 2 : 1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openBgPicker() {
+    HapticFeedback.selectionClick();
+    final l10n = AppLocalizations.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => ColorPickerSheet(
+        title: l10n.collageBackground,
+        current: _bg,
+        presets: _bgSwatches,
+        // The same swatches are already a tap away on the row behind the sheet,
+        // so opening on the grid would just be them a second time.
+        startCustom: true,
+        onSelect: (c) => setState(() => _bg = c),
       ),
     );
   }

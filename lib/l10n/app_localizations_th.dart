@@ -976,4 +976,7 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get collageResetFraming => 'รีเซ็ตการจัดรูป';
+
+  @override
+  String get collageBackground => 'สีพื้นหลัง';
 }

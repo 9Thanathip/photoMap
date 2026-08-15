@@ -1885,6 +1885,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset framing'**
   String get collageResetFraming;
+
+  /// No description provided for @collageBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Background'**
+  String get collageBackground;
 }
 
 class _AppLocalizationsDelegate

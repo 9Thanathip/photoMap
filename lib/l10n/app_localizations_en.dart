@@ -979,4 +979,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get collageResetFraming => 'Reset framing';
+
+  @override
+  String get collageBackground => 'Background';
 }

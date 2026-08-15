@@ -329,5 +329,6 @@
   "collageGap": "ช่องว่าง",
   "collageEmptyHint": "แตะที่ช่องเพื่อใส่รูป",
   "collageFrameHint": "ลากรูปเพื่อจัดตำแหน่ง · สองนิ้วเพื่อซูมและหมุน · กดค้างเพื่อสลับช่อง",
-  "collageResetFraming": "รีเซ็ตการจัดรูป"
+  "collageResetFraming": "รีเซ็ตการจัดรูป",
+  "collageBackground": "สีพื้นหลัง"
 }

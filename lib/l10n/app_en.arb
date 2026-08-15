@@ -414,5 +414,6 @@
   "collageGap": "Gap",
   "collageEmptyHint": "Tap a cell to add a photo",
   "collageFrameHint": "Drag a photo to reframe it · two fingers to zoom and straighten · hold to swap",
-  "collageResetFraming": "Reset framing"
+  "collageResetFraming": "Reset framing",
+  "collageBackground": "Background"
 }
