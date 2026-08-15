@@ -966,4 +966,14 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get collageGap => 'ช่องว่าง';
+
+  @override
+  String get collageEmptyHint => 'แตะที่ช่องเพื่อใส่รูป';
+
+  @override
+  String get collageFrameHint =>
+      'ลากรูปเพื่อจัดตำแหน่ง · สองนิ้วเพื่อซูมและหมุน · กดค้างเพื่อสลับช่อง';
+
+  @override
+  String get collageResetFraming => 'รีเซ็ตการจัดรูป';
 }

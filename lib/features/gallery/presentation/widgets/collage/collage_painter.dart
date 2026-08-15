@@ -2,6 +2,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import 'collage_transform.dart';
+
 /// Uniform [rows]×[cols] grid layout with an even [gap] between and around the
 /// cells. Cell index is `row * cols + col`.
 class CollageGrid {
@@ -35,9 +37,9 @@ class CollageGrid {
 }
 
 /// Draws the grid collage: background fill, then each cell's photo cover-fitted
-/// and centre-cropped. Shared by the preview [CollagePainter] and the exporter.
-/// [selected] highlights a cell (preview only); [placeholder] fills empty cells
-/// (preview only — export passes null).
+/// under whatever framing the user has given it. Shared by the preview
+/// [CollagePainter] and the exporter. [selected] highlights a cell (preview
+/// only); [placeholder] fills empty cells (preview only — export passes null).
 void paintCollage(
   Canvas canvas,
   Rect rect, {
@@ -45,6 +47,7 @@ void paintCollage(
   required double gap,
   required Color background,
   required Map<int, ui.Image> images,
+  Map<int, CellTransform> transforms = const {},
   int? selected,
   Color? placeholder,
 }) {
@@ -54,7 +57,8 @@ void paintCollage(
     final cell = grid.cellRect(i, rect, gap);
     final img = images[i];
     if (img != null) {
-      _drawCover(canvas, img, cell);
+      drawCellImage(
+          canvas, img, cell, transforms[i] ?? const CellTransform());
     } else if (placeholder != null) {
       canvas.drawRect(cell, Paint()..color = placeholder);
     }
@@ -70,29 +74,6 @@ void paintCollage(
   }
 }
 
-/// Draws [img] to fill [dst], preserving aspect via a centred source crop.
-void _drawCover(Canvas canvas, ui.Image img, Rect dst) {
-  final iw = img.width.toDouble();
-  final ih = img.height.toDouble();
-  final srcAR = iw / ih;
-  final dstAR = dst.width / dst.height;
-
-  Rect src;
-  if (srcAR > dstAR) {
-    final cropW = ih * dstAR;
-    src = Rect.fromLTWH((iw - cropW) / 2, 0, cropW, ih);
-  } else {
-    final cropH = iw / dstAR;
-    src = Rect.fromLTWH(0, (ih - cropH) / 2, iw, cropH);
-  }
-
-  canvas.save();
-  canvas.clipRect(dst);
-  canvas.drawImageRect(
-      img, src, dst, Paint()..filterQuality = FilterQuality.high);
-  canvas.restore();
-}
-
 /// CustomPainter wrapper for the live preview.
 class CollagePainter extends CustomPainter {
   CollagePainter({
@@ -101,9 +82,11 @@ class CollagePainter extends CustomPainter {
     required this.background,
     required this.images,
     required this.revision,
+    this.transforms = const {},
     this.selected,
     this.placeholder,
     this.dragImage,
+    this.dragTransform,
     this.dragCenter,
     this.dragTarget,
   });
@@ -112,12 +95,16 @@ class CollagePainter extends CustomPainter {
   final double gap;
   final Color background;
   final Map<int, ui.Image> images;
+
+  /// Per-cell framing. Cells without an entry sit at the plain cover fit.
+  final Map<int, CellTransform> transforms;
   final int? selected;
   final Color? placeholder;
 
   /// Drag-to-swap overlay (preview only): the lifted cell's image floating at
   /// [dragCenter], plus a highlight ring on the [dragTarget] cell.
   final ui.Image? dragImage;
+  final CellTransform? dragTransform;
   final Offset? dragCenter;
   final int? dragTarget;
 
@@ -135,6 +122,7 @@ class CollagePainter extends CustomPainter {
       gap: gap,
       background: background,
       images: images,
+      transforms: transforms,
       selected: selected,
       placeholder: placeholder,
     );
@@ -154,7 +142,8 @@ class CollagePainter extends CustomPainter {
       canvas.save();
       canvas.clipRRect(
           RRect.fromRectAndRadius(dst, const Radius.circular(8)));
-      _drawCover(canvas, dragImage!, dst);
+      drawCellImage(
+          canvas, dragImage!, dst, dragTransform ?? const CellTransform());
       canvas.restore();
       canvas.drawRRect(
         RRect.fromRectAndRadius(dst, const Radius.circular(8)),

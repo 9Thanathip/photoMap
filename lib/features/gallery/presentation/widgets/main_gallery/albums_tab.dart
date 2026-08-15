@@ -254,44 +254,66 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
           subtitle: l10n.libraryEmpty);
     }
 
-    return switch (widget.viewMode) {
-      ViewMode.all => _flatGrid(photos),
-      ViewMode.hue => HueGrid(
-          photos: photos,
-          builder: _flatGrid,
-        ),
-      ViewMode.year => _sectionedGrid(
-          _groupBy(photos, (p) => '${p.timestamp.year}'),
-          (k) => k,
-          context,
-        ),
-      ViewMode.month => _sectionedGrid(
-          _groupBy(photos, (p) {
-            final t = p.timestamp;
-            return '${t.year}-${t.month.toString().padLeft(2, '0')}';
-          }),
-          (k) {
-            final parts = k.split('-');
-            return '${months[int.parse(parts[1]) - 1]} ${parts[0]}';
-          },
-          context,
-        ),
-      ViewMode.day => _sectionedGrid(
-          _groupBy(photos, (p) {
-            final t = p.timestamp;
-            return '${t.year}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}';
-          }),
-          (k) {
-            final parts = k.split('-');
-            return '${int.parse(parts[2])} ${months[int.parse(parts[1]) - 1]} ${parts[0]}';
-          },
-          context,
-        ),
-    };
+    Widget grid(BuildContext context, ScrollController? c, ScrollPhysics? p) {
+      return switch (widget.viewMode) {
+        ViewMode.all => _flatGrid(photos, c, p),
+        ViewMode.hue => HueGrid(
+            photos: photos,
+            builder: (items) => _flatGrid(items, c, p),
+          ),
+        ViewMode.year => _sectionedGrid(
+            _groupBy(photos, (p) => '${p.timestamp.year}'),
+            (k) => k,
+            context,
+            c,
+            p,
+          ),
+        ViewMode.month => _sectionedGrid(
+            _groupBy(photos, (p) {
+              final t = p.timestamp;
+              return '${t.year}-${t.month.toString().padLeft(2, '0')}';
+            }),
+            (k) {
+              final parts = k.split('-');
+              return '${months[int.parse(parts[1]) - 1]} ${parts[0]}';
+            },
+            context,
+            c,
+            p,
+          ),
+        ViewMode.day => _sectionedGrid(
+            _groupBy(photos, (p) {
+              final t = p.timestamp;
+              return '${t.year}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}';
+            }),
+            (k) {
+              final parts = k.split('-');
+              return '${int.parse(parts[2])} ${months[int.parse(parts[1]) - 1]} ${parts[0]}';
+            },
+            context,
+            c,
+            p,
+          ),
+      };
+    }
+
+    return GridPinchZoom(
+      columns: ref.watch(galleryGridProvider).columns,
+      onColumns: ref.read(galleryGridProvider.notifier).setColumns,
+      builder: grid,
+    );
   }
 
-  Widget _flatGrid(List<PhotoItem> items) {
-    return GridView.builder(
+  Widget _flatGrid(
+    List<PhotoItem> items,
+    ScrollController? controller,
+    ScrollPhysics? physics,
+  ) {
+    return _prefetching(
+      items,
+      GridView.builder(
+      controller: controller,
+      physics: physics,
       padding: EdgeInsets.only(top: widget.contentTopPad, bottom: 120),
       gridDelegate: photoGridDelegate(ref.watch(galleryGridProvider).columns),
       itemCount: items.length,
@@ -309,14 +331,37 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
               : () => widget.onLongPress(item),
         );
       },
+      ),
     );
   }
 
-  Widget _sectionedGrid(Map<String, List<PhotoItem>> sections,
-      String Function(String) label, BuildContext context) {
+  /// Wraps a grid so the platform starts preparing the photos it is heading
+  /// towards. [order] must be the order the tiles actually appear in.
+  Widget _prefetching(List<PhotoItem> order, Widget child) => GridPrefetch(
+        itemCount: order.length,
+        assetAt: (i) => order[i].assetEntity,
+        thumbSize: photoTileThumbSize(
+          context,
+          ref.watch(galleryGridProvider).columns,
+        ),
+        child: child,
+      );
+
+  Widget _sectionedGrid(
+    Map<String, List<PhotoItem>> sections,
+    String Function(String) label,
+    BuildContext context,
+    ScrollController? controller,
+    ScrollPhysics? physics,
+  ) {
     final theme = Theme.of(context);
     final sortedKeys = sections.keys.toList()..sort((a, b) => b.compareTo(a));
-    return CustomScrollView(
+    final flat = <PhotoItem>[for (final key in sortedKeys) ...sections[key]!];
+    return _prefetching(
+      flat,
+      CustomScrollView(
+      controller: controller,
+      physics: physics,
       slivers: [
         SliverPadding(padding: EdgeInsets.only(top: widget.contentTopPad)),
         for (final key in sortedKeys) ...[
@@ -354,6 +399,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
         ],
         const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
       ],
+      ),
     );
   }
 }

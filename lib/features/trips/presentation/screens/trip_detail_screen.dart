@@ -80,7 +80,16 @@ class TripDetailScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: CustomScrollView(
+      body: GridPinchZoom(
+        columns: columns,
+        onColumns: ref.read(galleryGridProvider.notifier).setColumns,
+        builder: (context, controller, physics) => GridPrefetch(
+          itemCount: trip.photos.length,
+          assetAt: (i) => trip.photos[i].assetEntity,
+          thumbSize: photoTileThumbSize(context, columns),
+          child: CustomScrollView(
+        controller: controller,
+        physics: physics,
         slivers: [
           // ── Trip summary ──
           SliverToBoxAdapter(
@@ -113,6 +122,8 @@ class TripDetailScreen extends ConsumerWidget {
           ...sections,
           const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
         ],
+          ),
+        ),
       ),
     );
   }

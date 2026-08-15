@@ -969,4 +969,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get collageGap => 'Gap';
+
+  @override
+  String get collageEmptyHint => 'Tap a cell to add a photo';
+
+  @override
+  String get collageFrameHint =>
+      'Drag a photo to reframe it · two fingers to zoom and straighten · hold to swap';
+
+  @override
+  String get collageResetFraming => 'Reset framing';
 }

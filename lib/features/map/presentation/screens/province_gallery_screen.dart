@@ -218,6 +218,34 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
     ThemeData theme,
     List<PhotoItem> photos,
   ) {
+    return GridPinchZoom(
+      columns: ref.watch(galleryGridProvider).columns,
+      onColumns: ref.read(galleryGridProvider.notifier).setColumns,
+      builder: (context, controller, physics) =>
+          _buildGridBody(context, topPad, theme, photos, controller, physics),
+    );
+  }
+
+  /// Wraps a grid so the platform starts preparing the photos it is heading
+  /// towards. [order] must be the order the tiles actually appear in.
+  Widget _prefetching(List<PhotoItem> order, Widget child) => GridPrefetch(
+        itemCount: order.length,
+        assetAt: (i) => order[i].assetEntity,
+        thumbSize: photoTileThumbSize(
+          context,
+          ref.watch(galleryGridProvider).columns,
+        ),
+        child: child,
+      );
+
+  Widget _buildGridBody(
+    BuildContext context,
+    double topPad,
+    ThemeData theme,
+    List<PhotoItem> photos,
+    ScrollController? controller,
+    ScrollPhysics? physics,
+  ) {
     final isPickMode = widget.onPickCover != null;
     void onTap(List<PhotoItem> list, int i) {
       if (isPickMode) {
@@ -230,7 +258,11 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
     final extraTop = isPickMode ? 44.0 : 0.0;
 
     if (_viewMode == ViewMode.all) {
-      return GridView.builder(
+      return _prefetching(
+        photos,
+        GridView.builder(
+        controller: controller,
+        physics: physics,
         padding: EdgeInsets.fromLTRB(1.5, topPad + 88 + extraTop, 1.5, 32),
         gridDelegate: photoGridDelegate(ref.watch(galleryGridProvider).columns),
         itemCount: photos.length,
@@ -238,6 +270,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
           photo: photos[i],
           onTap: () => onTap(photos, i),
           onLongPress: () {},
+        ),
         ),
       );
     }
@@ -264,7 +297,11 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
       running += sections[key]!.length;
     }
 
-    return CustomScrollView(
+    return _prefetching(
+      flat,
+      CustomScrollView(
+      controller: controller,
+      physics: physics,
       slivers: [
         SliverPadding(padding: EdgeInsets.only(top: topPad + 60 + extraTop)),
         for (final key in sortedKeys) ...[
@@ -297,6 +334,7 @@ class _ProvinceGalleryScreenState extends ConsumerState<ProvinceGalleryScreen> {
         ],
         const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
       ],
+      ),
     );
   }
 

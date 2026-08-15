@@ -17,9 +17,11 @@ import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
 import 'collage_painter.dart';
 import 'collage_ratio.dart';
+import 'collage_transform.dart';
 
 /// Grid collage builder. The user picks a rows×cols grid (equal cells), taps a
-/// cell to fill it with a photo, and tunes the aspect ratio, gap and
+/// cell to fill it with a photo, frames each one in place (drag to reposition,
+/// two fingers to zoom and straighten), and tunes the aspect ratio, gap and
 /// background. Exports via canvas → PNG → save/share (same path as the frame
 /// exporter).
 class CollageBuilderScreen extends ConsumerStatefulWidget {
@@ -47,6 +49,9 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   final Map<int, ui.Image> _images = {};
   final Map<int, String> _paths = {};
 
+  /// How each photo is framed inside its cell. Absent = plain centre crop.
+  final Map<int, CellTransform> _transforms = {};
+
   String _busy = '';
   Size _canvasSize = Size.zero;
 
@@ -54,6 +59,11 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   int? _dragFrom;
   Offset? _dragPos;
   int? _dragTarget;
+
+  // In-cell framing state (drag / pinch / twist on a filled cell).
+  int? _framing;
+  CellTransform _frameBase = const CellTransform();
+  Offset _framePan = Offset.zero;
 
   CollageGrid get _grid => CollageGrid(_rows, _cols);
 
@@ -109,6 +119,8 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
       _images[index]?.dispose();
       _images[index] = img;
       _paths[index] = picked.path;
+      // Framing belongs to the photo that was framed, not to the cell.
+      _transforms.remove(index);
       _revision++;
     });
   }
@@ -150,22 +162,20 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     return frame.image;
   }
 
+  int? _cellAt(Offset point) =>
+      _grid.indexAt(point, Offset.zero & _canvasSize, _gapPx(_canvasSize));
+
+  Rect _cellRect(int index) =>
+      _grid.cellRect(index, Offset.zero & _canvasSize, _gapPx(_canvasSize));
+
   void _onTapUp(TapUpDetails d) {
-    final index = _grid.indexAt(
-      d.localPosition,
-      Offset.zero & _canvasSize,
-      _gapPx(_canvasSize),
-    );
+    final index = _cellAt(d.localPosition);
     if (index != null) _pickPhotoFor(index);
   }
 
   // ── Drag to swap ────────────────────────────────────────────────────────
   void _onDragStart(LongPressStartDetails d) {
-    final i = _grid.indexAt(
-      d.localPosition,
-      Offset.zero & _canvasSize,
-      _gapPx(_canvasSize),
-    );
+    final i = _cellAt(d.localPosition);
     if (i != null && _images.containsKey(i)) {
       HapticFeedback.mediumImpact();
       setState(() {
@@ -180,11 +190,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     if (_dragFrom == null) return;
     setState(() {
       _dragPos = d.localPosition;
-      _dragTarget = _grid.indexAt(
-        d.localPosition,
-        Offset.zero & _canvasSize,
-        _gapPx(_canvasSize),
-      );
+      _dragTarget = _cellAt(d.localPosition);
     });
   }
 
@@ -202,11 +208,85 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
   void _swap(int a, int b) {
     final ia = _images[a], ib = _images[b];
     final pa = _paths[a], pb = _paths[b];
+    final ta = _transforms[a], tb = _transforms[b];
     ib != null ? _images[a] = ib : _images.remove(a);
     ia != null ? _images[b] = ia : _images.remove(b);
     pb != null ? _paths[a] = pb : _paths.remove(a);
     pa != null ? _paths[b] = pa : _paths.remove(b);
+    tb != null ? _transforms[a] = tb : _transforms.remove(a);
+    ta != null ? _transforms[b] = ta : _transforms.remove(b);
     _revision++;
+  }
+
+  // ── Frame a photo inside its cell ───────────────────────────────────────
+  /// Drag repositions the crop, two fingers zoom and straighten it.
+  ///
+  /// All three run off the scale recognizer alone: it reports a one-finger drag
+  /// through [ScaleUpdateDetails.focalPointDelta], so pan and pinch stay a
+  /// single gesture. Holding still instead lets the long-press swap take the
+  /// arena, which is what keeps both interactions on the same canvas.
+  void _onFrameStart(ScaleStartDetails d) {
+    final i = _cellAt(d.localFocalPoint);
+    if (i == null || !_images.containsKey(i)) {
+      _framing = null;
+      return;
+    }
+    setState(() {
+      _framing = i;
+      _frameBase = _transforms[i] ?? const CellTransform();
+      _framePan = Offset.zero;
+    });
+  }
+
+  void _onFrameUpdate(ScaleUpdateDetails d) {
+    final i = _framing;
+    final img = i == null ? null : _images[i];
+    if (i == null || img == null) return;
+
+    _framePan += d.focalPointDelta;
+    var rotation = _frameBase.rotation + d.rotation;
+    final straight = rotation.abs() < kCellStraightenSnap;
+    if (straight) rotation = 0;
+
+    final cell = _cellRect(i);
+    final next = CellTransform(
+      scale: (_frameBase.scale * d.scale).clamp(1.0, kCellMaxZoom),
+      rotation: rotation,
+      offset: _frameBase.offset + _framePan / cell.width,
+    );
+    // Clamped as it is built, so the photo can never be dragged far enough to
+    // show background — the drag just stops at the edge.
+    final framed = next.copyWith(
+      offset: clampCellPan(
+        next,
+        image: Size(img.width.toDouble(), img.height.toDouble()),
+        cell: cell.size,
+      ),
+    );
+    if (framed == _transforms[i]) return;
+    if (straight && (_transforms[i]?.rotation ?? 0) != 0) {
+      HapticFeedback.selectionClick(); // landed back on level
+    }
+    setState(() {
+      _transforms[i] = framed;
+      _revision++;
+    });
+  }
+
+  void _onFrameEnd(ScaleEndDetails d) {
+    if (_framing == null) return;
+    setState(() => _framing = null);
+  }
+
+  bool get _hasFraming => _transforms.values.any((t) => !t.isIdentity);
+
+  void _resetFraming() {
+    if (!_hasFraming) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _transforms.clear();
+      _revision++;
+    });
   }
 
   // ── Sort by colour ──────────────────────────────────────────────────────
@@ -217,13 +297,26 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     if (_busy.isNotEmpty) return;
     setState(() => _busy = 'sort');
     try {
-      final placed = <({ui.Image img, String path, double hue, double val})>[];
+      final placed = <
+          ({
+            ui.Image img,
+            String path,
+            CellTransform? frame,
+            double hue,
+            double val
+          })>[];
       for (var i = 0; i < _grid.count; i++) {
         final img = _images[i];
         final path = _paths[i];
         if (img == null || path == null) continue;
         final tone = await _dominantTone(img);
-        placed.add((img: img, path: path, hue: tone.$1, val: tone.$2));
+        placed.add((
+          img: img,
+          path: path,
+          frame: _transforms[i],
+          hue: tone.$1,
+          val: tone.$2,
+        ));
       }
       if (placed.length < 2) return;
       // Primary key hue (the gradient), secondary lightness so near-grey frames
@@ -234,9 +327,12 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
       });
       final imgs = <int, ui.Image>{};
       final paths = <int, String>{};
+      final frames = <int, CellTransform>{};
       for (var k = 0; k < placed.length; k++) {
         imgs[k] = placed[k].img;
         paths[k] = placed[k].path;
+        final frame = placed[k].frame;
+        if (frame != null) frames[k] = frame;
       }
       if (!mounted) return;
       setState(() {
@@ -246,6 +342,9 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
         _paths
           ..clear()
           ..addAll(paths);
+        _transforms
+          ..clear()
+          ..addAll(frames);
         _revision++;
       });
     } finally {
@@ -304,6 +403,7 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
       gap: _gapFraction * size.shortestSide,
       background: _bg,
       images: _images,
+      transforms: _transforms,
     );
     final picture = recorder.endRecording();
     final image = await picture.toImage(
@@ -389,8 +489,9 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
             children: [
               _buildTopBar(l10n, t),
               Expanded(child: _buildCanvas(t)),
+              _buildFrameHint(l10n, t),
               _buildGridPicker(l10n, t),
-              _buildColorSort(l10n, t),
+              _buildPhotoTools(l10n, t),
               _buildRatioPicker(t),
               _buildGapAndColor(l10n, t),
               _buildActions(l10n, t),
@@ -451,15 +552,22 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
                 onLongPressStart: _onDragStart,
                 onLongPressMoveUpdate: _onDragUpdate,
                 onLongPressEnd: _onDragEnd,
+                onScaleStart: _onFrameStart,
+                onScaleUpdate: _onFrameUpdate,
+                onScaleEnd: _onFrameEnd,
                 child: CustomPaint(
                   painter: CollagePainter(
                     grid: _grid,
                     gap: _gapPx(_canvasSize),
                     background: _bg,
                     images: _images,
+                    transforms: _transforms,
+                    selected: _framing,
                     placeholder: t.surfaceElevated,
                     revision: _revision,
                     dragImage: _dragFrom != null ? _images[_dragFrom] : null,
+                    dragTransform:
+                        _dragFrom != null ? _transforms[_dragFrom] : null,
                     dragCenter: _dragPos,
                     dragTarget: (_dragFrom != null && _dragTarget != _dragFrom)
                         ? _dragTarget
@@ -474,33 +582,61 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     );
   }
 
-  Widget _buildColorSort(AppLocalizations l10n, AppTokens t) {
-    final enabled =
+  /// Tells the user the cells can be framed at all — the gestures are the same
+  /// ones the canvas already answers for swapping, so nothing on screen would
+  /// otherwise hint at them.
+  Widget _buildFrameHint(AppLocalizations l10n, AppTokens t) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 6),
+      child: Text(
+        _hasPhoto ? l10n.collageFrameHint : l10n.collageEmptyHint,
+        textAlign: TextAlign.center,
+        style: TextStyle(color: t.textTertiary, fontSize: 11, height: 1.3),
+      ),
+    );
+  }
+
+  /// Colour sort + framing reset: both act on the photos already placed, so
+  /// they share a row and each stays dim until it has something to act on.
+  Widget _buildPhotoTools(AppLocalizations l10n, AppTokens t) {
+    final canSort =
         _busy.isEmpty &&
         (_images.keys.where((i) => i < _grid.count).length >= 2);
-    return Padding(
-      padding: const EdgeInsets.only(top: 2),
-      child: TextButton.icon(
-        onPressed: enabled ? _sortByColor : null,
-        style: TextButton.styleFrom(
-          foregroundColor: t.textPrimary,
-          disabledForegroundColor: t.textTertiary,
+    final style = TextButton.styleFrom(
+      foregroundColor: t.textPrimary,
+      disabledForegroundColor: t.textTertiary,
+    );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        TextButton.icon(
+          onPressed: canSort ? _sortByColor : null,
+          style: style,
+          icon: _busy == 'sort'
+              ? SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: t.textPrimary,
+                  ),
+                )
+              : const Icon(AppIcons.gradient_rounded, size: 18),
+          label: Text(
+            l10n.collageColorSort,
+            style: const TextStyle(fontSize: 13),
+          ),
         ),
-        icon: _busy == 'sort'
-            ? SizedBox(
-                width: 15,
-                height: 15,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: t.textPrimary,
-                ),
-              )
-            : const Icon(AppIcons.gradient_rounded, size: 18),
-        label: Text(
-          l10n.collageColorSort,
-          style: const TextStyle(fontSize: 13),
+        TextButton.icon(
+          onPressed: _hasFraming ? _resetFraming : null,
+          style: style,
+          icon: const Icon(AppIcons.center_focus_strong_outlined, size: 18),
+          label: Text(
+            l10n.collageResetFraming,
+            style: const TextStyle(fontSize: 13),
+          ),
         ),
-      ),
+      ],
     );
   }
 

@@ -1867,6 +1867,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gap'**
   String get collageGap;
+
+  /// No description provided for @collageEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a cell to add a photo'**
+  String get collageEmptyHint;
+
+  /// No description provided for @collageFrameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a photo to reframe it · two fingers to zoom and straighten · hold to swap'**
+  String get collageFrameHint;
+
+  /// No description provided for @collageResetFraming.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset framing'**
+  String get collageResetFraming;
 }
 
 class _AppLocalizationsDelegate
