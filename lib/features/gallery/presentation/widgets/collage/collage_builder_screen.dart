@@ -10,12 +10,11 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:photo_map/common_widgets/app_snack.dart';
-import 'package:photo_map/common_widgets/asset_thumb.dart';
 import 'package:photo_map/common_widgets/color_picker_sheet.dart';
-import 'package:photo_map/common_widgets/glass_sheet.dart';
 import 'package:photo_map/core/theme/app_tokens.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import '../../providers/gallery_notifier.dart';
+import '../photo_picker_sheet.dart';
 import 'collage_painter.dart';
 import 'collage_ratio.dart';
 import 'collage_transform.dart';
@@ -109,17 +108,21 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     int capacity = 1,
   }) {
     final photos = ref.read(galleryStateProvider).allPhotos;
+    final l10n = AppLocalizations.of(context);
     return showModalBottomSheet<List<PhotoItem>>(
       context: context,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _PhotoPickerSheet(
+      builder: (_) => PhotoPickerSheet(
         photos: photos,
         multi: multi,
         capacity: capacity,
-        total: _grid.count,
-        filled: _images.keys.where((i) => i < _grid.count).length,
+        imagesOnly: true,
+        progress: l10n.collagePickerHint(
+          _images.keys.where((i) => i < _grid.count).length,
+          _grid.count,
+        ),
       ),
     );
   }
@@ -617,38 +620,50 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     final canSort =
         _busy.isEmpty &&
         (_images.keys.where((i) => i < _grid.count).length >= 2);
+    // Compact + flexible: at their natural size the two English labels are
+    // wider than a 400pt phone, which overflowed the row.
     final style = TextButton.styleFrom(
       foregroundColor: t.textPrimary,
       disabledForegroundColor: t.textTertiary,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      visualDensity: VisualDensity.compact,
     );
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        TextButton.icon(
-          onPressed: canSort ? _sortByColor : null,
-          style: style,
-          icon: _busy == 'sort'
-              ? SizedBox(
-                  width: 15,
-                  height: 15,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: t.textPrimary,
-                  ),
-                )
-              : const Icon(AppIcons.gradient_rounded, size: 18),
-          label: Text(
-            l10n.collageColorSort,
-            style: const TextStyle(fontSize: 13),
+        Flexible(
+          child: TextButton.icon(
+            onPressed: canSort ? _sortByColor : null,
+            style: style,
+            icon: _busy == 'sort'
+                ? SizedBox(
+                    width: 15,
+                    height: 15,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: t.textPrimary,
+                    ),
+                  )
+                : const Icon(AppIcons.gradient_rounded, size: 18),
+            label: Text(
+              l10n.collageColorSort,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13),
+            ),
           ),
         ),
-        TextButton.icon(
-          onPressed: _hasFraming ? _resetFraming : null,
-          style: style,
-          icon: const Icon(AppIcons.center_focus_strong_outlined, size: 18),
-          label: Text(
-            l10n.collageResetFraming,
-            style: const TextStyle(fontSize: 13),
+        Flexible(
+          child: TextButton.icon(
+            onPressed: _hasFraming ? _resetFraming : null,
+            style: style,
+            icon: const Icon(AppIcons.center_focus_strong_outlined, size: 18),
+            label: Text(
+              l10n.collageResetFraming,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13),
+            ),
           ),
         ),
       ],
@@ -964,159 +979,6 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Bottom-sheet grid to pick photos for collage cells. In [multi] mode the user
-/// taps to toggle several (numbered by pick order) then confirms; otherwise the
-/// first tap returns immediately. Always pops a `List<PhotoItem>`.
-class _PhotoPickerSheet extends StatefulWidget {
-  const _PhotoPickerSheet({
-    required this.photos,
-    required this.multi,
-    required this.capacity,
-    required this.total,
-    required this.filled,
-  });
-
-  final List<PhotoItem> photos;
-  final bool multi;
-
-  /// Max photos selectable (= empty cells in the grid).
-  final int capacity;
-
-  /// Total cells in the grid, and how many are already filled — shown so the
-  /// user knows how many more will fit.
-  final int total;
-  final int filled;
-
-  @override
-  State<_PhotoPickerSheet> createState() => _PhotoPickerSheetState();
-}
-
-class _PhotoPickerSheetState extends State<_PhotoPickerSheet> {
-  final List<PhotoItem> _selected = [];
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final t = context.tokens;
-    final images = widget.photos.where((p) => p.assetEntity != null).toList();
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.4,
-      maxChildSize: 0.95,
-      expand: false,
-      builder: (context, controller) => GlassSheet(
-        child: Column(
-          children: [
-            if (widget.multi)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: Row(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${_selected.length} / ${widget.capacity}',
-                          style: TextStyle(
-                            color: t.textPrimary,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          l10n.collagePickerHint(widget.filled, widget.total),
-                          style: TextStyle(
-                            color: t.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    FilledButton(
-                      onPressed: _selected.isEmpty
-                          ? null
-                          : () => Navigator.pop(context, _selected),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: t.textPrimary,
-                        foregroundColor: t.surfaceBase,
-                      ),
-                      child: Text(l10n.commonDone),
-                    ),
-                  ],
-                ),
-              ),
-            Expanded(
-              child: GridView.builder(
-                controller: controller,
-                padding: const EdgeInsets.all(4),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 4,
-                  crossAxisSpacing: 4,
-                ),
-                itemCount: images.length,
-                itemBuilder: (context, i) {
-                  final p = images[i];
-                  final order = _selected.indexOf(p);
-                  return GestureDetector(
-                    onTap: () {
-                      if (!widget.multi) {
-                        Navigator.pop(context, [p]);
-                        return;
-                      }
-                      if (order < 0 && _selected.length >= widget.capacity) {
-                        HapticFeedback.lightImpact();
-                        return; // grid full — no more slots
-                      }
-                      setState(() {
-                        order >= 0 ? _selected.remove(p) : _selected.add(p);
-                      });
-                    },
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        AssetThumb(asset: p.assetEntity!, maxPixels: 800),
-                        if (widget.multi && order >= 0) ...[
-                          Container(
-                            color: Colors.black.withValues(alpha: 0.35),
-                          ),
-                          Positioned(
-                            top: 6,
-                            right: 6,
-                            child: Container(
-                              width: 22,
-                              height: 22,
-                              alignment: Alignment.center,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF4C9AFF),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                '${order + 1}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

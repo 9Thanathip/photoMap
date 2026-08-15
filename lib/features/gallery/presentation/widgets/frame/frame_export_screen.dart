@@ -21,16 +21,25 @@ import 'frame_style.dart';
 /// it (save to Photos + share). Preview and export share one [paintFrame] so
 /// what the user sees is exactly what's written.
 class FrameExportScreen extends StatefulWidget {
-  const FrameExportScreen({super.key, required this.photo});
+  const FrameExportScreen({
+    super.key,
+    required this.photo,
+    this.initialStyle = FrameStyle.bottomBar,
+  });
 
   final PhotoItem photo;
+
+  /// Layout the editor opens on. Lets a caller aim at one of the styles —
+  /// a plain border, or the one that prints the shooting data — without the
+  /// user having to find it in the row.
+  final FrameStyle initialStyle;
 
   @override
   State<FrameExportScreen> createState() => _FrameExportScreenState();
 }
 
 class _FrameExportScreenState extends State<FrameExportScreen> {
-  FrameStyle _style = FrameStyle.bottomBar;
+  late FrameStyle _style = widget.initialStyle;
   double _textScale = 1.0;
   double _frameScale = 1.0;
 

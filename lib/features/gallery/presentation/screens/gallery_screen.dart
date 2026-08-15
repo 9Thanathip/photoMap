@@ -16,7 +16,7 @@ import '../widgets/main_gallery/gallery_header.dart';
 import '../widgets/viewer/photo_options_sheet.dart';
 import '../widgets/viewer/photo_viewer_screen.dart';
 import '../widgets/frame/frame_export_screen.dart';
-import '../widgets/collage/collage_builder_screen.dart';
+import 'photo_edit_hub_screen.dart';
 import '../widgets/main_gallery/photos_tab.dart';
 import 'package:photo_map/common_widgets/view_mode_sheet.dart';
 
@@ -148,10 +148,10 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                       : notifier.selectCountry('All');
                 },
                 onFilterTap: () => _showFilterSheet(context, theme),
-                onCollageTap: (!_inAlbumsTab && !select.isSelectMode)
+                onEditTap: (!_inAlbumsTab && !select.isSelectMode)
                     ? () => Navigator.of(context, rootNavigator: true).push(
                           MaterialPageRoute<void>(
-                            builder: (_) => const CollageBuilderScreen(),
+                            builder: (_) => const PhotoEditHubScreen(),
                           ),
                         )
                     : null,

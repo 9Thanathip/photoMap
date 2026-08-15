@@ -979,4 +979,31 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get collageBackground => 'สีพื้นหลัง';
+
+  @override
+  String get photoPickerTitle => 'เลือกรูป';
+
+  @override
+  String get editHubTitle => 'แต่งภาพ';
+
+  @override
+  String get editHubCollage => 'คอลลาจ';
+
+  @override
+  String get editHubCollageDesc => 'จัดหลายรูปลงกริด';
+
+  @override
+  String get editHubHint => 'เลือกสิ่งที่ต้องการทำ แล้วเลือกรูป';
+
+  @override
+  String get editHubAdjust => 'ปรับภาพ';
+
+  @override
+  String get editHubAdjustDesc => 'ครอป แสง สี และลบจุด';
+
+  @override
+  String get editHubExif => 'ข้อมูล EXIF';
+
+  @override
+  String get editHubExifDesc => 'แสดงข้อมูลกล้องใต้ภาพ';
 }

@@ -330,5 +330,14 @@
   "collageEmptyHint": "แตะที่ช่องเพื่อใส่รูป",
   "collageFrameHint": "ลากรูปเพื่อจัดตำแหน่ง · สองนิ้วเพื่อซูมและหมุน · กดค้างเพื่อสลับช่อง",
   "collageResetFraming": "รีเซ็ตการจัดรูป",
-  "collageBackground": "สีพื้นหลัง"
+  "collageBackground": "สีพื้นหลัง",
+  "photoPickerTitle": "เลือกรูป",
+  "editHubTitle": "แต่งภาพ",
+  "editHubCollage": "คอลลาจ",
+  "editHubCollageDesc": "จัดหลายรูปลงกริด",
+  "editHubHint": "เลือกสิ่งที่ต้องการทำ แล้วเลือกรูป",
+  "editHubAdjust": "ปรับภาพ",
+  "editHubAdjustDesc": "ครอป แสง สี และลบจุด",
+  "editHubExif": "ข้อมูล EXIF",
+  "editHubExifDesc": "แสดงข้อมูลกล้องใต้ภาพ"
 }

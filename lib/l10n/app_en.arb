@@ -415,5 +415,14 @@
   "collageEmptyHint": "Tap a cell to add a photo",
   "collageFrameHint": "Drag a photo to reframe it · two fingers to zoom and straighten · hold to swap",
   "collageResetFraming": "Reset framing",
-  "collageBackground": "Background"
+  "collageBackground": "Background",
+  "photoPickerTitle": "Choose a photo",
+  "editHubTitle": "Edit",
+  "editHubCollage": "Collage",
+  "editHubCollageDesc": "Lay several photos out on a grid",
+  "editHubHint": "Pick what to do, then choose a photo.",
+  "editHubAdjust": "Adjust",
+  "editHubAdjustDesc": "Crop, light, colour and retouch",
+  "editHubExif": "EXIF",
+  "editHubExifDesc": "Print the camera settings under the photo"
 }

@@ -1891,6 +1891,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Background'**
   String get collageBackground;
+
+  /// No description provided for @photoPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a photo'**
+  String get photoPickerTitle;
+
+  /// No description provided for @editHubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editHubTitle;
+
+  /// No description provided for @editHubCollage.
+  ///
+  /// In en, this message translates to:
+  /// **'Collage'**
+  String get editHubCollage;
+
+  /// No description provided for @editHubCollageDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Lay several photos out on a grid'**
+  String get editHubCollageDesc;
+
+  /// No description provided for @editHubHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick what to do, then choose a photo.'**
+  String get editHubHint;
+
+  /// No description provided for @editHubAdjust.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust'**
+  String get editHubAdjust;
+
+  /// No description provided for @editHubAdjustDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop, light, colour and retouch'**
+  String get editHubAdjustDesc;
+
+  /// No description provided for @editHubExif.
+  ///
+  /// In en, this message translates to:
+  /// **'EXIF'**
+  String get editHubExif;
+
+  /// No description provided for @editHubExifDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Print the camera settings under the photo'**
+  String get editHubExifDesc;
 }
 
 class _AppLocalizationsDelegate

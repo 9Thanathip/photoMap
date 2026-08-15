@@ -20,7 +20,7 @@ class GalleryHeader extends StatelessWidget {
     required this.onAlbumTab,
     required this.onBack,
     required this.onFilterTap,
-    this.onCollageTap,
+    this.onEditTap,
     this.isSelectMode = false,
     this.selectedCount = 0,
     this.totalCount = 0,
@@ -45,7 +45,9 @@ class GalleryHeader extends StatelessWidget {
   final VoidCallback onAlbumTab;
   final VoidCallback onBack;
   final VoidCallback onFilterTap;
-  final VoidCallback? onCollageTap;
+  /// Opens the editing hub — where the collage builder now lives too. Null
+  /// hides the button.
+  final VoidCallback? onEditTap;
   final bool isSelectMode;
   final int selectedCount;
   final int totalCount;
@@ -179,13 +181,13 @@ class GalleryHeader extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (onCollageTap != null) ...[
+                        if (onEditTap != null) ...[
                           GlassCard(
-                            onTap: onCollageTap,
+                            onTap: onEditTap,
                             borderRadius: 100,
                             padding: const EdgeInsets.all(10),
                             child: Icon(
-                              AppIcons.dashboard_customize_outlined,
+                              AppIcons.tune_rounded,
                               size: 20,
                               color: theme.colorScheme.onSurface,
                             ),

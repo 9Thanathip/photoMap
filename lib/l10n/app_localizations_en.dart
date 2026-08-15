@@ -982,4 +982,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get collageBackground => 'Background';
+
+  @override
+  String get photoPickerTitle => 'Choose a photo';
+
+  @override
+  String get editHubTitle => 'Edit';
+
+  @override
+  String get editHubCollage => 'Collage';
+
+  @override
+  String get editHubCollageDesc => 'Lay several photos out on a grid';
+
+  @override
+  String get editHubHint => 'Pick what to do, then choose a photo.';
+
+  @override
+  String get editHubAdjust => 'Adjust';
+
+  @override
+  String get editHubAdjustDesc => 'Crop, light, colour and retouch';
+
+  @override
+  String get editHubExif => 'EXIF';
+
+  @override
+  String get editHubExifDesc => 'Print the camera settings under the photo';
 }
