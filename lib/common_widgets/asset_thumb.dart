@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
 import 'asset_thumbnail_provider.dart';
 import 'progressive_image.dart';
@@ -112,9 +113,10 @@ class AssetThumb extends StatelessWidget {
 
         // Below roughly the preview's own resolution a second decode buys
         // nothing — the tile is already tiny.
-        final worthPreviewing = size.width > kThumbPreviewPixels * 1.5;
+        final worthPreviewing =
+            ThumbPipeline.progressive && size.width > kThumbPreviewPixels * 1.5;
 
-        Widget image = worthPreviewing
+        final Widget image = worthPreviewing
             ? ProgressiveImage(
                 preview: assetPreviewProvider(asset),
                 image: provider,
@@ -134,18 +136,26 @@ class AssetThumb extends StatelessWidget {
                     (wasSync || frame != null)
                         ? child
                         : (placeholder ?? const SizedBox.shrink()),
+                errorBuilder: (_, error, _) {
+                  debugPrint('AssetThumb: ${asset.id} failed: $error');
+                  return placeholder ?? const SizedBox.shrink();
+                },
               );
 
-        if (width != null || height != null) {
-          image = SizedBox(width: width, height: height, child: image);
-        }
-
-        if (colorFilter != null) {
-          image = ColorFiltered(colorFilter: colorFilter!, child: image);
-        }
-        return image;
+        return _sized(image);
       },
     );
+  }
+
+  Widget _sized(Widget image) {
+    var out = image;
+    if (width != null || height != null) {
+      out = SizedBox(width: width, height: height, child: out);
+    }
+    if (colorFilter != null) {
+      out = ColorFiltered(colorFilter: colorFilter!, child: out);
+    }
+    return out;
   }
 
   static double _resolve(double constraint, double? hint) {

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/core/services/thumb_prefetcher.dart';
 
 import 'asset_thumb.dart';
+import 'asset_thumbnail_provider.dart';
 
 /// Densities a photo grid snaps between when pinched, coarse to fine.
 const List<int> kGridColumnSteps = [2, 3, 5, 8];
@@ -87,6 +90,17 @@ class _GridPrefetchState extends State<GridPrefetch> {
   static const int _ahead = 60;
   static const int _behind = 20;
 
+  /// The band whose cheap previews are pushed into Flutter's image cache,
+  /// measured along the direction of travel.
+  ///
+  /// Lopsided because a fling only ever arrives from one side: spending the
+  /// budget symmetrically means warming rows the user has already gone past.
+  static const int _previewAhead = 36;
+  static const int _previewBehind = 8;
+
+  /// Where the viewport was last time, to tell which way it is going.
+  double _lastPixels = 0;
+
   @override
   void dispose() {
     ThumbPrefetcher.instance.stop();
@@ -112,8 +126,58 @@ class _GridPrefetchState extends State<GridPrefetch> {
     final assets = <AssetEntity>[
       for (var i = start; i < end; i++) ?widget.assetAt(i),
     ];
-    ThumbPrefetcher.instance.warm(assets, widget.thumbSize);
+    final goingDown = m.pixels >= _lastPixels;
+    _lastPixels = m.pixels;
+    final lead = goingDown ? _previewAhead : _previewBehind;
+    final trail = goingDown ? _previewBehind : _previewAhead;
+    final previewStart = (centre - trail).clamp(0, widget.itemCount);
+    final previewEnd = (centre + lead).clamp(0, widget.itemCount);
+    ThumbPrefetcher.instance.warm(
+      assets,
+      widget.thumbSize,
+      onReady: (_) => unawaited(_warmPreviews(previewStart, previewEnd)),
+    );
     return false;
+  }
+
+  /// Bumped whenever a new band is warmed, so the previous walk stops.
+  int _warmGeneration = 0;
+
+  /// Decodes the cheap previews for the band around the viewport ahead of time.
+  ///
+  /// This is what stops a fling showing empty tiles. [Image] wraps every
+  /// provider in a `ScrollAwareImageProvider`, which refuses to start a load
+  /// while a list is moving fast and only takes its early exit when the key is
+  /// already in [PaintingBinding.imageCache] — so a tile that scrolls into view
+  /// mid-fling can only paint something if that something was cached before it
+  /// was built. [precacheImage] is not scroll-aware, which makes it the one way
+  /// to get it in there.
+  ///
+  /// Walked one at a time rather than fired off together. Every one of these is
+  /// a PhotoKit request, and photo_manager services those on the iOS main
+  /// thread — sixty at once is the main queue held for sixty encodes, which
+  /// costs more than the warming saves. One at a time keeps the queue free for
+  /// the tiles that are actually on screen, and the generation check drops the
+  /// rest of a band the moment the viewport has moved past it.
+  Future<void> _warmPreviews(int start, int end) async {
+    // Nothing paints the preview tier when it is switched off, so warming it
+    // would be a platform request per photo that no tile ever asks for.
+    if (!mounted ||
+        !ThumbPipeline.progressive ||
+        !ThumbPipeline.previewPrefetch) {
+      return;
+    }
+    final generation = ++_warmGeneration;
+    for (var i = start; i < end; i++) {
+      if (!mounted || generation != _warmGeneration) return;
+      final asset = widget.assetAt(i);
+      if (asset == null) continue;
+      await precacheImage(
+        assetPreviewProvider(asset),
+        context,
+        onError: (_, _) {},
+      );
+    }
   }
 
   @override

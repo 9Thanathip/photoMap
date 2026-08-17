@@ -8,6 +8,7 @@ import 'package:photo_map/features/gallery/presentation/providers/gallery_notifi
 import 'package:photo_map/features/map/domain/models/country.dart';
 import '../widgets/province_map_painter.dart';
 import 'country_provider.dart';
+import 'package:photo_map/common_widgets/asset_thumbnail_provider.dart';
 
 class ProvinceMapState {
   final String countryId;
@@ -321,7 +322,8 @@ class ProvinceMapNotifier extends StateNotifier<ProvinceMapState> {
   }
 
   Future<ui.Image?> _loadUiImage(AssetEntity entity) async {
-    final byteData = await entity.thumbnailDataWithSize(
+    final byteData = await AssetThumbnailProvider.sharpBytes(
+      entity,
       const ThumbnailSize(400, 400),
     );
     if (byteData == null) return null;

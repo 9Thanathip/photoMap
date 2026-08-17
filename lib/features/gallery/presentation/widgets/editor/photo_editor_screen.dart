@@ -16,6 +16,7 @@ import '../../../utils/color_matrix_utils.dart';
 import 'film_effects.dart';
 import 'heal.dart';
 import 'local_adjust.dart';
+import 'package:photo_map/common_widgets/asset_thumbnail_provider.dart';
 
 enum _EditMode { presets, adjust, local, heal }
 
@@ -145,8 +146,13 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     final asset = widget.photo.assetEntity;
     if (asset == null) return;
     try {
-      final data =
-          await asset.thumbnailDataWithSize(const ThumbnailSize(2048, 2048));
+      // Sharp option, not thumbnailDataWithSize: that one asks PhotoKit
+      // opportunistically and comes back with the degraded pass, which is what
+      // the editor would then have been grading — and showing as the result.
+      final data = await AssetThumbnailProvider.sharpBytes(
+        asset,
+        const ThumbnailSize(2048, 2048),
+      );
       if (data == null) return;
       final codec = await ui.instantiateImageCodec(data);
       final frame = await codec.getNextFrame();

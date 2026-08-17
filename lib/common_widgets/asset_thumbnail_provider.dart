@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -8,19 +7,47 @@ import 'package:flutter/widgets.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_map/core/services/thumb_cache.dart';
 
-/// Device-asset thumbnails with control over how much the platform is asked to
-/// work for them.
+/// The thumbnail pipeline, in independently switchable pieces.
 ///
-/// [AssetEntityImageProvider] always routes through
-/// [AssetEntity.thumbnailDataWithSize], which hardcodes JPEG **quality 100**
-/// and leaves iOS on `DeliveryMode.opportunistic`. That makes even a 128px
-/// request cost a full-fidelity render, which is why a "cheap preview" drawn
-/// with it never actually arrived any sooner than the real tile.
+/// The switches are here because this area has twice shipped a build where the
+/// grid rendered nothing at all and the logs said nothing about it. Turning a
+/// piece off is how the next one gets diagnosed in one run instead of guessed
+/// at over several — so each is described by what it buys, and none of them may
+/// be folded together.
+abstract final class ThumbPipeline {
+  /// Keep encoded thumbnails on disk, keyed by exactly what was asked for.
+  ///
+  /// The big one. Without it every tile is a fresh PhotoKit request — on iOS
+  /// those encode on the main thread — every time it scrolls back into view.
+  static const bool diskCache = true;
+
+  /// Paint a cheap 128px preview under each tile and cross-fade to the real
+  /// one.
+  ///
+  /// Without it a tile has nothing to show until its full decode lands, and
+  /// Flutter defers every load while a list is flinging — so a fast scroll is
+  /// blank tiles followed by a burst of decodes when it stops. That burst is
+  /// the stutter.
+  static const bool progressive = true;
+
+  /// Push those previews into Flutter's image cache ahead of the viewport.
+  ///
+  /// Only this can make a fling paint *during* the fling. [progressive] on its
+  /// own still has to wait for the list to settle, because Flutter refuses to
+  /// start any load while a list is moving fast unless the key is already
+  /// cached; warming is what puts it there first.
+  static const bool previewPrefetch = true;
+}
+
+/// Device-asset thumbnails, backed by an on-disk cache.
 ///
-/// This provider goes to [AssetEntity.thumbnailDataWithOption] directly so a
-/// preview can ask for `DeliveryMode.fastFormat` — the rendition iOS already
-/// has on hand — at a quality nobody can tell apart once it is scaled up and
-/// replaced a moment later.
+/// Two things photo_manager's own provider cannot do. It keeps nothing, so
+/// every tile is a fresh platform request each time it scrolls back into view —
+/// and on iOS each of those encodes a JPEG on the **main thread**. And it
+/// always asks for a full-fidelity render, so a "cheap preview" drawn through
+/// it never actually arrives any sooner than the real tile; going to
+/// [AssetEntity.thumbnailDataWithOption] directly is what lets the preview ask
+/// for `DeliveryMode.fastFormat`, the rendition iOS already has on hand.
 @immutable
 class AssetThumbnailProvider extends ImageProvider<AssetThumbnailProvider> {
   const AssetThumbnailProvider(
@@ -53,21 +80,52 @@ class AssetThumbnailProvider extends ImageProvider<AssetThumbnailProvider> {
   /// free with a debugger attached. At 128px the size difference is noise.
   final ThumbnailFormat format;
 
-  bool get _isApple =>
-      defaultTargetPlatform == TargetPlatform.iOS ||
-      defaultTargetPlatform == TargetPlatform.macOS;
+  /// [DeliveryMode.opportunistic] is deliberate, and safe.
+  ///
+  /// It is the one mode PhotoKit answers twice — a degraded low-resolution pass
+  /// first, then the real image — which looks like a trap. photo_manager drops
+  /// the degraded pass rather than replying with it: `PMManager.fetchThumb`
+  /// gates its reply on `isDownloadFinish`, which is
+  /// `![info[PHImageResultIsDegradedKey] boolValue]`. So the caller only ever
+  /// sees the final image, and gets it as soon as PhotoKit has one.
+  ///
+  /// [DeliveryMode.highQualityFormat] would be the paranoid choice and is much
+  /// worse: it forces a full-fidelity decode of the original for every tile,
+  /// all of it on the iOS main queue (see the `dispatch_async` in
+  /// `fetchThumb`), which saturates that queue and stops *everything* — the
+  /// cheap previews queued behind it included — from arriving at all.
+  ThumbnailOption get _option =>
+      buildOption(size, format: format, quality: quality, fast: fast);
 
-  ThumbnailOption get _option => _isApple
-      ? ThumbnailOption.ios(
-          size: size,
-          format: format,
-          quality: quality,
-          deliveryMode:
-              fast ? DeliveryMode.fastFormat : DeliveryMode.opportunistic,
-          resizeMode: ResizeMode.fast,
-          resizeContentMode: ResizeContentMode.fill,
-        )
-      : ThumbnailOption(size: size, format: format, quality: quality);
+  /// See [_option] for why the delivery mode is what it is.
+  static ThumbnailOption buildOption(
+    ThumbnailSize size, {
+    ThumbnailFormat format = ThumbnailFormat.jpeg,
+    int quality = 80,
+    bool fast = false,
+  }) {
+    final isApple = defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+    if (!isApple) {
+      return ThumbnailOption(size: size, format: format, quality: quality);
+    }
+    if (!fast) {
+      // Byte-for-byte the request AssetEntityImageProvider makes, because that
+      // one demonstrably puts photos on screen on this device and this one did
+      // not. Quality 100 and aspect-fit are more work than a grid tile needs —
+      // that tuning comes back once the pipeline in front of it is trusted, not
+      // before, or the next result is unreadable again.
+      return ThumbnailOption.ios(size: size, format: format);
+    }
+    return ThumbnailOption.ios(
+      size: size,
+      format: format,
+      quality: quality,
+      deliveryMode: DeliveryMode.fastFormat,
+      resizeMode: ResizeMode.fast,
+      resizeContentMode: ResizeContentMode.fill,
+    );
+  }
 
   @override
   Future<AssetThumbnailProvider> obtainKey(ImageConfiguration configuration) =>
@@ -91,6 +149,15 @@ class AssetThumbnailProvider extends ImageProvider<AssetThumbnailProvider> {
     );
   }
 
+  /// Bumped whenever the request changes shape enough that entries written by
+  /// an older build are wrong rather than merely stale.
+  ///
+  /// v3: the sharp request went back to photo_manager's own options after a
+  /// build that rendered nothing at all. Anything that build managed to write
+  /// is not worth trusting, and the key never described how the bytes were
+  /// asked for, so only a version can retire them.
+  static const int _cacheVersion = 3;
+
   /// Filename for this exact request. The modified date is in there so an
   /// edited photo doesn't keep serving its old thumbnail, and the asset id is
   /// base64url'd because iOS ids contain `/`.
@@ -99,30 +166,69 @@ class AssetThumbnailProvider extends ImageProvider<AssetThumbnailProvider> {
     final id = base64Url.encode(utf8.encode(entity.id));
     final stamp = entity.modifiedDateSecond ?? 0;
     final ext = format == ThumbnailFormat.png ? 'png' : 'jpg';
-    return '${id}_${size.width}x${size.height}_q$quality'
+    return '${id}_v${_cacheVersion}_${size.width}x${size.height}_q$quality'
         '${fast ? '_f' : ''}_$stamp.$ext';
   }
+
+  /// The option a one-off request should use for an image that will be
+  /// rendered into something the user keeps.
+  ///
+  /// Exposed because several places go to [AssetEntity.thumbnailDataWithSize]
+  /// directly — the collage, the editor's source, the map covers — and that
+  /// convenience method encodes at JPEG quality 100, which is pure encode cost
+  /// for bytes that get decoded and thrown away. Same delivery, less work.
+  static ThumbnailOption sharpOption(ThumbnailSize size, {int quality = 92}) =>
+      buildOption(size, quality: quality);
+
+  /// Bytes for a one-off request. See [sharpOption].
+  static Future<Uint8List?> sharpBytes(
+    AssetEntity entity,
+    ThumbnailSize size, {
+    int quality = 92,
+  }) =>
+      entity.thumbnailDataWithOption(sharpOption(size, quality: quality));
+
+  /// How long one platform request is worth waiting on.
+  ///
+  /// A photo that lives in iCloud and isn't downloaded does not fail — PhotoKit
+  /// waits for the download and photo_manager only replies once it finishes.
+  /// Without a bound the tile just stays empty forever.
+  static const Duration _fetchTimeout = Duration(seconds: 10);
+
+  static Future<Uint8List?> _fetch(AssetThumbnailProvider key) =>
+      key.entity.thumbnailDataWithOption(key._option).timeout(
+        _fetchTimeout,
+        onTimeout: () {
+          debugPrint(
+            'AssetThumbnailProvider: gave up on ${key.entity.id} '
+            '(${key.size.width}px) after $_fetchTimeout',
+          );
+          return null;
+        },
+      );
 
   Future<ui.Codec> _load(
     AssetThumbnailProvider key,
     ImageDecoderCallback decode,
   ) async {
-    final path = await ThumbCache.instance.pathFor(key.diskCacheKey);
+    final cacheKey = key.diskCacheKey;
+    final path =
+        ThumbPipeline.diskCache ? ThumbCache.instance.pathFor(cacheKey) : null;
 
-    if (path != null && await File(path).exists()) {
+    if (path != null && await ThumbCache.instance.isUsable(path)) {
       try {
         // Reads and decodes on a worker thread — no platform channel, and
         // nothing queued onto the iOS main thread.
         final buffer = await ui.ImmutableBuffer.fromFilePath(path);
         return decode(buffer);
       } catch (e) {
-        // A truncated or corrupt entry shouldn't be fatal; drop it and refetch.
+        // A corrupt entry shouldn't be fatal; drop it and refetch.
         debugPrint('AssetThumbnailProvider: bad cache entry, refetching: $e');
-        unawaited(File(path).delete().catchError((_) => File(path)));
+        unawaited(ThumbCache.instance.evict(path));
       }
     }
 
-    final bytes = await key.entity.thumbnailDataWithOption(key._option);
+    final bytes = await _fetch(key);
     if (bytes == null || bytes.isEmpty) {
       // Let the caller's errorBuilder decide — for a preview that means
       // keeping the placeholder rather than painting a broken box.

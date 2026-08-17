@@ -30,43 +30,93 @@ class ThumbCache {
   /// Swept back down to this much, so a sweep is rare rather than constant.
   static const int _targetBytes = 200 << 20;
 
-  Future<Directory?>? _dir;
+  Directory? _ready;
+  Future<void>? _opening;
   bool _sweepScheduled = false;
 
-  Future<Directory?> _directory() => _dir ??= _openDirectory();
+  /// Makes every temp file unique. See [write].
+  int _seq = 0;
 
-  Future<Directory?> _openDirectory() async {
+  Future<Directory?> _directory() async {
+    if (_ready != null) return _ready;
+    await (_opening ??= _openDirectory());
+    return _ready;
+  }
+
+  Future<void> _openDirectory() async {
     try {
       final support = await getApplicationSupportDirectory();
       final dir = Directory('${support.path}/$_dirName');
       if (!await dir.exists()) {
         await dir.create(recursive: true);
       }
+      _ready = dir;
       _scheduleSweep();
-      return dir;
     } catch (e) {
       debugPrint('ThumbCache: cannot open cache dir: $e');
-      return null;
     }
   }
 
-  /// Absolute path an entry would live at, or null when there is no usable
-  /// cache directory (in which case callers just go to the platform).
-  Future<String?> pathFor(String key) async {
-    final dir = await _directory();
-    if (dir == null) return null;
+  /// Absolute path an entry would live at, or null when the cache is not
+  /// usable *right now*.
+  ///
+  /// Synchronous on purpose. Resolving the directory is a platform channel
+  /// call, and awaiting it per tile put a channel round trip in front of every
+  /// single thumbnail — one that, if it ever failed to answer, left every tile
+  /// in the app waiting on it forever with nothing on screen. A caller that
+  /// gets null just goes to the platform, which is what it does on a miss
+  /// anyway; by the second frame the directory is ready.
+  String? pathFor(String key) {
+    final dir = _ready;
+    if (dir == null) {
+      unawaited(_directory());
+      return null;
+    }
     return '${dir.path}/$key';
   }
 
-  Future<void> write(String path, Uint8List bytes) async {
+  /// Opens the cache directory ahead of first use, so no tile has to miss.
+  Future<void> warmUp() => _directory().then((_) {});
+
+  /// True when [path] holds an entry worth reading.
+  ///
+  /// A zero-length file is a write that never landed. It passes an `exists()`
+  /// check and then fails to decode, which is how a broken entry used to turn
+  /// into a platform round trip *plus* an exception on every single pass.
+  Future<bool> isUsable(String path) async {
     try {
-      // Write beside the target and rename, so a kill mid-write can't leave a
-      // truncated file that later decodes into a broken tile.
-      final temp = File('$path.part');
+      final stat = await File(path).stat();
+      return stat.type == FileSystemEntityType.file && stat.size > 0;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> evict(String path) async {
+    try {
+      await File(path).delete();
+    } catch (_) {
+      // Already gone, which is the state we wanted.
+    }
+  }
+
+  Future<void> write(String path, Uint8List bytes) async {
+    if (bytes.isEmpty) return;
+    // Write beside the target and rename, so a kill mid-write can't leave a
+    // truncated file that later decodes into a broken tile.
+    //
+    // The temp name has to be unique per write, not per entry: writeAsBytes
+    // truncates, so two writers racing on one '$path.part' — the same photo
+    // scrolled past twice, or a tile and the viewer's placeholder behind it —
+    // interleave, and the rename then publishes the mixture as a finished
+    // entry. That is exactly what the "bad cache entry" flood was made of.
+    final temp = File('$path.${_seq++}.part');
+    try {
       await temp.writeAsBytes(bytes, flush: false);
       await temp.rename(path);
     } catch (e) {
       debugPrint('ThumbCache: write failed: $e');
+      unawaited(temp.delete().catchError((_) => temp));
     }
   }
 
@@ -86,6 +136,8 @@ class ThumbCache {
       var total = 0;
       await for (final entity in dir.list(followLinks: false)) {
         if (entity is! File) continue;
+        // A temp file belongs to a write that is still running.
+        if (entity.path.endsWith('.part')) continue;
         final stat = await entity.stat();
         total += stat.size;
         entries.add(_Entry(entity, stat.modified, stat.size));
@@ -114,7 +166,8 @@ class ThumbCache {
       final dir = await _directory();
       if (dir == null) return;
       await dir.delete(recursive: true);
-      _dir = null;
+      _ready = null;
+      _opening = null;
     } catch (e) {
       debugPrint('ThumbCache: clear failed: $e');
     }

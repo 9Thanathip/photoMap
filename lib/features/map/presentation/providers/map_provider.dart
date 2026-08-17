@@ -7,6 +7,7 @@ import 'cover_photo_provider.dart';
 import 'country_provider.dart';
 import '../../data/country_repository.dart';
 import '../widgets/thailand_map_painter.dart';
+import 'package:photo_map/common_widgets/asset_thumbnail_provider.dart';
 
 class MapState {
   final List<ProvinceShape> provinces;
@@ -280,7 +281,8 @@ class MapNotifier extends StateNotifier<MapState> {
   Future<ui.Image?> _loadUiImage(AssetEntity entity) async {
     // Optimized to 250x250 for the map view.
     // This is significantly faster to decode than 400x400 and uses much less RAM.
-    final byteData = await entity.thumbnailDataWithSize(
+    final byteData = await AssetThumbnailProvider.sharpBytes(
+      entity,
       const ThumbnailSize(250, 250),
     );
     if (byteData == null) return null;

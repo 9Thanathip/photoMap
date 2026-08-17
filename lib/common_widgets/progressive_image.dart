@@ -134,8 +134,12 @@ class _ProgressiveImageState extends State<ProgressiveImage> {
               if (wasSync || frame != null) return child;
               return widget.placeholder ?? const SizedBox.shrink();
             },
-            errorBuilder: (_, _, _) =>
-                widget.placeholder ?? const SizedBox.shrink(),
+            errorBuilder: (_, error, _) {
+              // Silence here is why a broken pipeline looked like an empty
+              // grid with a clean log.
+              debugPrint('ProgressiveImage: preview failed: $error');
+              return widget.placeholder ?? const SizedBox.shrink();
+            },
           ),
         if (outgoing != null)
           Image(
@@ -170,8 +174,12 @@ class _ProgressiveImageState extends State<ProgressiveImage> {
             );
           },
           // Leave whatever is underneath showing rather than painting an error
-          // box over it.
-          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+          // box over it — but say so, or a tile that never loads is
+          // indistinguishable from one that is still loading.
+          errorBuilder: (_, error, _) {
+            debugPrint('ProgressiveImage: image failed: $error');
+            return const SizedBox.shrink();
+          },
         ),
       ],
     );

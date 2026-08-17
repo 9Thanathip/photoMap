@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_map/core/services/thumb_cache.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:photo_map/features/map/data/country_repository.dart';
@@ -17,6 +20,18 @@ Future<void> main() async {
   // Flutter still drops the whole cache on memory pressure, so this is a
   // ceiling, not a reservation.
   PaintingBinding.instance.imageCache.maximumSizeBytes = 200 << 20;
+
+  // The count limit binds long before the byte limit once the small previews
+  // are in there too: a 128px preview is 64 KB decoded against a tile's 640 KB,
+  // so a thousand entries is a few hundred tiles and nothing left over. Raising
+  // it lets thousands of previews stay resident — which is what makes a tile
+  // able to paint the moment it is built — while bytes stay capped above.
+  PaintingBinding.instance.imageCache.maximumSize = 3000;
+
+  // Resolve the thumbnail cache directory up front. ThumbCache.pathFor is
+  // synchronous and reports "not ready" rather than waiting, so without this
+  // the first screenful of tiles would all miss and go to the platform.
+  unawaited(ThumbCache.instance.warmUp());
 
   String? initialCountryId;
   List<Country> cachedCountries = const [];

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -113,6 +114,46 @@ void main() {
             size: const ThumbnailSize.square(400),
           ).diskCacheKey;
       expect(keyFor(1000), isNot(keyFor(2000)));
+    });
+
+    test('a tile request never forces a full-fidelity decode', () {
+      // The regression this guards. DeliveryMode.opportunistic looks unsafe —
+      // it is the one mode PhotoKit answers twice, degraded pass first — but
+      // photo_manager drops that pass rather than replying with it
+      // (`isDownloadFinish` is `![info[PHImageResultIsDegradedKey] boolValue]`),
+      // so the caller only ever sees the final image.
+      //
+      // Switching to highQualityFormat to be safe made every tile decode the
+      // full-size original, all of it on the iOS main queue, which saturated
+      // that queue and stopped the whole grid — previews included — from
+      // rendering at all.
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+      final tile = AssetThumbnailProvider.buildOption(
+        const ThumbnailSize.square(400),
+      ).toMap();
+      expect(tile['deliveryMode'], isNot(DeliveryMode.highQualityFormat.index));
+      // 'exact' would force a real resize per request on that same queue.
+      expect(tile['resizeMode'], ResizeMode.fast.index);
+
+      // The preview stays on the cheapest single-callback mode.
+      final preview = AssetThumbnailProvider.buildOption(
+        const ThumbnailSize.square(128),
+        fast: true,
+      ).toMap();
+      expect(preview['deliveryMode'], DeliveryMode.fastFormat.index);
+    });
+
+    test('the cache key changed when the request did', () {
+      // Entries written before the delivery-mode fix hold the degraded image.
+      // Nothing in the old key described how the bytes were asked for, so
+      // without a version they would be served as correct forever.
+      final key = AssetThumbnailProvider(
+        _photo(3000, 4000),
+        size: const ThumbnailSize.square(400),
+      ).diskCacheKey;
+      expect(key, contains('_v3_'));
     });
 
     test('same asset and size is one cache entry', () {

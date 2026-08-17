@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'dart:ui' as ui;
 
@@ -18,6 +19,7 @@ import '../photo_picker_sheet.dart';
 import 'collage_painter.dart';
 import 'collage_ratio.dart';
 import 'collage_transform.dart';
+import 'package:photo_map/common_widgets/asset_thumbnail_provider.dart';
 
 /// Colour wheel drawn in the free-colour slot while no custom colour is set.
 const _kWheel = <Color>[
@@ -170,9 +172,22 @@ class _CollageBuilderScreenState extends ConsumerState<CollageBuilderScreen> {
     if (mounted) setState(() => _revision++);
   }
 
+  /// Decode size for a cell photo, matched to the cell it will be exported in.
+  ///
+  /// A flat 1280 meant a 1×1 or 2×1 collage was drawn into a 2560px canvas from
+  /// a 1280px source — a 2x upscale, which is why exports came out soft. Scaled
+  /// by the grid instead, and clamped: a 10×10 grid decoding at export
+  /// resolution would hold a hundred full-size bitmaps at once.
+  ThumbnailSize get _cellSourceSize {
+    final perCell = _exportSize().longestSide / math.max(_rows, _cols);
+    final side = perCell.ceil().clamp(640, 2048);
+    return ThumbnailSize(side, side);
+  }
+
   Future<ui.Image?> _decode(PhotoItem photo) async {
-    final bytes = await photo.assetEntity!.thumbnailDataWithSize(
-      const ThumbnailSize(1280, 1280),
+    final bytes = await AssetThumbnailProvider.sharpBytes(
+      photo.assetEntity!,
+      _cellSourceSize,
     );
     if (bytes == null) return null;
     final codec = await ui.instantiateImageCodec(bytes);

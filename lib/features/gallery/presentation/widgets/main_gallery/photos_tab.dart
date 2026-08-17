@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/common_widgets/app_empty_state.dart';
 import 'package:photo_map/common_widgets/photo_grid.dart';
+import 'package:photo_map/common_widgets/scroll_date_scrubber.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/l10n/l10n_x.dart';
 import '../../providers/gallery_notifier.dart';
@@ -112,18 +113,43 @@ class PhotosTab extends StatelessWidget {
   }
 
   /// Wraps a grid so the platform starts preparing the photos it is heading
-  /// towards. [order] must be the order tiles actually appear in, which is not
-  /// [photos] for the hue and sectioned views.
+  /// towards, and — once there is a controller to hang it on — gives it a
+  /// draggable scrollbar with a date bubble.
+  ///
+  /// [order] must be the order tiles actually appear in, which is not [photos]
+  /// for the hue and sectioned views.
   Widget _prefetching(
     BuildContext context,
     List<PhotoItem> order,
+    ScrollController? controller,
     Widget child,
-  ) => GridPrefetch(
-    itemCount: order.length,
-    assetAt: (i) => order[i].assetEntity,
-    thumbSize: photoTileThumbSize(context, columns),
-    child: child,
-  );
+  ) {
+    final Widget grid = GridPrefetch(
+      itemCount: order.length,
+      assetAt: (i) => order[i].assetEntity,
+      thumbSize: photoTileThumbSize(context, columns),
+      child: child,
+    );
+    if (controller == null) return grid;
+
+    final l10n = AppLocalizations.of(context);
+    return ScrollDateScrubber(
+      controller: controller,
+      itemCount: order.length,
+      // Keeps the bubble out from under the floating header.
+      padding: EdgeInsets.only(top: contentTopPad, bottom: 24),
+      // The hue view is ordered by colour, so a date span over it would be the
+      // whole library however far you scrolled.
+      labelFor: viewMode == ViewMode.hue
+          ? null
+          // Newest first, so the bottom of the viewport is the older end.
+          : (first, last) => l10n.dateRange(
+                order[last].timestamp,
+                order[first].timestamp,
+              ),
+      child: grid,
+    );
+  }
 
   Widget _flatGrid(
     BuildContext context,
@@ -134,6 +160,7 @@ class PhotosTab extends StatelessWidget {
     return _prefetching(
       context,
       items,
+      controller,
       GridView.builder(
         controller: controller,
         physics: physics,
@@ -178,6 +205,7 @@ class PhotosTab extends StatelessWidget {
     return _prefetching(
       context,
       flat,
+      controller,
       CustomScrollView(
         controller: controller,
         physics: physics,
