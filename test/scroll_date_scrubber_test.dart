@@ -6,9 +6,10 @@ import 'package:photo_map/core/theme/app_theme.dart';
 const int _count = 100;
 const double _rowHeight = 100;
 
-/// Opacity the bubble is currently drawn at. It stays in the tree while hidden
-/// so its text can outlive the fade, so presence alone proves nothing.
-double _bubbleOpacity(WidgetTester tester) =>
+/// Opacity the scrubber is currently drawn at. Both the thumb and the pill stay
+/// in the tree while hidden — the pill so its text can outlive the fade — so
+/// presence alone proves nothing.
+double _opacity(WidgetTester tester) =>
     tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity;
 
 Future<ScrollController> _pump(
@@ -44,6 +45,20 @@ Future<ScrollController> _pump(
   return controller;
 }
 
+/// Grabs the thumb and drags it by [dy], in two steps: the first move a drag
+/// recognizer sees is spent winning the gesture arena.
+Future<void> _dragThumb(WidgetTester tester, double dy) async {
+  final thumb = tester.getCenter(find.byKey(kScrubberThumbKey));
+  final gesture = await tester.startGesture(thumb);
+  await tester.pump(const Duration(milliseconds: 50));
+  await gesture.moveBy(Offset(0, dy / 2));
+  await tester.pump();
+  await gesture.moveBy(Offset(0, dy / 2));
+  await tester.pump();
+  await gesture.up();
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('the bubble names the span the viewport is over',
       (tester) async {
@@ -52,13 +67,13 @@ void main() {
       labelFor: (first, last) => '$first..$last',
     );
 
-    expect(_bubbleOpacity(tester), 0, reason: 'nothing has moved yet');
+    expect(_opacity(tester), 0, reason: 'nothing has moved yet');
 
     // 800 logical into a 10000-tall list with an 800 viewport: rows 8 through 15.
     controller.jumpTo(800);
     await tester.pump();
 
-    expect(_bubbleOpacity(tester), 1);
+    expect(_opacity(tester), 1);
     expect(find.text('8..15'), findsOneWidget);
   });
 
@@ -69,10 +84,10 @@ void main() {
     );
     controller.jumpTo(800);
     await tester.pump();
-    expect(_bubbleOpacity(tester), 1);
+    expect(_opacity(tester), 1);
 
     await tester.pump(const Duration(seconds: 2));
-    expect(_bubbleOpacity(tester), 0);
+    expect(_opacity(tester), 0);
     // The text is still there underneath: dropping it would blank the pill
     // before it had finished fading.
     expect(find.text('8..15'), findsOneWidget);
@@ -86,39 +101,98 @@ void main() {
     controller.jumpTo(800);
     await tester.pump();
 
-    expect(_bubbleOpacity(tester), 0);
-    expect(find.byType(RawScrollbar), findsOneWidget);
+    expect(find.byKey(kScrubberThumbKey), findsOneWidget);
+    expect(_opacity(tester), 1, reason: 'the thumb still has to be draggable');
+    expect(find.byKey(kScrubberBubbleKey), findsNothing);
   });
 
-  testWidgets('the thumb is draggable — the default on touch is not',
+  testWidgets('dragging the thumb scrolls the list', (tester) async {
+    // The framework leaves scrollbars non-interactive on touch, which for a
+    // library this size means flinging for minutes.
+    final controller = await _pump(tester, labelFor: (a, b) => '$a..$b');
+    controller.jumpTo(800);
+    await tester.pump();
+
+    await _dragThumb(tester, 200);
+
+    // 200pt down a 736pt run of track, over a 9200pt scroll.
+    expect(controller.offset, closeTo(800 + (200 / 736) * 9200, 1));
+  });
+
+  testWidgets('dragging past the top does not push the list off screen',
       (tester) async {
-    await _pump(tester, labelFor: (a, b) => '$a..$b');
-    expect(tester.widget<RawScrollbar>(find.byType(RawScrollbar)).interactive,
-        isTrue);
+    // Runs on iOS because that is where it bit: iOS physics bounce, and the
+    // framework lets a *scrollbar* drag ride that bounce with no bound
+    // (scrollbar.dart, _getPrimaryDelta clamps on desktop only). Overshooting
+    // the top of the track by a finger's width took this list to -12000pt —
+    // every row gone off the bottom of the screen.
+    final controller = await _pump(tester, labelFor: (a, b) => '$a..$b');
+    controller.jumpTo(800);
+    await tester.pump();
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(kScrubberThumbKey)),
+    );
+    // Time has to pass, not just a frame: the press is recognized on a timer.
+    await tester.pump(const Duration(milliseconds: 50));
+    await gesture.moveBy(const Offset(0, -400));
+    await tester.pump();
+    await gesture.moveBy(const Offset(0, -400));
+    await tester.pump();
+
+    // Dragging up scrolls up — if this fails the gesture missed the thumb and
+    // dragged the list instead, and the bound below proves nothing.
+    expect(controller.offset, lessThan(800));
+    expect(controller.offset, 0);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+  testWidgets('the bubble points at the thumb, wherever it is', (tester) async {
+    // Two different equations over the same fraction was the old bug: the thumb
+    // travelled `track - thumbHeight` while the pill travelled
+    // `track - pillHeight`, so they only agreed in the middle.
+    final controller = await _pump(tester, labelFor: (a, b) => '$a..$b');
+    // Nothing is drawn until the list has moved at least once, and jumping to
+    // where it already is reports no movement.
+    controller.jumpTo(100);
+    await tester.pump();
+
+    for (final offset in [0.0, 800.0, 4600.0, 9200.0]) {
+      controller.jumpTo(offset);
+      await tester.pump();
+      expect(
+        tester.getCenter(find.byKey(kScrubberBubbleKey)).dy,
+        closeTo(tester.getCenter(find.byKey(kScrubberThumbKey)).dy, 0.5),
+        reason: 'at offset $offset',
+      );
+    }
   });
 
-  testWidgets('the thumb starts level with the bubble', (tester) async {
-    // The gallery floats a header over the top of the list. The thumb and the
-    // bubble have to clear it by the same amount, or the thumb rides above the
-    // date it is meant to be pointing at.
+  testWidgets('both clear the floating header by the same inset',
+      (tester) async {
+    // The gallery floats a header over the top of the list. Anything drawn
+    // above the padding is drawn behind that header.
     const inset = EdgeInsets.only(top: 200, bottom: 24);
     final controller = await _pump(
       tester,
       labelFor: (a, b) => '$a..$b',
       padding: inset,
     );
-    expect(
-      tester.widget<RawScrollbar>(find.byType(RawScrollbar)).padding,
-      inset,
-      reason: 'the Material Scrollbar takes no padding, which was the bug',
-    );
 
-    // At the top of the list the bubble sits at the top of that inset track.
+    controller.jumpTo(400);
+    await tester.pump();
     controller.jumpTo(0);
     await tester.pump();
+
     expect(
-      tester.getTopLeft(find.byType(AnimatedOpacity)).dy,
+      tester.getTopLeft(find.byKey(kScrubberThumbKey)).dy,
       greaterThanOrEqualTo(inset.top),
+    );
+    expect(
+      tester.getCenter(find.byKey(kScrubberBubbleKey)).dy,
+      closeTo(tester.getCenter(find.byKey(kScrubberThumbKey)).dy, 0.5),
     );
   });
 }
