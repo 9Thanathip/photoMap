@@ -1,0 +1,9 @@
+# Dev wears a DEV band across the bottom so the two installs are telling apart
+# on the home screen — they share a name and artwork otherwise.
+# Regenerate the source with scripts/dev_icon.swift, not by hand.
+flutter_launcher_icons:
+  ios: true
+  android: true
+  image_path: "assets/icon_dev.png"
+  min_sdk_android: 21
+  remove_alpha_ios: false
