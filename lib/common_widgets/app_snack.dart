@@ -83,8 +83,10 @@ class _AppSnackViewState extends State<_AppSnackView>
     vsync: this,
     duration: const Duration(milliseconds: 260),
   );
-  late final Animation<double> _anim =
-      CurvedAnimation(parent: _c, curve: Curves.easeOutCubic);
+  late final Animation<double> _anim = CurvedAnimation(
+    parent: _c,
+    curve: Curves.easeOutCubic,
+  );
 
   static const _visibleFor = Duration(milliseconds: 2400);
 
@@ -108,16 +110,13 @@ class _AppSnackViewState extends State<_AppSnackView>
   }
 
   ({IconData icon, Color accent}) _style(AppTokens t) => switch (widget.type) {
-        AppSnackType.success => (
-            icon: AppIcons.check_circle_rounded,
-            accent: const Color(0xFF2FBF71),
-          ),
-        AppSnackType.error => (icon: AppIcons.error_rounded, accent: t.accentCoral),
-        AppSnackType.info => (
-            icon: AppIcons.info_rounded,
-            accent: t.textSecondary,
-          ),
-      };
+    AppSnackType.success => (
+      icon: AppIcons.check_circle_rounded,
+      accent: const Color(0xFF2FBF71),
+    ),
+    AppSnackType.error => (icon: AppIcons.error_rounded, accent: t.accentCoral),
+    AppSnackType.info => (icon: AppIcons.info_rounded, accent: t.textSecondary),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -137,41 +136,50 @@ class _AppSnackViewState extends State<_AppSnackView>
           ).animate(_anim),
           child: FadeTransition(
             opacity: _anim,
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: t.surfaceElevated,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: t.borderSubtle),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(
-                        alpha: context.isDark ? 0.45 : 0.14,
+            // An overlay entry sits above every route, so nothing in the tree
+            // above it is a Material. Without one, Text falls back to
+            // Flutter's error style and every toast draws with a yellow
+            // underline. Transparency adds no surface of its own.
+            child: Material(
+              type: MaterialType.transparency,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: t.surfaceElevated,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: t.borderSubtle),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: context.isDark ? 0.45 : 0.14,
+                        ),
+                        blurRadius: 18,
+                        offset: const Offset(0, 6),
                       ),
-                      blurRadius: 18,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(s.icon, size: 20, color: s.accent),
-                    const SizedBox(width: 10),
-                    Flexible(
-                      child: Text(
-                        widget.message,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: t.textPrimary,
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(s.icon, size: 20, color: s.accent),
+                      const SizedBox(width: 10),
+                      Flexible(
+                        child: Text(
+                          widget.message,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: t.textPrimary,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

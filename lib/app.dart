@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
-import 'dart:ui' as ui;
 import 'l10n/app_localizations.dart';
+import 'common_widgets/setup_progress_overlay.dart';
 import 'features/gallery/presentation/providers/gallery_notifier.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/subscription/presentation/widgets/subscription_banner.dart';
@@ -87,7 +86,7 @@ class _SetupOverlayWrapperState extends ConsumerState<SetupOverlayWrapper> {
 
     return Stack(
       children: [
-        if (widget.child != null) widget.child!,
+        ?widget.child,
         if (_shouldShow)
           Positioned.fill(
             child: AnimatedOpacity(
@@ -96,131 +95,13 @@ class _SetupOverlayWrapperState extends ConsumerState<SetupOverlayWrapper> {
               curve: Curves.easeInOut,
               child: IgnorePointer(
                 ignoring: !isCurrentlyActive,
-                child: Material(
-                  color: Colors.transparent,
-                      child: Container(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        child: BackdropFilter(
-                          filter: ui.ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                          child: Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 40,
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(24),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.08,
-                                      ),
-                                      borderRadius: BorderRadius.circular(24),
-                                      border: Border.all(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.12,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        const Icon(
-                                          AppIcons.map_rounded,
-                                          size: 48,
-                                          color: Colors.white,
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          AppLocalizations.of(context)
-                                              .setupPreparingAtlas,
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          AppLocalizations.of(context)
-                                              .setupIndexingPhotos(
-                                            gallery.geocodeProcessed,
-                                            gallery.geocodeTotal,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.white70,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 24),
-                                        TweenAnimationBuilder<double>(
-                                          tween: Tween<double>(
-                                            begin: 0.0,
-                                            end: gallery.geocodeTotal > 0
-                                                ? gallery.geocodeProcessed /
-                                                      gallery.geocodeTotal
-                                                : 0.0,
-                                          ),
-                                          duration: const Duration(
-                                            milliseconds: 400,
-                                          ),
-                                          curve: Curves.easeInOut,
-                                          builder: (context, value, _) {
-                                            return Column(
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: LinearProgressIndicator(
-                                                    value: value,
-                                                    backgroundColor: Colors
-                                                        .white
-                                                        .withValues(alpha: 0.1),
-                                                    valueColor:
-                                                        const AlwaysStoppedAnimation<
-                                                          Color
-                                                        >(Colors.white),
-                                                    minHeight: 6,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 12),
-                                                Text(
-                                                  '${(value * 100).toStringAsFixed(0)}%',
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        ),
-                                        const SizedBox(height: 24),
-                                        Text(
-                                          AppLocalizations.of(context)
-                                              .setupFirstLaunchNote,
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.white38,
-                                            height: 1.4,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                child: SetupProgressOverlay(
+                  processed: gallery.geocodeProcessed,
+                  total: gallery.geocodeTotal,
                 ),
               ),
+            ),
+          ),
       ],
     );
   }

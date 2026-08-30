@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_map/features/map/presentation/providers/country_provider.dart';
@@ -14,6 +12,7 @@ import 'package:photo_map/l10n/app_localizations.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_actions.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/national_map_header.dart';
 import 'package:photo_map/features/map/presentation/widgets/national_map/province_menu_sheet.dart';
+import 'package:photo_map/core/services/boundary_export.dart';
 import '../providers/map_provider.dart';
 import '../providers/map_settings_provider.dart';
 import 'share_card_screen.dart';
@@ -84,16 +83,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
     setState(() => _downloading = true);
 
     try {
-      final boundary =
-          _repaintKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
-      if (boundary == null) return;
-
-      final image = await boundary.toImage(pixelRatio: 2.0);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) return;
-
-      final bytes = byteData.buffer.asUint8List();
+      final bytes = await captureBoundaryPng(_repaintKey);
+      if (bytes == null) return;
       final filename =
           'thailand_map_${DateTime.now().millisecondsSinceEpoch}.png';
 
@@ -118,16 +109,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   Future<void> _share() async {
     try {
-      final boundary =
-          _repaintKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
-      if (boundary == null) return;
-
-      final image = await boundary.toImage(pixelRatio: 2.0);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) return;
-
-      final bytes = byteData.buffer.asUint8List();
+      final bytes = await captureBoundaryPng(_repaintKey);
+      if (bytes == null) return;
       final dir = await getTemporaryDirectory();
       final file = File(
         '${dir.path}/thailand_map_${DateTime.now().millisecondsSinceEpoch}.png',

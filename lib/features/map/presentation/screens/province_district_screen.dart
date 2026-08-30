@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'package:photo_map/core/theme/app_icons.dart';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/scheduler.dart';
@@ -16,6 +14,7 @@ import 'province_gallery_screen.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/districts_grid.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/districts_map.dart';
 import 'package:photo_map/features/map/presentation/widgets/province_district/province_header.dart';
+import 'package:photo_map/core/services/boundary_export.dart';
 import '../providers/map_settings_provider.dart';
 import '../providers/province_map_provider.dart';
 import '../widgets/map_settings_widgets.dart';
@@ -83,16 +82,8 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
     setState(() => _downloading = true);
 
     try {
-      final boundary =
-          _repaintKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
-      if (boundary == null) return;
-
-      final image = await boundary.toImage(pixelRatio: 2.0);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) return;
-
-      final bytes = byteData.buffer.asUint8List();
+      final bytes = await captureBoundaryPng(_repaintKey);
+      if (bytes == null) return;
       final filename =
           '${widget.provinceName}_map_${DateTime.now().millisecondsSinceEpoch}.png';
 
@@ -117,16 +108,8 @@ class _ProvinceDistrictScreenState extends ConsumerState<ProvinceDistrictScreen>
 
   Future<void> _share() async {
     try {
-      final boundary =
-          _repaintKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
-      if (boundary == null) return;
-
-      final image = await boundary.toImage(pixelRatio: 2.0);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) return;
-
-      final bytes = byteData.buffer.asUint8List();
+      final bytes = await captureBoundaryPng(_repaintKey);
+      if (bytes == null) return;
       final dir = await getTemporaryDirectory();
       final file = File(
         '${dir.path}/${widget.provinceName}_map_${DateTime.now().millisecondsSinceEpoch}.png',

@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -13,6 +11,7 @@ import 'package:photo_map/common_widgets/app_snack.dart';
 import 'package:photo_map/core/theme/app_icons.dart';
 import 'package:photo_map/features/gallery/presentation/providers/gallery_notifier.dart';
 import 'package:photo_map/l10n/app_localizations.dart';
+import 'package:photo_map/core/services/boundary_export.dart';
 import '../providers/country_provider.dart';
 import '../providers/map_provider.dart';
 import '../providers/map_settings_provider.dart';
@@ -31,14 +30,7 @@ class _ShareCardScreenState extends ConsumerState<ShareCardScreen> {
   final GlobalKey _cardKey = GlobalKey();
   bool _busy = false;
 
-  Future<Uint8List?> _capture() async {
-    final boundary =
-        _cardKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    if (boundary == null) return null;
-    final image = await boundary.toImage(pixelRatio: 3.0);
-    final data = await image.toByteData(format: ui.ImageByteFormat.png);
-    return data?.buffer.asUint8List();
-  }
+  Future<Uint8List?> _capture() => captureBoundaryPng(_cardKey);
 
   Future<void> _save() async {
     if (_busy) return;
