@@ -9,6 +9,7 @@ import 'dart:ui' as ui;
 import 'l10n/app_localizations.dart';
 import 'features/gallery/presentation/providers/gallery_notifier.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
+import 'features/subscription/presentation/widgets/subscription_banner.dart';
 
 class App extends ConsumerWidget {
   const App({super.key});
@@ -30,7 +31,12 @@ class App extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
       builder: (context, child) {
-        return SetupOverlayWrapper(child: child);
+        // Setup wraps the banner, not the other way round: first-run indexing
+        // is a blocking progress overlay and must not have an offer on top of
+        // it.
+        return SetupOverlayWrapper(
+          child: SubscriptionBannerHost(child: child),
+        );
       },
     );
   }

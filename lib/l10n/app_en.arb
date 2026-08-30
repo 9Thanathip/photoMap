@@ -1,6 +1,5 @@
 {
   "@@locale": "en",
-
   "settingsTitle": "Settings",
   "settingsSubtitle": "Customize your experience",
   "sectionAppearance": "Appearance",
@@ -13,9 +12,7 @@
   "themeDark": "Dark",
   "settingsVersion": "Version",
   "defaultUserName": "User",
-
   "commonCancel": "Cancel",
-
   "profileTitle": "Profile",
   "profileAccountStatus": "Account Status",
   "profileVerified": "Verified",
@@ -27,7 +24,6 @@
   "profileManageAccountSubtitle": "Delete account and other actions",
   "signOutConfirmTitle": "Sign Out",
   "signOutConfirmBody": "Are you sure you want to sign out?",
-
   "deleteAccountTitle": "Delete Account",
   "deleteAccountIntro": "Deleting your account is irreversible. Please review what happens before continuing.",
   "deleteConsequencePhotos": "All your photos and their map locations will be removed",
@@ -38,7 +34,6 @@
   "deleteConfirmTitle": "Delete Account?",
   "deleteConfirmBody": "This is your final confirmation. Your account and all data will be permanently deleted.",
   "deleteConfirmAction": "Delete",
-
   "fieldEmail": "Email",
   "fieldPassword": "Password",
   "fieldFullName": "Full Name",
@@ -49,18 +44,15 @@
   "validationNameRequired": "Name is required",
   "validationPasswordMin": "Minimum 6 characters",
   "validationPasswordMismatch": "Passwords do not match",
-
   "loginWelcomeBack": "Welcome\nBack",
   "loginSubtitle": "Sign in to continue your journey",
   "buttonSignIn": "Sign In",
   "loginNoAccount": "Don't have an account? ",
   "buttonRegister": "Register",
-
   "registerTitle": "Create\nAccount",
   "registerSubtitle": "Start mapping your memories today",
   "buttonCreateAccount": "Create Account",
   "registerHaveAccount": "Already have an account? ",
-
   "onboard1Title": "Capture Your\nMoments",
   "onboard1Body": "Organize and edit your photos with a beautiful, intuitive gallery experience.",
   "onboard2Title": "Map Your\nJourney",
@@ -70,7 +62,6 @@
   "buttonSkip": "Skip",
   "buttonNext": "Next",
   "buttonGetStarted": "Get Started",
-
   "verifyTitle": "Verify your\nemail",
   "verifyBodyPrefix": "We sent a verification link to ",
   "verifyYourEmail": "your email",
@@ -79,15 +70,17 @@
   "verifyResend": "Resend email",
   "verifyResendCooldown": "Resend email ({seconds}s)",
   "@verifyResendCooldown": {
-    "placeholders": { "seconds": { "type": "Object" } }
+    "placeholders": {
+      "seconds": {
+        "type": "Object"
+      }
+    }
   },
   "verifyUseAnotherAccount": "Use another account",
   "verifyNotVerifiedYet": "Not verified yet. Open the link in your email first.",
   "verifyEmailSent": "Verification email sent.",
-
   "authOrDivider": "or",
   "buttonContinueWithGoogle": "Continue with Google",
-
   "authInvalidEmail": "Invalid email address.",
   "authUserDisabled": "This account has been disabled.",
   "authInvalidCredentials": "Incorrect email or password.",
@@ -97,7 +90,6 @@
   "authRequiresRecentLogin": "Please sign in again to continue.",
   "authTooManyRequests": "Too many attempts. Try again later.",
   "authFailed": "Authentication failed.",
-
   "commonError": "Error",
   "errorPermissionDenied": "Photo permission denied. Please allow access in Settings.",
   "errorLoadPhotos": "Failed to load photos. Please try again.",
@@ -105,7 +97,6 @@
   "commonRemove": "Remove",
   "commonDone": "Done",
   "commonSelect": "Select",
-
   "monthJan": "Jan",
   "monthFeb": "Feb",
   "monthMar": "Mar",
@@ -118,13 +109,17 @@
   "monthOct": "Oct",
   "monthNov": "Nov",
   "monthDec": "Dec",
-
   "navMap": "Map",
   "navAchievements": "Achievements",
   "deletePhotosTitle": "Delete Photos",
   "deletePhotosBody": "Delete {count} photos?",
-  "@deletePhotosBody": { "placeholders": { "count": { "type": "Object" } } },
-
+  "@deletePhotosBody": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
   "galleryTitle": "Gallery",
   "tabPhotos": "Photos",
   "tabAlbums": "Albums",
@@ -133,9 +128,12 @@
   "selectItems": "Select Items",
   "selectedCount": "{count} Selected",
   "@selectedCount": {
-    "placeholders": { "count": { "type": "Object" } }
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
   },
-
   "viewModeTitle": "View Mode",
   "viewModeAll": "All",
   "viewModeYear": "Year",
@@ -143,37 +141,69 @@
   "viewModeDay": "Day",
   "viewModeHue": "Color Gradient",
   "viewModeHueSorting": "Sorting by color…",
-
   "deletePhotoTitle": "Delete Photo",
   "deletePhotoBody": "Are you sure you want to delete this photo?",
-
   "noPhotosFound": "No photos found",
   "libraryEmpty": "Your photo library is empty",
   "detectingLocations": "Detecting locations...",
   "photosAppearShortly": "Your photos will appear shortly",
   "photoCount": "{count, plural, =1{1 photo} other{{count} photos}}",
-  "@photoCount": { "placeholders": { "count": { "type": "int" } } },
+  "@photoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "noPhotosHere": "No photos here",
   "noAlbumsFound": "No albums found",
   "noAlbumsIn": "No albums in {country}",
-  "@noAlbumsIn": { "placeholders": { "country": { "type": "Object" } } },
+  "@noAlbumsIn": {
+    "placeholders": {
+      "country": {
+        "type": "Object"
+      }
+    }
+  },
   "noPhotosIn": "No photos in {country}",
-  "@noPhotosIn": { "placeholders": { "country": { "type": "Object" } } },
-
+  "@noPhotosIn": {
+    "placeholders": {
+      "country": {
+        "type": "Object"
+      }
+    }
+  },
   "setLocation": "Set Location",
   "addToAlbums": "Add to Albums",
   "locationSetTo": "Location set to {province}",
-  "@locationSetTo": { "placeholders": { "province": { "type": "Object" } } },
+  "@locationSetTo": {
+    "placeholders": {
+      "province": {
+        "type": "Object"
+      }
+    }
+  },
   "addedTo": "Added to {province}",
-  "@addedTo": { "placeholders": { "province": { "type": "Object" } } },
+  "@addedTo": {
+    "placeholders": {
+      "province": {
+        "type": "Object"
+      }
+    }
+  },
   "searchPlaceHint": "Search place…",
   "searchForPlace": "Search for a place",
   "noResultsFound": "No results found",
   "cannotConnect": "Cannot connect. Check internet connection.",
   "settingLocationTo": "Setting location to {place}…",
-  "@settingLocationTo": { "placeholders": { "place": { "type": "Object" } } },
+  "@settingLocationTo": {
+    "placeholders": {
+      "place": {
+        "type": "Object"
+      }
+    }
+  },
   "failedWriteGps": "Failed to write GPS to photo file",
-
   "exifUnknownCamera": "Unknown Camera",
   "exifStandardLens": "Standard Lens",
   "exifVideoRecording": "Video Recording",
@@ -185,7 +215,6 @@
   "locationLabel": "Location",
   "openInAppleMaps": "Open in Apple Maps",
   "openInGoogleMaps": "Open in Google Maps",
-
   "weekdayMon": "Monday",
   "weekdayTue": "Tuesday",
   "weekdayWed": "Wednesday",
@@ -193,7 +222,6 @@
   "weekdayFri": "Friday",
   "weekdaySat": "Saturday",
   "weekdaySun": "Sunday",
-
   "editorPresets": "Presets",
   "editorAdjust": "Adjust",
   "editorReset": "Reset Adjustments",
@@ -232,7 +260,9 @@
   "healCount": "{count, plural, =1{1 spot removed} other{{count} spots removed}}",
   "@healCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "presetOriginal": "Original",
@@ -241,7 +271,6 @@
   "presetVintage": "Vintage",
   "presetPolaroid": "Polaroid",
   "presetBw": "B&W",
-
   "mapSavedToPhotos": "Saved to Photos",
   "mapSaveFailed": "Failed to save image",
   "statsTopProvinces": "Most Photographed",
@@ -249,39 +278,55 @@
   "tripsCount": "{count} trips",
   "@tripsCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "tripDays": "{days} days",
   "@tripDays": {
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "tripDaysShort": "{days}d",
   "@tripDaysShort": {
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "tripDaysNights": "{days} days, {nights} nights",
   "@tripDaysNights": {
     "placeholders": {
-      "days": {"type": "int"},
-      "nights": {"type": "int"}
+      "days": {
+        "type": "int"
+      },
+      "nights": {
+        "type": "int"
+      }
     }
   },
   "tripDaysNightsShort": "{days}d {nights}n",
   "@tripDaysNightsShort": {
     "placeholders": {
-      "days": {"type": "int"},
-      "nights": {"type": "int"}
+      "days": {
+        "type": "int"
+      },
+      "nights": {
+        "type": "int"
+      }
     }
   },
   "tripStops": "{count} stops",
   "@tripStops": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "tripsEmptyTitle": "No trips yet",
@@ -290,33 +335,39 @@
   "shareCardProvinces": "{visited} of {total} provinces",
   "@shareCardProvinces": {
     "placeholders": {
-      "visited": {"type": "int"},
-      "total": {"type": "int"}
+      "visited": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "shareCardExplored": "{percent}% explored",
   "@shareCardExplored": {
     "placeholders": {
-      "percent": {"type": "int"}
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "shareCardPhotos": "{count} photos",
   "@shareCardPhotos": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "mapNoData": "No Map Data Found",
   "mapNoPhotosByDistrict": "No photos categorized by district",
   "provinceGallerySubtitle": "Photos you take here will appear here.",
-
   "menuViewDistricts": "View by Districts",
   "menuViewDistrictsSub": "Browse photos by district",
   "menuViewGallery": "View Gallery",
   "menuViewGallerySub": "All photos in this province",
   "menuChangeCover": "Change Cover Photo",
   "menuChangeCoverSub": "Pick which photo appears on the map",
-
   "mapSettingsProvince": "Province",
   "mapSettingsBackground": "Background",
   "mapSettingsBorder": "Border",
@@ -332,7 +383,6 @@
   "mapBrightness": "Brightness",
   "mapCustomColor": "Custom Color",
   "mapResetColor": "Reset",
-
   "tooltipBackground": "Background",
   "tooltipCenterMap": "Center Map",
   "tooltipSaveToPhotos": "Save to Photos",
@@ -342,45 +392,70 @@
   "tooltipShareMap": "Share Map",
   "tooltipDownload": "Download",
   "tooltipDelete": "Delete",
-
   "countryTitle": "Country",
   "searchCountries": "Search countries",
   "noCountriesAvailable": "No countries available",
   "noResultsFor": "No results for \"{query}\"",
-  "@noResultsFor": { "placeholders": { "query": { "type": "Object" } } },
-
+  "@noResultsFor": {
+    "placeholders": {
+      "query": {
+        "type": "Object"
+      }
+    }
+  },
   "coverSetTitle": "Set Cover Photo",
   "coverAdjustHint": "Move and pinch to adjust",
   "coverUsePhoto": "Use Photo",
   "coverArea": "Cover area",
   "coverTapHint": "Tap a photo to set as cover",
-
   "placesTitle": "Places",
   "provincesExplored": "{visited} of {total} provinces explored",
   "@provincesExplored": {
-    "placeholders": { "visited": { "type": "Object" }, "total": { "type": "Object" } }
+    "placeholders": {
+      "visited": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
   },
   "provincesProgress": "{visited} / {total} provinces",
   "@provincesProgress": {
-    "placeholders": { "visited": { "type": "Object" }, "total": { "type": "Object" } }
+    "placeholders": {
+      "visited": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
   },
   "thailandExplorer": "Thailand Explorer",
   "provincesRemaining": "{count} provinces remaining",
-  "@provincesRemaining": { "placeholders": { "count": { "type": "Object" } } },
+  "@provincesRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
   "noPhotosYet": "No photos yet — start exploring!",
   "viewAll": "View All",
-
   "settingsLanguage": "Language",
   "languageSystemDefault": "System default",
   "languageEnglish": "English",
   "languageThai": "ไทย",
-
   "setupPreparingAtlas": "Preparing Your Atlas",
   "setupIndexingPhotos": "Indexing and organizing your photos\n({processed} / {total})",
   "@setupIndexingPhotos": {
     "placeholders": {
-      "processed": { "type": "Object" },
-      "total": { "type": "Object" }
+      "processed": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
     }
   },
   "setupFirstLaunchNote": "This setup only happens on the first launch\nto map your travels safely.",
@@ -405,8 +480,12 @@
   "collagePickerHint": "Grid {filled}/{total} filled",
   "@collagePickerHint": {
     "placeholders": {
-      "filled": { "type": "int" },
-      "total": { "type": "int" }
+      "filled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "collageRows": "Rows",
@@ -424,5 +503,20 @@
   "editHubAdjust": "Adjust",
   "editHubAdjustDesc": "Crop, light, colour and retouch",
   "editHubExif": "EXIF",
-  "editHubExifDesc": "Print the camera settings under the photo"
+  "editHubExifDesc": "Print the camera settings under the photo",
+  "subscriptionTitle": "Go Premium",
+  "subscriptionSubtitle": "Unlimited maps, provinces and photo tools — one subscription.",
+  "subscriptionPrice": "{price} / month",
+  "@subscriptionPrice": {
+    "description": "Monthly subscription price on the launch banner",
+    "placeholders": {
+      "price": {
+        "type": "String",
+        "example": "฿29"
+      }
+    }
+  },
+  "subscriptionCta": "Subscribe",
+  "subscriptionLater": "Not now",
+  "subscriptionDontShowAgain": "Don't show this again"
 }

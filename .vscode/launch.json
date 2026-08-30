@@ -1,33 +1,65 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    // Every entry names a flavor on purpose. Android defines product flavors on
+    // the `env` dimension, so a flavourless `flutter run` has no assemble task
+    // to call and fails outright; iOS would quietly build the plain Runner
+    // scheme against whichever GoogleService-Info.plist happens to be at
+    // ios/GoogleService-Info.plist. Picking is the only safe default.
+    //
+    // dev and prod are separate installs — bundle ids com.thanathip.jaruek.dev
+    // and com.thanathip.jaruek, a Firebase project each — so both can sit on the
+    // phone at once and neither can write over the other's data.
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "photo_map",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "photo_map (mock dev)",
+            "name": "photo_map (dev)",
             "request": "launch",
             "type": "dart",
             "args": [
-                "--dart-define=USE_MOCK=true"
+                "--flavor",
+                "dev"
             ]
         },
         {
-            "name": "photo_map (profile mode)",
+            "name": "photo_map (prod)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "args": [
+                "--flavor",
+                "prod"
+            ]
         },
         {
-            "name": "photo_map (release mode)",
+            // Debug builds run the Dart VM unoptimised with a debugger
+            // attached, which is not what scrolling a photo grid feels like on
+            // a real phone. Measure here, not above.
+            "name": "photo_map (dev, profile)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "profile",
+            "args": [
+                "--flavor",
+                "dev"
+            ]
+        },
+        {
+            "name": "photo_map (prod, profile)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "args": [
+                "--flavor",
+                "prod"
+            ]
+        },
+        {
+            "name": "photo_map (prod, release)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release",
+            "args": [
+                "--flavor",
+                "prod"
+            ]
         }
     ]
 }

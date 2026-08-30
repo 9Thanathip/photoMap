@@ -87,10 +87,20 @@ Rules:
 - Section headers in long widget trees: `// ── Label ──`.
 - Comments explain **why** (flicker avoidance, race guards), not what. Match existing density.
 
+## Environments
+
+- Two flavors, `dev` and `prod`, one Firebase project each. dev gets a `.dev`
+  bundle-id suffix so both install side by side. See `docs/environments.md`.
+- Android needs `--flavor`; iOS falls back to prod without one.
+- Firebase config is per-flavor and native only — `android/app/src/<flavor>/google-services.json`,
+  `ios/config/<flavor>/GoogleService-Info.plist`. No `firebase_options.dart`;
+  `main.dart` calls `Firebase.initializeApp()` bare.
+- Runtime env check: `appFlavor` from `package:flutter/services.dart`.
+
 ## Before finishing any change
 
 1. `flutter analyze` → must be **0 issues**.
 2. Compile check without a device: `flutter build bundle` (compiles Dart to kernel).
-3. Full compile / run on device: `flutter run -d 00008150-00025D5434C0401C` (physical "T H A N A T H I P", needs codesign).
+3. Full compile / run on device: `flutter run --flavor prod -d 00008150-00025D5434C0401C` (physical "T H A N A T H I P", needs codesign).
 4. Touched UI colors → verify **both** light and dark mode.
 5. Only one test exists (`test/widget_test.dart`); this project verifies by running, not unit tests.

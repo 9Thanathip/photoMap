@@ -38,6 +38,23 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    // dev and prod point at separate Firebase projects. Each flavor carries its
+    // own google-services.json under src/<flavor>/, and the ".dev" applicationId
+    // suffix is what lets both builds sit on one device at the same time.
+    flavorDimensions += "env"
+
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            resValue("string", "app_name", "Jaruek Dev")
+        }
+        create("prod") {
+            dimension = "env"
+            resValue("string", "app_name", "Jaruek")
+        }
+    }
 }
 
 dependencies {

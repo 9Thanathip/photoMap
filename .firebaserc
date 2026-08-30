@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "jaruek-dev",
+    "dev": "jaruek-dev",
+    "prod": "jaruek-f2b9e"
+  }
+}

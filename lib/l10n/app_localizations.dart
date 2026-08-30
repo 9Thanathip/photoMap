@@ -1945,6 +1945,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Print the camera settings under the photo'**
   String get editHubExifDesc;
+
+  /// No description provided for @subscriptionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Premium'**
+  String get subscriptionTitle;
+
+  /// No description provided for @subscriptionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited maps, provinces and photo tools — one subscription.'**
+  String get subscriptionSubtitle;
+
+  /// Monthly subscription price on the launch banner
+  ///
+  /// In en, this message translates to:
+  /// **'{price} / month'**
+  String subscriptionPrice(String price);
+
+  /// No description provided for @subscriptionCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe'**
+  String get subscriptionCta;
+
+  /// No description provided for @subscriptionLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get subscriptionLater;
+
+  /// No description provided for @subscriptionDontShowAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t show this again'**
+  String get subscriptionDontShowAgain;
 }
 
 class _AppLocalizationsDelegate

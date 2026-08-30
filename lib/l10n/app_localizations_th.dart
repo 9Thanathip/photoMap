@@ -1006,4 +1006,25 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get editHubExifDesc => 'แสดงข้อมูลกล้องใต้ภาพ';
+
+  @override
+  String get subscriptionTitle => 'อัปเกรดเป็น Premium';
+
+  @override
+  String get subscriptionSubtitle =>
+      'แผนที่ จังหวัด และเครื่องมือแต่งภาพ ไม่จำกัด';
+
+  @override
+  String subscriptionPrice(String price) {
+    return '$price / เดือน';
+  }
+
+  @override
+  String get subscriptionCta => 'สมัคร';
+
+  @override
+  String get subscriptionLater => 'ไว้ทีหลัง';
+
+  @override
+  String get subscriptionDontShowAgain => 'ไม่ต้องแสดงอีก';
 }

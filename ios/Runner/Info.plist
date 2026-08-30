@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Jaruek</string>
+	<string>$(APP_DISPLAY_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -74,6 +74,9 @@
 		<string>comgooglemaps</string>
 		<string>https</string>
 	</array>
+	<!-- GIDClientID and the URL scheme below are rewritten at build time by the
+	     "Copy Firebase config for flavor" phase, from the flavor's own
+	     config/<flavor>/GoogleService-Info.plist. Edit that file, not these. -->
 	<key>GIDClientID</key>
 	<string>593468084945-bk36mm8ljnedv38e6p7d1r419uvlb2h9.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>

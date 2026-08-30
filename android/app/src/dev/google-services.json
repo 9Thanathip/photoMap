@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "32856376212",
+    "project_id": "jaruek-dev",
+    "storage_bucket": "jaruek-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:32856376212:android:716047e4bf6082f342c581",
+        "android_client_info": {
+          "package_name": "com.thanathip.jaruek.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "32856376212-9eprqo9r24dga0d5b2bn288hbilsma01.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.thanathip.jaruek.dev",
+            "certificate_hash": "0e67a37bda1a0e7fb0370a079a25276cf5167fe6"
+          }
+        },
+        {
+          "client_id": "32856376212-6gr02c6e1iikaeos9bpvn304m40h2rfv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD054F5mKKh4f7VWEXVVaU_bbmjHVwbGqU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "32856376212-6gr02c6e1iikaeos9bpvn304m40h2rfv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "32856376212-e9t7vl0g4l7ul2bvuggch3pb6ame32j5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.thanathip.jaruek.dev"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

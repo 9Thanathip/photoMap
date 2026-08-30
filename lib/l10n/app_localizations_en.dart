@@ -1009,4 +1009,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editHubExifDesc => 'Print the camera settings under the photo';
+
+  @override
+  String get subscriptionTitle => 'Go Premium';
+
+  @override
+  String get subscriptionSubtitle =>
+      'Unlimited maps, provinces and photo tools — one subscription.';
+
+  @override
+  String subscriptionPrice(String price) {
+    return '$price / month';
+  }
+
+  @override
+  String get subscriptionCta => 'Subscribe';
+
+  @override
+  String get subscriptionLater => 'Not now';
+
+  @override
+  String get subscriptionDontShowAgain => 'Don\'t show this again';
 }

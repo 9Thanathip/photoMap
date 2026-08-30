@@ -1,0 +1,18 @@
+// Rules for the DEV project only (jaruek-dev, database "countries").
+//
+// Prod's rules are not mirrored in this repo — they live in the console and the
+// Rules API is not reachable from the Firebase CLI, so there is nothing here to
+// diff them against. Do not deploy this file at jaruek-f2b9e.
+//
+// Scope comes from the app: country_repository.dart is the only Firestore
+// caller, it only ever reads /countries, and nothing in the app writes.
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /countries/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
